@@ -14,8 +14,22 @@ const app = express();
 connectDB();
 
 // Middleware
+const allowedOrigins = [
+    'http://localhost:5173',
+    'https://ivamax-frontend.vercel.app',
+    'http://192.168.1.3:5173'
+];
+
 app.use(cors({
-    origin: true, // Allow any origin (for mobile testing)
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1 || origin.startsWith('http://192.168.')) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
 }));
 app.use(express.json());
@@ -29,6 +43,11 @@ app.use('/api/tree', treeRoutes);
 // Health check
 app.get('/health', (req, res) => {
     res.json({ status: 'OK', message: 'IVAMAX API is running' });
+});
+
+// Root route
+app.get('/', (req, res) => {
+    res.json({ status: 'OK', message: 'IVAMAX API Backend is running successfully' });
 });
 
 // Error handling middleware
