@@ -40,26 +40,26 @@ const BusinessDetails = () => {
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 rounded-2xl shadow-lg shadow-gray-400 border border-gray-400">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800">Business Overview</h1>
-                    <p className="text-gray-500">Manage your network and direct referrals</p>
+                    <p className="text-gray-500 text-sm md:text-base">Manage your network and direct referrals</p>
                 </div>
-                <div className="flex gap-3">
-                    <button className="flex items-center gap-2 px-6 py-3 bg-white text-gray-700 border border-gray-400 rounded-xl hover:bg-gray-300 transition-colors shadow-lg shadow-gray-400 border border-gray-400">
+                <div className="grid grid-cols-2 gap-3 w-full md:w-auto">
+                    <button className="flex items-center justify-center gap-2 px-4 py-3 bg-white text-gray-700 text-sm font-medium border border-gray-400 rounded-xl hover:bg-gray-50 transition-colors shadow-sm">
                         <Share2 size={18} />
                         Refer Link
                     </button>
                     <button
                         onClick={() => navigate('/tree')}
-                        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-golden-500 to-golden-600 text-white rounded-xl shadow hover:translate-y-px transition-transform shadow-lg shadow-gray-400 border border-gray-400"
+                        className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-golden-500 to-golden-600 text-white text-sm font-medium rounded-xl shadow-lg shadow-golden-500/20 hover:-translate-y-0.5 transition-all"
                     >
                         <Users size={18} />
-                        View Visual Tree
-                        <ArrowRight size={16} />
+                        Visual Tree
+                        <ArrowRight size={16} className="hidden sm:block" />
                     </button>
                 </div>
             </div>
 
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                 {[
                     { label: 'Total Team', value: teamStats.totalTeam, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
                     { label: 'Left Volume', value: teamStats.leftTeam, icon: ChevronRight, rotate: 'rotate-180', color: 'text-purple-600', bg: 'bg-purple-50' },
@@ -69,14 +69,14 @@ const BusinessDetails = () => {
                     <motion.div
                         key={index}
                         whileHover={{ y: -5 }}
-                        className="bg-white p-6 rounded-2xl shadow-lg shadow-gray-400 hover:shadow-golden-400 border border-gray-400 flex items-center justify-between"
+                        className="bg-white p-4 md:p-6 rounded-2xl shadow-lg shadow-gray-400 hover:shadow-golden-400 border border-gray-400 flex items-center justify-between"
                     >
                         <div>
-                            <p className="text-sm font-medium text-gray-500 mb-1">{stat.label}</p>
-                            <h3 className={`text-3xl font-bold ${stat.color}`}>{stat.value}</h3>
+                            <p className="text-xs md:text-sm font-medium text-gray-500 mb-1">{stat.label}</p>
+                            <h3 className={`text-xl md:text-3xl font-bold ${stat.color}`}>{stat.value}</h3>
                         </div>
-                        <div className={`p-4 rounded-xl ${stat.bg} ${stat.color} ${stat.rotate || ''}`}>
-                            <stat.icon size={24} />
+                        <div className={`p-2 md:p-4 rounded-xl ${stat.bg} ${stat.color} ${stat.rotate || ''}`}>
+                            <stat.icon className="w-5 h-5 md:w-6 md:h-6" />
                         </div>
                     </motion.div>
                 ))}

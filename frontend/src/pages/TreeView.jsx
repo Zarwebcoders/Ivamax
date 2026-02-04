@@ -87,10 +87,10 @@ const TreeView = () => {
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="card-glass p-6 flex justify-between items-center"
+                className="card-glass p-6 border-2 border-gray-400 flex justify-between items-center shadow-lg shadow-gray-400"
             >
                 <div>
-                    <h1 className="text-3xl font-bold gradient-text mb-2">
+                    <h1 className="text-3xl font-bold mb-2">
                         Genealogy Tree
                     </h1>
                     <p className="text-text-tertiary">

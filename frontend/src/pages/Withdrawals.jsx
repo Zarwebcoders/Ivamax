@@ -49,7 +49,7 @@ const Withdrawals = () => {
             initial="hidden"
             animate="visible"
             variants={containerVariants}
-            className="space-y-8 min-h-screen p-6 bg-gray-50"
+            className="space-y-8 min-h-screen px-2 bg-gray-50"
         >
             <div>
                 <h1 className="text-2xl font-bold text-gray-800">Withdrawal</h1>

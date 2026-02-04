@@ -14,7 +14,8 @@ import {
     FiLogOut,
     FiChevronLeft,
     FiChevronRight,
-    FiMenu
+    FiMenu,
+    FiMoreVertical
 } from 'react-icons/fi';
 
 const DashboardLayout = () => {
@@ -73,7 +74,7 @@ const DashboardLayout = () => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setSidebarOpen(false)}
-                        className="fixed inset-0 bg-black/40 z-30 backdrop-blur-sm"
+                        className="fixed inset-0 bg-black/50 z-[90] backdrop-blur-md"
                     />
                 )}
             </AnimatePresence>
@@ -81,20 +82,18 @@ const DashboardLayout = () => {
             {/* Floating Sidebar */}
             <aside
                 className={`
-                    fixed top-4 z-40 h-[calc(100vh-2rem)] 
-                    transition-all duration-300 ease-out
-                    glass bg-white/90 backdrop-blur-xl
-                    rounded-3xl border border-black shadow-xl
-                    shadow-black/30
+                    fixed z-[100] transition-all duration-300 ease-out
+                    glass bg-white/95 backdrop-blur-xl
+                    border-r border-gray-200 shadow-2xl shadow-black/30
                     flex flex-col
                     ${isMobile
-                        ? (sidebarOpen ? 'translate-x-4 left-0 w-64' : '-translate-x-full left-0 w-64')
-                        : (sidebarOpen ? 'left-4 w-64' : 'left-4 w-20')
+                        ? (sidebarOpen ? 'translate-x-0 left-0 w-64 top-0 h-[100dvh] rounded-r-3xl border-y-0 border-l-0' : '-translate-x-full left-0 w-64 top-0 h-[100dvh]')
+                        : (sidebarOpen ? 'top-4 h-[calc(100vh-2rem)] left-4 w-64 rounded-3xl border border-black' : 'top-4 h-[calc(100vh-2rem)] left-4 w-20 rounded-3xl border border-black')
                     }
                 `}
             >
                 {/* Logo Area */}
-                <div className="h-16 flex items-center justify-center relative border-b border-gray-300 mx-4">
+                <div className={`h-16 flex items-center ${sidebarOpen ? 'justify-start' : 'justify-center'} relative border-b border-gray-300 mx-4`}>
                     <div className={`flex items-center gap-3 transition-all duration-300 ${sidebarOpen ? 'scale-100' : 'scale-90'}`}>
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-golden-400 to-golden-600 flex items-center justify-center shadow-lg shadow-golden-500/20 transform hover:rotate-12 transition-transform duration-300">
                             <span className="text-white font-bold text-xl tracking-tight">IV</span>
@@ -109,7 +108,7 @@ const DashboardLayout = () => {
                 </div>
 
                 {/* Menu Items */}
-                <nav className="flex-1 py-3 px-2 space-y-2 overflow-y-auto custom-scrollbar">
+                <nav className="flex-1 py-1 md:py-3 px-2 space-y-1 md:space-y-2 overflow-y-auto custom-scrollbar">
                     {menuItems.map((item) => {
                         const isActive = location.pathname === item.path;
                         const Icon = item.icon;
@@ -140,9 +139,9 @@ const DashboardLayout = () => {
                 </nav>
 
                 {/* User Profile Snippet (Bottom) */}
-                <div className={`p-4 mx-2 mb-2 rounded-2xl transition-all duration-300 ${sidebarOpen ? 'bg-gradient-to-r from-gray-50 to-white border border-gray-100' : 'bg-transparent'}`}>
+                <div className={`p-4 mx-2 mb-2 rounded-2xl transition-all duration-300 ${sidebarOpen ? 'bg-gradient-to-r from-gray-100 to-gray-400 border border-gray-400' : 'bg-transparent'}`}>
                     <div className={`flex items-center ${sidebarOpen ? 'gap-3' : 'justify-center'}`}>
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-600 font-bold shadow-inner">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-400 flex items-center justify-center text-gray-600 font-bold shadow-inner">
                             {user?.fullName?.charAt(0) || 'U'}
                         </div>
                         {sidebarOpen && (
@@ -154,7 +153,7 @@ const DashboardLayout = () => {
                         {sidebarOpen && (
                             <button
                                 onClick={handleLogout}
-                                className="p-2 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
+                                className="p-2 text-red-600 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
                                 title="Logout"
                             >
                                 <FiLogOut size={18} />
@@ -168,16 +167,19 @@ const DashboardLayout = () => {
             <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 className={`
-                    fixed z-50 flex items-center justify-center w-10 h-10 
-                    bg-white border border-gray-400 shadow-lg shadow-black/30 rounded-full text-gray-500 
-                    hover:text-golden-600 hover:scale-110 transition-all cursor-pointer
+                    fixed z-[101] flex items-center justify-center w-10 h-10 
+                    bg-white border border-gray-400 shadow-lg shadow-black/30 text-gray-700 
+                    hover:text-golden-600 transition-all cursor-pointer
                     ${isMobile
-                        ? (sidebarOpen ? 'left-[236px] top-[26px]' : 'left-4 top-[26px]')
-                        : (sidebarOpen ? 'left-[246px] top-[30px]' : 'left-[82px] top-[40px]')
+                        ? (sidebarOpen ? 'left-[236px] top-[26px] rounded-full' : 'left-0 top-[26px] rounded-r-xl border-l-0')
+                        : (sidebarOpen ? 'left-[246px] top-[30px] rounded-full' : 'left-[82px] top-[40px] rounded-full')
                     }
                 `}
             >
-                {sidebarOpen ? <FiChevronLeft size={20} /> : <FiChevronRight size={20} />}
+                {isMobile
+                    ? (sidebarOpen ? <FiChevronLeft size={20} /> : <FiMenu size={24} />)
+                    : (sidebarOpen ? <FiChevronLeft size={20} /> : <FiChevronRight size={20} />)
+                }
             </button>
 
 

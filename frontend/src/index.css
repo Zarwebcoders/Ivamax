@@ -61,17 +61,17 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-bg-lighter);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--color-golden);
-  border-radius: 4px;
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
