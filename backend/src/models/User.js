@@ -31,15 +31,10 @@ const userSchema = new mongoose.Schema({
         type: String, // Storing plaintext password as requested (Not recommended for production)
         required: false,
     },
-    referralId: {
+
+    referralLink: {
         type: String,
         default: null,
-    },
-    walletAddress: {
-        type: String,
-        default: null,
-        sparse: true,
-        unique: true,
     },
     registrationDate: {
         type: Date,

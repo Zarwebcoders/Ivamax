@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Wallet = require('../models/Wallet');
 const Withdrawal = require('../models/Withdrawal');
 const Income = require('../models/Income');
+const Deposit = require('../models/Deposit');
 
 // @desc    Get admin dashboard statistics
 // @route   GET /api/admin/stats
@@ -165,10 +166,58 @@ const getWalletRequests = async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
+// @desc    Get all deposit requests
+// @route   GET /api/admin/deposits
+// @access  Private/Admin
+const getDeposits = async (req, res) => {
+    try {
+        const deposits = await Deposit.find({}).sort({ createdAt: -1 });
+        res.json({ success: true, count: deposits.length, data: deposits });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// @desc    Approve deposit and activate package
+// @route   PUT /api/admin/deposit/approve/:id
+// @access  Private/Admin
+const approveDeposit = async (req, res) => {
+    try {
+        const deposit = await Deposit.findById(req.params.id);
+        if (!deposit) return res.status(404).json({ message: 'Deposit not found' });
+
+        if (deposit.status !== 'pending') {
+            return res.status(400).json({ message: 'Deposit already processed' });
+        }
+
+        const user = await User.findOne({ userId: deposit.userId });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // Activations Logic
+        deposit.status = 'approved';
+        deposit.processedBy = req.user.userId;
+        deposit.processedDate = Date.now();
+        await deposit.save();
+
+        // Update User Investment
+        user.investmentAmount += deposit.amount;
+        user.investmentDate = Date.now();
+        user.packageType = deposit.packageName;
+
+        await user.save();
+
+        res.json({ success: true, message: 'Deposit approved and package activated' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error authorizing deposit' });
+    }
+};
 
 module.exports = {
     getAdminStats,
     getAllUsers,
     approveWalletChange,
-    getWalletRequests
+    getWalletRequests,
+    getDeposits,
+    approveDeposit
 };

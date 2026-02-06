@@ -1,22 +1,44 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 
 const Register = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { register } = useAuth();
+
+    // Parse URL Params using useLocation which is reactive to router changes
+    const getUrlParams = () => {
+        const params = new URLSearchParams(location.search);
+        return {
+            ref: params.get('ref'),
+            position: params.get('position')
+        };
+    };
+
     const [formData, setFormData] = useState({
         fullName: '',
         mobile: '',
         email: '',
         password: '',
         confirmPassword: '',
-        referralId: '',
-        walletAddress: '',
+        referralLink: '',
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const { ref, position } = getUrlParams();
+        if (ref) {
+            console.log('Detected Referral:', ref, position);
+            // Construct a displayable link or just keep the current URL
+            setFormData(prev => ({
+                ...prev,
+                referralLink: window.location.href // Pre-fill with full URL so user sees it
+            }));
+        }
+    }, [location.search]);
 
     const handleChange = (e) => {
         setFormData((prev) => ({
@@ -29,7 +51,6 @@ const Register = () => {
         e.preventDefault();
         setError('');
 
-        // Validation
         if (formData.password !== formData.confirmPassword) {
             setError('Passwords do not match');
             return;
@@ -44,9 +65,80 @@ const Register = () => {
 
         try {
             const { confirmPassword, ...registerData } = formData;
+
+            // ============================================================
+            // ROBUST REFERRAL EXTRACTION LOGIC
+            // ============================================================
+            let finalReferrerId = null;
+            let finalPlacement = null;
+
+            console.log("Current Form Link:", formData.referralLink);
+            console.log("Current Window URL:", window.location.href);
+
+            // 1. Try to extract from the Input Field (User input text)
+            if (formData.referralLink && formData.referralLink.trim() !== '') {
+                try {
+                    let input = formData.referralLink.trim();
+                    if (input.match(/^IVA\d+$/i)) {
+                        finalReferrerId = input;
+                    } else {
+                        // Attempt to parse as URL
+                        const linkUrl = input.startsWith('http') ? input : `http://dummy.com/${input}`;
+                        const urlObj = new URL(linkUrl);
+                        finalReferrerId = urlObj.searchParams.get('ref');
+                        finalPlacement = urlObj.searchParams.get('position');
+                    }
+                } catch (e) {
+                    console.error("Input link parsing error:", e);
+                }
+            }
+
+            // 2. Fallback: Parse from Current Window Location (State might be stale or cleared)
+            if (!finalReferrerId) {
+                // Use native URLSearchParams for reliability
+                const params = new URLSearchParams(window.location.search);
+                const refParam = params.get('ref');
+                const posParam = params.get('position');
+
+                if (refParam) {
+                    console.log("Found params in Window Location:", refParam, posParam);
+                    finalReferrerId = refParam;
+                    finalPlacement = posParam;
+                }
+            }
+
+            // 3. Last Resort: Parse from 'hash' if using HashRouter (just in case)
+            if (!finalReferrerId && window.location.hash.includes('?')) {
+                try {
+                    const hashPart = window.location.hash.split('?')[1];
+                    if (hashPart) {
+                        const params = new URLSearchParams(hashPart);
+                        if (params.get('ref')) {
+                            finalReferrerId = params.get('ref');
+                            finalPlacement = params.get('position');
+                        }
+                    }
+                } catch (err) {
+                    console.error("Hash parse error", err);
+                }
+            }
+
+            // ============================================================
+            // ATTACH TO PAYLOAD
+            // ============================================================
+            if (finalReferrerId) {
+                registerData.referrerId = finalReferrerId;
+            }
+            if (finalPlacement) {
+                registerData.placementSide = finalPlacement;
+            }
+
+            console.log("FINAL REGISTER PAYLOAD:", registerData);
+
             await register(registerData);
             navigate('/');
         } catch (err) {
+            console.error("Register Failed:", err);
             setError(err.response?.data?.message || 'Registration failed. Please try again.');
         } finally {
             setLoading(false);
@@ -54,7 +146,7 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-background-cream via-background-white to-background-light flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gray-400 flex items-center justify-center p-4">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -62,144 +154,110 @@ const Register = () => {
                 className="w-full max-w-2xl"
             >
                 <div className="card-glass p-8">
-                    {/* Logo */}
                     <div className="text-center mb-8">
                         <h1 className="text-4xl font-bold gradient-text mb-2">IVAMAX</h1>
                         <p className="text-text-tertiary">Create your account and start earning</p>
                     </div>
 
-                    {/* Error Message */}
                     {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+                        <div className="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
                             {error}
                         </div>
                     )}
 
-                    {/* Register Form */}
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Full Name */}
                             <div>
-                                <label htmlFor="fullName" className="label">
-                                    Full Name *
-                                </label>
+                                <label htmlFor="fullName" className="label">Full Name *</label>
                                 <input
                                     type="text"
                                     id="fullName"
                                     name="fullName"
                                     value={formData.fullName}
                                     onChange={handleChange}
-                                    className="input"
+                                    className="w-full pl-4 py-3.5 bg-gray-200 border border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
                                     placeholder="Enter your full name"
                                     required
                                 />
                             </div>
 
-                            {/* Mobile */}
                             <div>
-                                <label htmlFor="mobile" className="label">
-                                    Mobile Number *
-                                </label>
+                                <label htmlFor="mobile" className="label">Mobile Number *</label>
                                 <input
                                     type="tel"
                                     id="mobile"
                                     name="mobile"
                                     value={formData.mobile}
                                     onChange={handleChange}
-                                    className="input"
+                                    className="w-full pl-4 py-3.5 bg-gray-200 border border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
                                     placeholder="Enter mobile number"
                                     required
                                 />
                             </div>
 
-                            {/* Email */}
                             <div>
-                                <label htmlFor="email" className="label">
-                                    Email Address *
-                                </label>
+                                <label htmlFor="email" className="label">Email Address *</label>
                                 <input
                                     type="email"
                                     id="email"
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className="input"
+                                    className="w-full pl-4 py-3.5 bg-gray-200 border border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
                                     placeholder="Enter email address"
                                     required
                                 />
                             </div>
 
-                            {/* Referral ID */}
                             <div>
-                                <label htmlFor="referralId" className="label">
-                                    Referral ID (Optional)
-                                </label>
+                                <label htmlFor="referralLink" className="label">Referral Link (Optional)</label>
                                 <input
                                     type="text"
-                                    id="referralId"
-                                    name="referralId"
-                                    value={formData.referralId}
+                                    id="referralLink"
+                                    name="referralLink"
+                                    value={formData.referralLink}
                                     onChange={handleChange}
-                                    className="input"
-                                    placeholder="Enter referral ID"
+                                    className="w-full pl-4 py-3.5 bg-gray-200 border border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
+                                    placeholder="Enter referral link or ID"
                                 />
+                                {formData.referralLink && (
+                                    <p className="text-xs text-golden-600 mt-1 font-medium">
+                                        Detecting:
+                                        {formData.referralLink.match(/ref=([^&]+)/) ? ` ID: ${formData.referralLink.match(/ref=([^&]+)/)[1]}` : ''}
+                                        {formData.referralLink.match(/position=([^&]+)/) ? ` | Position: ${formData.referralLink.match(/position=([^&]+)/)[1]}` : ''}
+                                    </p>
+                                )}
                             </div>
 
-                            {/* Password */}
                             <div>
-                                <label htmlFor="password" className="label">
-                                    Password *
-                                </label>
+                                <label htmlFor="password" className="label">Password *</label>
                                 <input
                                     type="password"
                                     id="password"
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className="input"
+                                    className="w-full pl-4 py-3.5 bg-gray-200 border border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
                                     placeholder="Create password"
                                     required
                                 />
                             </div>
 
-                            {/* Confirm Password */}
                             <div>
-                                <label htmlFor="confirmPassword" className="label">
-                                    Confirm Password *
-                                </label>
+                                <label htmlFor="confirmPassword" className="label">Confirm Password *</label>
                                 <input
                                     type="password"
                                     id="confirmPassword"
                                     name="confirmPassword"
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
-                                    className="input"
+                                    className="w-full pl-4 py-3.5 bg-gray-200 border border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
                                     placeholder="Confirm password"
                                     required
                                 />
                             </div>
                         </div>
 
-                        {/* Wallet Address */}
-                        <div>
-                            <label htmlFor="walletAddress" className="label">
-                                Wallet Address (Optional)
-                            </label>
-                            <input
-                                type="text"
-                                id="walletAddress"
-                                name="walletAddress"
-                                value={formData.walletAddress}
-                                onChange={handleChange}
-                                className="input"
-                                placeholder="Enter wallet address (can be added later)"
-                            />
-                            <p className="text-xs text-text-light mt-1">
-                                You can connect your wallet after registration
-                            </p>
-                        </div>
-
-                        {/* Submit Button */}
                         <button
                             type="submit"
                             disabled={loading}
@@ -213,13 +271,10 @@ const Register = () => {
                                     </svg>
                                     Creating Account...
                                 </span>
-                            ) : (
-                                'Create Account'
-                            )}
+                            ) : 'Create Account'}
                         </button>
                     </form>
 
-                    {/* Login Link */}
                     <div className="mt-6 text-center">
                         <p className="text-text-tertiary">
                             Already have an account?{' '}

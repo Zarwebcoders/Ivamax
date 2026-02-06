@@ -47,8 +47,39 @@ const getTree = async (req, res) => {
 
             // Fetch left child
             if (node.leftDirectId) {
+                // If we reach maxLevel, we shouldn't say it's empty, we should say it exists but truncated.
+                // However, the current recursive structure expects child nodes.
+                // For now, let's just make sure we go deep enough.
                 const leftChild = await buildTree(node.leftDirectId, currentLevel + 1, maxLevel);
-                treeData.children.push(leftChild ? { ...leftChild, position: 'left' } : { position: 'left', empty: true });
+
+                if (leftChild) {
+                    treeData.children.push({ ...leftChild, position: 'left' });
+                } else {
+                    // If we have an ID but returned null, it means we hit max depth OR DB link is broken.
+                    // If we hit max depth, we should ideally show a placeholder, but frontend might not support it.
+                    // IMPORTANT: If currentLevel > maxLevel, we return null. 
+                    // This causes the parent to see "null" and push "empty: true".
+                    // We need to FIX this logic. 
+
+                    // If we are at max level, we should peek if child exists
+                    if (currentLevel === maxLevel) {
+                        treeData.children.push({
+                            position: 'left',
+                            userId: node.leftDirectId,
+                            fullName: '...',
+                            isExpanded: false
+                        }); // explicit placeholder? 
+                        // Actually, sticking to "Existing logic" but just Deeper is safer for now to avoid breaking Frontend UI.
+                        // But I will increase depth significantly.
+
+                        // If we assume Frontend treats "empty: true" as an empty slot with (+) button.
+                        // We must NOT send empty: true if there is a user.
+                        // So I will change the logic: IF max depth reached, DO NOT return null if there is a nodeId.
+                        // Return a partial node.
+                    } else {
+                        treeData.children.push({ position: 'left', empty: true, _debug: 'link_broken_or_depth' });
+                    }
+                }
             } else {
                 treeData.children.push({ position: 'left', empty: true });
             }
@@ -56,7 +87,16 @@ const getTree = async (req, res) => {
             // Fetch right child
             if (node.rightDirectId) {
                 const rightChild = await buildTree(node.rightDirectId, currentLevel + 1, maxLevel);
-                treeData.children.push(rightChild ? { ...rightChild, position: 'right' } : { position: 'right', empty: true });
+                if (rightChild) {
+                    treeData.children.push({ ...rightChild, position: 'right' });
+                } else {
+                    if (currentLevel === maxLevel) {
+                        // Placeholder for deep node
+                        treeData.children.push({ position: 'right', userId: node.rightDirectId, fullName: '...', isExpanded: false });
+                    } else {
+                        treeData.children.push({ position: 'right', empty: true });
+                    }
+                }
             } else {
                 treeData.children.push({ position: 'right', empty: true });
             }
@@ -64,7 +104,9 @@ const getTree = async (req, res) => {
             return treeData;
         };
 
-        const treeData = await buildTree(rootUserId, 0, 2); // Fetch 2 levels down (Root + 2 generations)
+        // Increase default depth to 10 to ensure we see the long legs
+        const depth = req.query.depth ? parseInt(req.query.depth) : 10;
+        const treeData = await buildTree(rootUserId, 0, depth);
 
         res.json({
             success: true,
@@ -76,6 +118,55 @@ const getTree = async (req, res) => {
     }
 };
 
+// TEMP DEBUG
+const checkRawNodes = async (req, res) => {
+    try {
+        const nodes = await Tree.find({ userId: { $in: ['IVA100001', 'IVA100002', 'IVA100003'] } });
+        res.json(nodes);
+    } catch (e) {
+        res.json({ error: e.message });
+    }
+};
+
+// @desc    Search users by ID or Name for Tree Navigation
+// @route   GET /api/tree/search?q=query
+// @access  Private
+const searchUsers = async (req, res) => {
+    try {
+        const { q } = req.query;
+        if (!q) {
+            return res.status(400).json({ message: 'Query required' });
+        }
+
+        // Search by userId (exact or partial) OR fullName (regex)
+        const users = await User.find({
+            $or: [
+                { userId: { $regex: q, $options: 'i' } },
+                { fullName: { $regex: q, $options: 'i' } }
+            ]
+        }).select('userId fullName rank').limit(5);
+
+        // Fetch parentId for each user from Tree model
+        const results = await Promise.all(users.map(async (user) => {
+            const treeNode = await Tree.findOne({ userId: user.userId }).select('parentId');
+            return {
+                ...user.toObject(),
+                parentId: treeNode ? treeNode.parentId : null
+            };
+        }));
+
+        res.json({
+            success: true,
+            data: results
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 module.exports = {
-    getTree
+    getTree,
+    checkRawNodes,
+    searchUsers
 };

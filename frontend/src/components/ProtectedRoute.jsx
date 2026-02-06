@@ -13,8 +13,11 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     }
 
     if (!user) {
+        console.log('ProtectedRoute: No user found, redirecting to login');
         return <Navigate to="/login" replace />;
     }
+
+    console.log('ProtectedRoute: User found:', user.email, 'Role:', user.role);
 
     if (adminOnly && user.role !== 'admin') {
         return <Navigate to="/" replace />;

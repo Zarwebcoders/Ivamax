@@ -1,13 +1,22 @@
 import { motion } from 'framer-motion';
+import { useEffect, useRef } from 'react';
 
-const TreeNode = ({ node, onExpand }) => {
+const TreeNode = ({ node, onExpand, isHighlighted }) => {
+    const nodeRef = useRef(null);
+
+    useEffect(() => {
+        if (isHighlighted && nodeRef.current) {
+            nodeRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, [isHighlighted]);
+
     if (node.empty) {
         return (
             <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 mb-2">
-                    <span className="text-gray-300 text-xl">+</span>
+                <div className="w-8 h-8 rounded-full border border-dashed border-black/30 flex items-center justify-center bg-gray-100 mb-1 shadow-sm">
+                    <span className="text-black text-sm text-opacity-50">+</span>
                 </div>
-                <p className="text-xs text-text-tertiary">Empty</p>
+                <p className="text-[9px] text-gray-400">Empty</p>
             </div>
         );
     }
@@ -22,32 +31,45 @@ const TreeNode = ({ node, onExpand }) => {
         }
     };
 
+    const isLeft = node.position === 'left';
+
     return (
         <div className="flex flex-col items-center z-10 relative">
             <motion.div
+                ref={nodeRef}
                 whileHover={{ scale: 1.05 }}
-                className={`w-32 p-3 rounded-xl border-2 ${getRankColor(node.rank)} bg-white shadow-lg cursor-pointer flex flex-col items-center`}
+                animate={isHighlighted ? { scale: 1.15, boxShadow: "0 0 20px rgba(234, 179, 8, 0.6)" } : {}}
+                transition={{ duration: 0.3 }}
+                className={`w-20 p-1.5 rounded-lg border ${isHighlighted ? 'border-golden-500 ring-2 ring-golden-400 ring-offset-2' : getRankColor(node.rank)} bg-white shadow-md shadow-gray-300 cursor-pointer flex flex-col items-center relative transition-all`}
                 onClick={() => onExpand && onExpand(node.userId)}
             >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold mb-2 ${getRankColor(node.rank)} ring-2 ring-white`}>
+                {/* Position Badge */}
+                <div className={`absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white shadow-sm ${isLeft ? 'bg-blue-500' : 'bg-red-500'}`}>
+                    {isLeft ? 'L' : 'R'}
+                </div>
+
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold mb-1 ${getRankColor(node.rank)} ring-1 ring-white`}>
                     {node.fullName.charAt(0)}
                 </div>
-                <p className="text-xs font-bold text-gray-800 truncate w-full text-center">{node.fullName}</p>
-                <p className="text-[10px] text-gray-500">{node.userId}</p>
 
-                <div className="flex justify-between w-full mt-2 pt-2 border-t border-gray-100 text-[10px]">
-                    <div className="text-center">
-                        <span className="block font-bold text-gray-700">{node.totalLeft || 0}</span>
-                        <span className="text-gray-400">L</span>
+                <p className="text-[9px] font-bold text-gray-800 truncate w-full text-center leading-tight">
+                    {node.fullName.split(' ')[0]}
+                </p>
+                <p className="text-[8px] text-gray-400 truncate w-full text-center scale-90">
+                    {node.userId}
+                </p>
+
+                <div className="flex justify-between w-full mt-1.5 pt-1 border-t border-gray-100 text-[8px]">
+                    <div className="text-center w-1/2 flex flex-col items-center">
+                        <span className="font-bold text-gray-800 leading-none">{node.totalLeft || 0}</span>
+                        <span className="text-[7px] text-gray-400 scale-90">L</span>
                     </div>
-                    <div className="text-center border-l border-gray-100 pl-2">
-                        <span className="block font-bold text-gray-700">{node.totalRight || 0}</span>
-                        <span className="text-gray-400">R</span>
+                    <div className="text-center w-1/2 flex flex-col items-center border-l border-gray-100">
+                        <span className="font-bold text-gray-800 leading-none">{node.totalRight || 0}</span>
+                        <span className="text-[7px] text-gray-400 scale-90">R</span>
                     </div>
                 </div>
             </motion.div>
-
-            {/* Connector line for children would go here ideally, but simplified logic handled in TreeView */}
         </div>
     );
 };

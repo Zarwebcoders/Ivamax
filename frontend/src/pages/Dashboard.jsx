@@ -1,26 +1,54 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { TrendingUp, Users, Crown, DollarSign, Clock, Landmark, PieChart, ArrowRightLeft, Trophy, Target, TreeDeciduous, BarChart3, CircleDollarSign, Briefcase } from 'lucide-react';
+import { TrendingUp, Users, Crown, DollarSign, Clock, Landmark, PieChart, ArrowRightLeft, Trophy, Target, TreeDeciduous, BarChart3, CircleDollarSign, Briefcase, Copy, Check } from 'lucide-react';
+
+import { dashboardService } from '../services/dashboard.service';
 
 const Dashboard = () => {
     const { user } = useAuth();
     const [stats, setStats] = useState({
-        totalIncome: 12500,
-        pmrIncome: 8000,
-        drrIncome: 3000,
-        fcrIncome: 1500,
-        pendingWithdrawals: 2,
-        totalWithdrawn: 5000,
-        leftPairs: 128,
-        rightPairs: 128,
-        currentRank: 'Silver',
-        royaltyPercentage: 10,
-        matchingCompleted: 128
+        // Financials
+        totalIncome: 0,
+        pmrIncome: 0,
+        drrIncome: 0,
+        fcrIncome: 0,
+        // Withdrawals
+        pendingWithdrawals: 0,
+        totalWithdrawn: 0,
+        // Business
+        leftPairs: 0, // This is BV/Count
+        rightPairs: 0,
+        matchingCompleted: 0,
+        // Rank
+        currentRank: 'Member',
+        royaltyPercentage: 0,
+        rankProgress: 0,
+        // Profile
+        memberSince: new Date(),
+        networkSize: 0
     });
 
+    const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('income');
+    const [activeRefTab, setActiveRefTab] = useState('left');
     const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                const data = await dashboardService.getStats();
+                if (data.success) {
+                    setStats(prev => ({ ...prev, ...data.data }));
+                }
+            } catch (error) {
+                console.error("Failed to fetch dashboard stats", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDashboardData();
+    }, []);
 
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -41,13 +69,17 @@ const Dashboard = () => {
         }),
     };
 
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    };
+
     return (
-        <div className="space-y-8 p-4 md:p-0 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
+        <div className="space-y-8 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
             {/* Welcome Section */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-golden-300/80 to-golden-400/80 p-8 text-black shadow-2xl shadow-black/40"
+                className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-golden-300/80 to-golden-400/80 p-4 text-black shadow-2xl shadow-black/40"
             >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-black/30 blur-sm rounded-full -translate-y-32 translate-x-32"></div>
                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/30 blur-sm rounded-full translate-y-24 -translate-x-24"></div>
@@ -57,18 +89,57 @@ const Dashboard = () => {
                     <p className="text-lg opacity-90 mb-6 max-w-2xl">
                         Track your earnings, manage your network, and grow your business with IVAMAX
                     </p>
-                    <div className="flex items-center gap-4">
-                        <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                            <span className="text-sm opacity-90">Member Since</span>
-                            <p className="font-semibold">Jan 2024</p>
+                    <div className="flex flex-col lg:flex-row lg:items-end gap-6 w-full">
+                        {/* Stats */}
+                        <div className="flex items-center gap-4 shrink-0">
+                            <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                                <span className="text-sm opacity-90">Member Since</span>
+                                <p className="font-semibold">{formatDate(stats.memberSince)}</p>
+                            </div>
+                            <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                                <span className="text-sm opacity-90">Network Size</span>
+                                <p className="font-semibold">{stats.networkSize} Members</p>
+                            </div>
                         </div>
-                        <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                            <span className="text-sm opacity-90">Network Size</span>
-                            <p className="font-semibold">256 Members</p>
+
+                        {/* Referral Links Tabs */}
+                        <div className="flex-1 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 w-full lg:w-auto">
+                            <div className="grid grid-cols-2 lg:flex lg:flex-wrap gap-2 mb-4">
+                                {[
+                                    { id: 'left', label: 'Left Link', color: 'blue' },
+                                    { id: 'right', label: 'Right Link', color: 'emerald' },
+                                    { id: 'placing-left', label: 'Placing Left', color: 'cyan' },
+                                    { id: 'placing-right', label: 'Placing Right', color: 'orange' }
+                                ].map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveRefTab(tab.id)}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${activeRefTab === tab.id
+                                            ? `bg-white text-${tab.color}-600 shadow-lg`
+                                            : 'bg-black/20 text-white hover:bg-black/30'
+                                            }`}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Dynamic Link Display */}
+                            <div className="bg-gray-300/60 backdrop-blur-md rounded-xl p-2 flex items-center gap-2 border border-black shadow-inner">
+                                <input
+                                    type="text"
+                                    readOnly
+                                    value={`${window.location.origin}/register?ref=${user?.userId}&position=${activeRefTab}`}
+                                    className="flex-1 bg-transparent px-3 py-1.5 text-sm font-medium text-gray-800 outline-none truncate"
+                                />
+                                <CopyButton link={`${window.location.origin}/register?ref=${user?.userId}&position=${activeRefTab}`} />
+                            </div>
                         </div>
                     </div>
                 </div>
             </motion.div>
+
+
 
 
 
@@ -440,6 +511,26 @@ const Dashboard = () => {
                 )
             }
         </div >
+    );
+};
+
+const CopyButton = ({ link }) => {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(link);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <button
+            onClick={handleCopy}
+            className="bg-black text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-800 transition-colors flex items-center gap-2"
+        >
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+            {copied ? 'Copied' : 'Copy'}
+        </button>
     );
 };
 

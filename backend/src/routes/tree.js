@@ -1,11 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
-const { getTree } = require('../controllers/treeController');
+const { getTree, checkRawNodes, searchUsers } = require('../controllers/treeController');
 
+// Public Debug Route
+router.get('/raw-check', checkRawNodes);
+
+// Protected Routes
 router.use(protect);
-
+router.get('/search', searchUsers); // Must be before /:userId
 router.get('/:userId', getTree);
-router.get('/', getTree); // Get current user's tree
+router.get('/', getTree);
 
 module.exports = router;

@@ -2,13 +2,68 @@ const User = require('../models/User');
 const Tree = require('../models/Tree');
 const { generateToken } = require('../utils/generateToken');
 
+// Helper to find the correct placement based on strategy
+const findPlacement = async (sponsorId, strategy) => {
+    let currentId = sponsorId;
+    let parentNode = null;
+    let side = null;
+
+    // Fetch Sponsor's Tree Node
+    const sponsorTree = await Tree.findOne({ userId: sponsorId });
+    if (!sponsorTree) {
+        throw new Error('Sponsor tree node not found');
+    }
+
+    if (strategy === 'left') {
+        // 1. Normal Left Link: Direct placement
+        if (sponsorTree.leftDirectId) {
+            throw new Error('Sponsor\'s Left position is already occupied');
+        }
+        return { parentId: sponsorId, side: 'Left' };
+
+    } else if (strategy === 'right') {
+        // 2. Normal Right Link: Direct placement
+        if (sponsorTree.rightDirectId) {
+            throw new Error('Sponsor\'s Right position is already occupied');
+        }
+        return { parentId: sponsorId, side: 'Right' };
+
+    } else if (strategy === 'placing-left') {
+        // 3. Placing Left Link: Extreme Left (Power Leg)
+        // Start from sponsor and traverse LEFT until we find a null spot
+        let current = sponsorTree;
+        while (current) {
+            if (!current.leftDirectId) {
+                // Found empty spot
+                return { parentId: current.userId, side: 'Left' };
+            }
+            // Move down to the next node on the left
+            current = await Tree.findOne({ userId: current.leftDirectId });
+        }
+
+    } else if (strategy === 'placing-right') {
+        // 4. Placing Right Link: Extreme Right (Power Leg)
+        // Start from sponsor and traverse RIGHT until we find a null spot
+        let current = sponsorTree;
+        while (current) {
+            if (!current.rightDirectId) {
+                // Found empty spot
+                return { parentId: current.userId, side: 'Right' };
+            }
+            // Move down to the next node on the right
+            current = await Tree.findOne({ userId: current.rightDirectId });
+        }
+    }
+
+    throw new Error('Invalid placement strategy');
+};
+
 // @desc    Register new user
 // @route   POST /api/auth/register
 // @access  Public
 const register = async (req, res) => {
-    let createdUser = null;
     try {
-        const { fullName, mobile, email, password, referralId, walletAddress } = req.body;
+        const { fullName, mobile, email, password } = req.body;
 
         // Check if user already exists
         const userExists = await User.findOne({ email });
@@ -16,89 +71,241 @@ const register = async (req, res) => {
             return res.status(400).json({ message: 'User already exists with this email' });
         }
 
-        // Generate auto User ID
-        const userId = await User.generateUserId();
+        // =========================================================
+        // 1. REFERRAL LINK PARSING
+        // =========================================================
+        let referrerId = req.body.referrerId || null;
+        let placementStrategy = req.body.placementSide ? req.body.placementSide.toLowerCase() : null; // left, right, placing-left, placing-right
 
-        // Check for orphaned Tree node and clean up if necessary (Self-healing)
-        const orphanedTree = await Tree.findOne({ userId });
-        if (orphanedTree) {
-            console.log(`Found orphaned tree node for ${userId}. Cleaning up...`);
-            await Tree.deleteOne({ userId });
-        }
+        // If data not in body, try to parse from `referralLink` string if provided
+        if ((!referrerId || !placementStrategy) && req.body.referralLink) {
+            try {
+                let link = req.body.referralLink.trim();
+                // Simple check if it's just an ID
+                if (link.match(/^IVA\d+$/i)) {
+                    if (!referrerId) referrerId = link.toUpperCase();
+                } else {
+                    // It's a URL
+                    if (!link.startsWith('http')) {
+                        link = `http://dummy.com/${link.startsWith('/') ? '' : '/'}${link}`;
+                    }
+                    const urlObj = new URL(link);
+                    if (!referrerId) referrerId = urlObj.searchParams.get('ref');
 
-        // Validate referral ID if provided
-        let referrer = null;
-        if (referralId) {
-            referrer = await User.findOne({ userId: referralId });
-            if (!referrer) {
-                return res.status(400).json({ message: 'Invalid referral ID' });
+                    // Only map strategy if not explicitly provided
+                    if (!placementStrategy) {
+                        const strategies = ['left', 'right', 'placing-left', 'placing-right'];
+                        const pos = urlObj.searchParams.get('position')?.toLowerCase();
+                        if (strategies.includes(pos)) {
+                            placementStrategy = pos;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.log('Link parse error:', e);
             }
         }
 
-        // Create user
-        createdUser = await User.create({
-            userId,
+        // Defaults if parsing failed or partial info
+        if (!referrerId) {
+            referrerId = 'IVA100001'; // Default Admin/Root if no referrer
+        }
+        // If strategy logic is missing, default to 'left' or 'placing-left'?? 
+        // For now, if no strategy, we can't place in binary tree properly. 
+        // But let's assume 'placing-left' (spillover) is the safest default if they just have a generic link.
+        if (!placementStrategy) {
+            placementStrategy = 'placing-left';
+        }
+
+        // Verify Referrer Exists
+        const referrerUser = await User.findOne({ userId: referrerId });
+        if (!referrerUser) {
+            return res.status(400).json({ message: 'Invalid Referral ID' });
+        }
+
+        // =========================================================
+        // 2. FIND TREE PLACEMENT
+        // =========================================================
+        console.log(`[DEBUG] Finding placement for Sponsor=${referrerId} using Strategy=${placementStrategy}`);
+
+        let placementInfo;
+        try {
+            placementInfo = await findPlacement(referrerId, placementStrategy);
+        } catch (err) {
+            console.error('[DEBUG] findPlacement Error:', err.message);
+            return res.status(400).json({ message: err.message });
+        }
+
+        const { parentId, side } = placementInfo; // side is 'Left' or 'Right'
+        console.log(`[DEBUG] Placement Result: Parent=${parentId}, Side=${side}`);
+
+        if (!parentId) {
+            console.error('[CRITICAL] Calculated ParentID is null/undefined!');
+            return res.status(500).json({ message: 'Failed to calculate parent placement' });
+        }
+
+        //Double check parent truly exists in Tree (findPlacement checks it, but good to be sure)
+        const parentTree = await Tree.findOne({ userId: parentId });
+        if (!parentTree) {
+            console.error(`[CRITICAL] Parent Node ${parentId} not found in DB!`);
+            return res.status(500).json({ message: 'Parent position missing in tree' });
+        }
+
+        // =========================================================
+        // 3. CREATE DATA
+        // =========================================================
+
+        // Generate new User ID
+        const newUserId = await User.generateUserId();
+
+        // Create User
+        const newUser = await User.create({
+            userId: newUserId,
             fullName,
             mobile,
             email,
             password,
-            plainPassword: password, // Save plaintext password
-            referralId: referralId || null,
-            walletAddress: walletAddress || null,
+            plainPassword: password,
+            referralId: referrerId, // The Sponsor
+            referralLink: req.body.referralLink || null,
+            placementSide: side, // Actual side they ended up on
+            role: 'user'
         });
 
-        // Create tree node for user
-        const treeNode = await Tree.create({
-            userId: createdUser.userId,
-            parentId: referralId || null,
-            level: referrer ? referrer.level + 1 : 0,
+        // Calculate Level
+        const newLevel = parentTree.level + 1;
+
+        console.log(`[DEBUG] Creating Tree Node: User=${newUserId}, Parent=${parentId}, Level=${newLevel}`);
+
+        // Create Tree Node
+        const newTree = await Tree.create({
+            userId: newUserId,
+            parentId: String(parentId), // Explicitly cast to string to be safe
+            level: newLevel,
+            leftDirectId: null,
+            rightDirectId: null,
         });
 
-        // If there's a referrer, update their tree
-        if (referrer) {
-            const referrerTree = await Tree.findOne({ userId: referralId });
+        console.log('[DEBUG] Tree Node Created:', newTree);
 
-            // Auto-placement logic: Place in left if empty, otherwise right
-            if (!referrerTree.leftDirectId) {
-                referrerTree.leftDirectId = userId;
-                await User.findOneAndUpdate(
-                    { userId },
-                    { placementSide: 'Left' }
-                );
-            } else if (!referrerTree.rightDirectId) {
-                referrerTree.rightDirectId = userId;
-                await User.findOneAndUpdate(
-                    { userId },
-                    { placementSide: 'Right' }
-                );
+        // =========================================================
+        // 4. UPDATE PARENT CONNECTIONS
+        // =========================================================
+
+        if (side === 'Left') {
+            // Validate race condition again
+            const freshParent = await Tree.findOne({ userId: parentId });
+            if (freshParent.leftDirectId) {
+                console.error(`[CRITICAL] Race condition on ${parentId} Left`);
+                await User.deleteOne({ _id: newUser._id });
+                await Tree.deleteOne({ _id: newTree._id });
+                return res.status(409).json({ message: 'Placement spot taken during processing. Please try again.' });
             }
 
-            await referrerTree.save();
+            freshParent.leftDirectId = newUserId;
+            await freshParent.save();
+            console.log(`[DEBUG] Updated Parent ${parentId} LeftDirectId to ${newUserId}`);
+
+        } else { // Right
+            const freshParent = await Tree.findOne({ userId: parentId });
+            if (freshParent.rightDirectId) {
+                console.error(`[CRITICAL] Race condition on ${parentId} Right`);
+                await User.deleteOne({ _id: newUser._id });
+                await Tree.deleteOne({ _id: newTree._id });
+                return res.status(409).json({ message: 'Placement spot taken during processing. Please try again.' });
+            }
+
+            freshParent.rightDirectId = newUserId;
+            await freshParent.save();
+            console.log(`[DEBUG] Updated Parent ${parentId} RightDirectId to ${newUserId}`);
         }
 
-        // Generate token
-        const token = generateToken(createdUser.userId);
+        // =========================================================
+        // 5. UPDATE UPLINE COUNTS (BUBBLE UP)
+        // =========================================================
+        try {
+            await updateUplineCounts(newUserId);
+            console.log(`[SUCCESS] Upline counts updated for ${newUserId}`);
+        } catch (err) {
+            console.error('[WARNING] Failed to update upline counts:', err);
+            // Don't fail registration for this, but log it
+        }
+
+        console.log(`[SUCCESS] Registration Complete for ${newUserId}`);
 
         res.status(201).json({
-            success: true,
-            message: 'Registration successful',
-            data: {
-                userId: createdUser.userId,
-                fullName: createdUser.fullName,
-                email: createdUser.email,
-                token,
-            },
+            _id: newUser._id,
+            userId: newUser.userId,
+            fullName: newUser.fullName,
+            email: newUser.email,
+            token: generateToken(newUser.userId),
+            treeData: newTree
         });
-    } catch (error) {
-        console.error('Registration error:', error);
 
-        // Manual Rollback: If user was created but subsequent steps failed, delete the user
-        if (createdUser) {
-            console.log(`Rolling back user creation for ${createdUser.userId}`);
-            await User.findByIdAndDelete(createdUser._id);
+    } catch (error) {
+        console.error('Registration Error:', error);
+        if (error.code === 11000) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+        res.status(500).json({ message: 'Server error during registration' });
+    }
+};
+
+// HELPER: Bubble up counts
+const updateUplineCounts = async (startUserId) => {
+    let currentId = startUserId;
+
+    // We loop until we hit the top or a broken link
+    while (currentId) {
+        // Find the node itself to get its parent
+        const currentNode = await Tree.findOne({ userId: currentId });
+        if (!currentNode || !currentNode.parentId) break;
+
+        const parentId = currentNode.parentId;
+        const parentNode = await Tree.findOne({ userId: parentId });
+
+        if (!parentNode) break;
+
+        // Determine which side 'currentId' is on relative to 'parentNode'
+        if (parentNode.leftDirectId === currentId) {
+            // It's on the Left
+            await Tree.updateOne(
+                { userId: parentId },
+                { $inc: { totalLeftMembers: 1 } }
+            );
+            // CRITICAL: For the NEXT iteration (Grandparent), is the Parent Left or Right?
+            // The loop continues, setting currentId = parentId.
+            // The NEXT iteration will find Grandparent, check if Parent is L or R of Grandparent.
+            // Wait, this logic is SLIGHTLY flawed. 
+            // If I am on the Left of Parent, I contribute to Parent's Left count.
+            // My Parent is on the Right of Grandparent. Does my existence contribute to Grandparent's Right count?
+            // YES. Because I am in the total downline.
+            // But my logic below: `parentNode.leftDirectId === currentId` checks DIRECT child.
+            // This works for the immediate parent.
+            // But when `currentId` becomes `parentId` (the Parent),
+            // The Grandparent checks if `Parent` is Left or Right.
+            // If Parent is Right of Grandparent, then we increment Grandparent's RIGHT count.
+            // THIS IS CORRECT. We are bubbling up the "Active Node" and seeing which side it hangs off.
+        } else if (parentNode.rightDirectId === currentId) {
+            // It's on the Right
+            await Tree.updateOne(
+                { userId: parentId },
+                { $inc: { totalRightMembers: 1 } }
+            );
+        } else {
+            // Edge case: Maybe intermediate node where direct link is different?
+            // In a strict binary tree, parent->left MUST be the child in tha left chain.
+            // But wait! If I am deep down, say Gen 5.
+            // Gen 4 is my parent. Gen 4.left = Me. -> Gen 4 LeftCount++ . Correct.
+            // Gen 3 is Gen 4's parent. Gen 3.right = Gen 4. -> Gen 3 RightCount++. Correct.
+            // Logic holds.
+
+            // However, what if I am NOT the direct child? 
+            // `currentId` in this loop IS the direct child of `parentId` because we fetch `parentId` FROM `currentId`.
+            // So the relationship is always direct for the pair we are examining.
         }
 
-        res.status(500).json({ message: 'Server error', error: error.message });
+        currentId = parentId; // Move up one level
     }
 };
 
@@ -109,48 +316,35 @@ const login = async (req, res) => {
     try {
         const { userId, password } = req.body;
 
-        // Find user by userId or email
-        const user = await User.findOne({
-            $or: [
-                { userId: userId },
-                { email: userId },
-                { email: userId.toLowerCase() } // Handle case-insensitive email
-            ]
-        });
-
-        if (!user) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+        // Check if input is empty
+        if (!userId || !password) {
+            return res.status(400).json({ message: 'Please provide User ID/Email and password' });
         }
 
-        // Check password
-        const isMatch = await user.comparePassword(password);
+        // Check if input is email or userId
+        const isEmail = userId.includes('@');
+        const query = isEmail ? { email: userId } : { userId: userId };
 
-        if (!isMatch) {
-            return res.status(401).json({ message: 'Invalid credentials' });
-        }
+        const user = await User.findOne(query);
 
-        // Check if user is active
-        if (!user.isActive) {
-            return res.status(403).json({ message: 'Account is deactivated' });
-        }
-
-        // Generate token
-        const token = generateToken(user.userId);
-
-        res.json({
-            success: true,
-            message: 'Login successful',
-            data: {
+        if (user && (await user.comparePassword(password))) {
+            const treeNode = await Tree.findOne({ userId: user.userId });
+            res.json({
+                _id: user._id,
                 userId: user.userId,
                 fullName: user.fullName,
                 email: user.email,
+                mobile: user.mobile,
+                token: generateToken(user.userId),
                 role: user.role,
-                token,
-            },
-        });
+                treeData: treeNode
+            });
+        } else {
+            res.status(401).json({ message: 'Invalid credentials' });
+        }
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Login Error:', error);
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -159,12 +353,58 @@ const login = async (req, res) => {
 // @access  Private
 const getMe = async (req, res) => {
     try {
-        const user = await User.findOne({ userId: req.user.userId }).select('-password');
-
+        const user = await User.findById(req.user._id).select('-password');
         res.json({
             success: true,
             data: user,
         });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+
+        if (user) {
+            user.fullName = req.body.fullName || user.fullName;
+            user.mobile = req.body.mobile || user.mobile;
+            user.walletAddress = req.body.walletAddress || user.walletAddress;
+
+            // Bank Details
+            if (req.body.bankName) user.bankName = req.body.bankName;
+            if (req.body.accountNumber) user.accountNumber = req.body.accountNumber;
+            if (req.body.ifscCode) user.ifscCode = req.body.ifscCode;
+
+            // Password update (if provided)
+            if (req.body.password) {
+                user.password = req.body.password;
+                user.plainPassword = req.body.password; // Sync plain
+            }
+
+            const updatedUser = await user.save();
+
+            res.json({
+                _id: updatedUser._id,
+                userId: updatedUser.userId,
+                fullName: updatedUser.fullName,
+                email: updatedUser.email,
+                mobile: updatedUser.mobile,
+                token: generateToken(updatedUser._id),
+                role: updatedUser.role,
+                walletAddress: updatedUser.walletAddress,
+                bankName: updatedUser.bankName,
+                accountNumber: updatedUser.accountNumber,
+                ifscCode: updatedUser.ifscCode
+            });
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -235,6 +475,7 @@ module.exports = {
     register,
     login,
     getMe,
+    updateProfile,
     forgotPassword,
     resetPassword,
 };

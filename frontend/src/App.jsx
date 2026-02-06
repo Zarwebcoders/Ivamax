@@ -13,12 +13,14 @@ import TreeView from './pages/TreeView';
 import IncomeOverview from './pages/IncomeOverview';
 import Reports from './pages/Reports';
 import Withdrawals from './pages/Withdrawals';
+import Packages from './pages/Packages';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import WalletApprovals from './pages/admin/WalletApprovals';
 import WithdrawalApprovals from './pages/admin/WithdrawalApprovals';
+import DepositApprovals from './pages/admin/DepositApprovals';
 
 // Layout
 import DashboardLayout from './components/DashboardLayout';
@@ -52,6 +54,7 @@ function App() {
               <Route path="income" element={<IncomeOverview />} />
               <Route path="reports" element={<Reports />} />
               <Route path="withdrawals" element={<Withdrawals />} />
+              <Route path="packages" element={<Packages />} />
             </Route>
 
             {/* Protected Admin Routes */}
@@ -67,6 +70,7 @@ function App() {
               <Route path="users" element={<UserManagement />} />
               <Route path="wallet-approvals" element={<WalletApprovals />} />
               <Route path="withdrawal-approvals" element={<WithdrawalApprovals />} />
+              <Route path="deposit-approvals" element={<DepositApprovals />} />
             </Route>
 
             {/* Catch all */}

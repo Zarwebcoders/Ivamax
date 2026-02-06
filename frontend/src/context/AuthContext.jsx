@@ -27,14 +27,16 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const login = async (credentials) => {
+        console.log('AuthContext: Attempting login...');
         const data = await authService.login(credentials);
-        setUser(data.data);
+        console.log('AuthContext: Login success, data:', data);
+        setUser(data);
         return data;
     };
 
     const register = async (userData) => {
         const data = await authService.register(userData);
-        setUser(data.data);
+        setUser(data);
         return data;
     };
 

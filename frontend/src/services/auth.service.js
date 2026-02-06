@@ -3,18 +3,18 @@ import api from './api';
 export const authService = {
     register: async (userData) => {
         const response = await api.post('/auth/register', userData);
-        if (response.data.data.token) {
-            localStorage.setItem('token', response.data.data.token);
-            localStorage.setItem('user', JSON.stringify(response.data.data));
+        if (response.data.token) {
+            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('user', JSON.stringify(response.data));
         }
         return response.data;
     },
 
     login: async (credentials) => {
         const response = await api.post('/auth/login', credentials);
-        if (response.data.data.token) {
-            localStorage.setItem('token', response.data.data.token);
-            localStorage.setItem('user', JSON.stringify(response.data.data));
+        if (response.data.token) {
+            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('user', JSON.stringify(response.data));
         }
         return response.data;
     },
@@ -26,6 +26,18 @@ export const authService = {
 
     getCurrentUser: async () => {
         const response = await api.get('/auth/me');
+        return response.data;
+    },
+
+    updateProfile: async (userData) => {
+        const response = await api.put('/auth/profile', userData);
+        if (response.data) {
+            // Update local storage if needed, or rely on fetching fresh "me"
+            // But usually nice to update stored user
+            const stored = JSON.parse(localStorage.getItem('user') || '{}');
+            const updated = { ...stored, ...response.data };
+            localStorage.setItem('user', JSON.stringify(updated));
+        }
         return response.data;
     },
 

@@ -1,6 +1,6 @@
 import api from './api';
 
-export const adminService = {
+const adminService = {
     getStats: async () => {
         const response = await api.get('/admin/stats');
         return response.data;
@@ -13,3 +13,5 @@ export const adminService = {
 
     // Add more admin services as needed
 };
+
+export default adminService;

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { adminService } from '../../services/admin.service';
+import adminService from '../../services/admin.service';
 
 const UserManagement = () => {
     const [users, setUsers] = useState([]);
@@ -184,8 +184,8 @@ const UserManagement = () => {
                                         key={i + 1}
                                         onClick={() => handlePageChange(i + 1)}
                                         className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${pagination.page === i + 1
-                                                ? 'z-10 bg-golden-50 border-golden-500 text-golden-600'
-                                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                                            ? 'z-10 bg-golden-50 border-golden-500 text-golden-600'
+                                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
                                             }`}
                                     >
                                         {i + 1}

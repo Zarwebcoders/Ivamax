@@ -7,4 +7,8 @@ export const treeService = {
         const response = await api.get(url);
         return response.data;
     },
+    searchUsers: async (query) => {
+        const response = await api.get(`/tree/search?q=${query}`);
+        return response.data;
+    }
 };

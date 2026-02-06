@@ -38,7 +38,12 @@ const Login = () => {
         try {
             const response = await login({ userId: normalizedUserId, password: formData.password });
             console.log('Login successful:', response); // Debug log
-            navigate('/');
+
+            if (response.role === 'admin') {
+                navigate('/admin');
+            } else {
+                navigate('/');
+            }
         } catch (err) {
             console.error('Login error details:', err); // Detailed error log
 
@@ -66,7 +71,7 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-gray-400 flex items-center justify-center p-4 relative overflow-hidden">
             {/* dynamic background elements */}
             <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
                 <div className="absolute -top-[20%] -left-[10%] w-[600px] h-[600px] bg-golden-100 rounded-full blur-[100px] opacity-30 animate-pulse"></div>
@@ -100,7 +105,7 @@ const Login = () => {
                         <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
-                            className="bg-red-50/80 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-6 flex items-start gap-3"
+                            className="bg-red-50/80 border border-red-400 text-red-600 px-4 py-3 rounded-xl mb-6 flex items-start gap-3"
                         >
                             <FiAlertCircle className="mt-0.5 flex-shrink-0" />
                             <span className="text-sm font-medium">{error}</span>
@@ -124,7 +129,7 @@ const Login = () => {
                                     name="userId"
                                     value={formData.userId}
                                     onChange={handleChange}
-                                    className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
+                                    className="w-full pl-11 pr-4 py-3.5 bg-gray-200 border border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
                                     placeholder="Enter your User ID"
                                     required
                                 />
@@ -148,7 +153,7 @@ const Login = () => {
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className="w-full pl-11 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
+                                    className="w-full pl-11 pr-12 py-3.5 bg-gray-200 border border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
                                     placeholder="Enter your password"
                                     required
                                 />

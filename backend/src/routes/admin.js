@@ -5,7 +5,9 @@ const {
     getAdminStats,
     getAllUsers,
     approveWalletChange,
-    getWalletRequests
+    getWalletRequests,
+    getDeposits,
+    approveDeposit
 } = require('../controllers/adminController');
 
 // Protect all admin routes
@@ -16,5 +18,8 @@ router.get('/stats', getAdminStats);
 router.get('/users', getAllUsers);
 router.get('/wallet/requests', getWalletRequests);
 router.put('/wallet/approve/:requestId', approveWalletChange);
+
+router.get('/deposits', getDeposits);
+router.put('/deposit/approve/:id', approveDeposit);
 
 module.exports = router;

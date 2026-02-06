@@ -15,14 +15,15 @@ import {
     FiChevronLeft,
     FiChevronRight,
     FiMenu,
-    FiMoreVertical
+    FiMoreVertical,
+    FiPackage
 } from 'react-icons/fi';
 
 const DashboardLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
-    const { walletAddress, isConnected, connectWallet } = useWallet();
+    const { walletAddress, isConnected, connectWallet, disconnectWallet } = useWallet();
     const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -49,6 +50,7 @@ const DashboardLayout = () => {
         { path: '/income', label: 'Income', icon: FiDollarSign },
         { path: '/reports', label: 'Reports', icon: FiFileText },
         { path: '/withdrawals', label: 'Withdrawals', icon: FiCreditCard },
+        { path: '/packages', label: 'Packages', icon: FiPackage },
     ];
 
     const handleLogout = () => {
@@ -214,14 +216,23 @@ const DashboardLayout = () => {
                                 <span className={isMobile ? 'hidden' : 'block'}>Connect Wallet</span>
                             </button>
                         ) : (
-                            <div className="flex items-center gap-3 px-5 py-2.5 bg-white border border-green-400 rounded-xl shadow-lg shadow-green-300 hover:shadow-green-500 hover:-translate-y-0.5 transition-all font-medium text-sm flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                                <div className="text-xs">
-                                    <p className="text-gray-500 font-medium">{isMobile ? '' : 'Connected'}</p>
-                                    <p className="font-mono font-bold text-gray-700">
-                                        {walletAddress?.slice(0, 6)}...
-                                    </p>
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-3 px-5 py-2.5 bg-white border border-green-400 rounded-xl shadow-lg shadow-green-300 font-medium text-sm">
+                                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                                    <div className="text-xs">
+                                        <p className="text-gray-500 font-medium">{isMobile ? '' : 'Connected'}</p>
+                                        <p className="font-mono font-bold text-gray-700">
+                                            {walletAddress?.slice(0, 6)}...
+                                        </p>
+                                    </div>
                                 </div>
+                                <button
+                                    onClick={disconnectWallet}
+                                    className="p-2.5 bg-red-50 text-red-500 border border-red-400 rounded-xl hover:bg-red-300 hover:text-black transition-colors shadow-sm"
+                                    title="Disconnect Wallet"
+                                >
+                                    <FiLogOut size={15} />
+                                </button>
                             </div>
                         )}
                     </div>

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { adminService } from '../../services/admin.service';
+import adminService from '../../services/admin.service';
 
 const AdminDashboard = () => {
     const [stats, setStats] = useState({
