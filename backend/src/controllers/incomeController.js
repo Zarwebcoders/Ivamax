@@ -12,7 +12,7 @@ const calculatePairMatchingRoyalty = async (userId, month, year) => {
             return {
                 amount: 0,
                 rank: 0,
-                pairs: 0,
+                totalId: 0,
                 leftCount: 0,
                 rightCount: 0,
                 rankName: 'Member',
@@ -22,7 +22,7 @@ const calculatePairMatchingRoyalty = async (userId, month, year) => {
         return {
             amount: rankData.income,
             rank: rankData.rank,
-            pairs: rankData.pairs,
+            totalId: rankData.totalId,
             leftCount: rankData.leftCount,
             rightCount: rankData.rightCount,
             rankName: rankData.rankName,
@@ -155,7 +155,7 @@ const processUserMonthlyIncome = async (userId, month, year) => {
                 leftCount: pmr.leftCount,
                 rightCount: pmr.rightCount,
                 metadata: {
-                    pairs: pmr.pairs,
+                    totalId: pmr.totalId,
                     leftCount: pmr.leftCount,
                     rightCount: pmr.rightCount,
                 },
@@ -242,6 +242,8 @@ const processMonthlyIncome = async (req, res) => {
             isActive: true,
             packageType: { $ne: null },
         });
+
+        console.log(`Total users with packages: ${users.length}`);
 
         const results = [];
         let successCount = 0;

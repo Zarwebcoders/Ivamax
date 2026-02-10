@@ -42,6 +42,7 @@ app.use('/api/tree', treeRoutes);
 app.use('/api/dashboard', require('./src/routes/dashboard'));
 app.use('/api/deposit', require('./src/routes/deposit'));
 app.use('/api/income', require('./src/routes/income'));
+app.use('/api/withdrawal', require('./src/routes/withdrawal'));
 
 // Health check
 app.get('/health', (req, res) => {

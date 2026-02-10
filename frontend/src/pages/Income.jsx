@@ -67,8 +67,8 @@ const Income = () => {
                 <button
                     onClick={() => setActiveTab('current')}
                     className={`px-6 py-3 font-semibold transition-all ${activeTab === 'current'
-                            ? 'text-golden-600 border-b-2 border-golden-600'
-                            : 'text-gray-500 hover:text-gray-700'
+                        ? 'text-golden-600 border-b-2 border-golden-600'
+                        : 'text-gray-500 hover:text-gray-700'
                         }`}
                 >
                     Current Month
@@ -76,8 +76,8 @@ const Income = () => {
                 <button
                     onClick={() => setActiveTab('history')}
                     className={`px-6 py-3 font-semibold transition-all ${activeTab === 'history'
-                            ? 'text-golden-600 border-b-2 border-golden-600'
-                            : 'text-gray-500 hover:text-gray-700'
+                        ? 'text-golden-600 border-b-2 border-golden-600'
+                        : 'text-gray-500 hover:text-gray-700'
                         }`}
                 >
                     Income History
@@ -125,7 +125,7 @@ const Income = () => {
                             </p>
                             <div className="text-sm text-gray-600 space-y-1">
                                 <p>Rank: {currentIncome.pairMatchingRoyalty.rankName || 'Member'}</p>
-                                <p>Pairs: {currentIncome.pairMatchingRoyalty.pairs}</p>
+                                <p>Total ID: {currentIncome.pairMatchingRoyalty.totalId || 0}</p>
                                 <p>Left: {currentIncome.pairMatchingRoyalty.leftCount} | Right: {currentIncome.pairMatchingRoyalty.rightCount}</p>
                             </div>
                         </motion.div>

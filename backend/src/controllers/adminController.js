@@ -203,10 +203,26 @@ const approveDeposit = async (req, res) => {
         user.investmentAmount += deposit.amount;
         user.investmentDate = Date.now();
         user.packageType = deposit.packageName;
-
         await user.save();
 
-        res.json({ success: true, message: 'Deposit approved and package activated' });
+        // Auto-process first income for current month
+        try {
+            const { processUserMonthlyIncome } = require('./incomeController');
+            const now = new Date();
+            const currentMonth = now.getMonth() + 1; // 1-12
+            const currentYear = now.getFullYear();
+
+            await processUserMonthlyIncome(deposit.userId, currentMonth, currentYear);
+            console.log(`✅ Auto-processed first income for ${deposit.userId} (${currentMonth}/${currentYear})`);
+        } catch (incomeError) {
+            console.error('Error auto-processing income:', incomeError);
+            // Don't fail the deposit approval if income processing fails
+        }
+
+        res.json({
+            success: true,
+            message: 'Deposit approved, package activated, and first income processed'
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error authorizing deposit' });
