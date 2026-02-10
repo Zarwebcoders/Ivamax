@@ -15,6 +15,7 @@ import IncomeOverview from './pages/IncomeOverview';
 import Reports from './pages/Reports';
 import Withdrawals from './pages/Withdrawals';
 import Packages from './pages/Packages';
+import Support from './pages/Support';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -23,6 +24,7 @@ import WalletApprovals from './pages/admin/WalletApprovals';
 import WithdrawalApprovals from './pages/admin/WithdrawalApprovals';
 import DepositApprovals from './pages/admin/DepositApprovals';
 import IncomeProcessing from './pages/admin/IncomeProcessing';
+import AnnouncementManagement from './pages/admin/AnnouncementManagement';
 
 // Layout
 import DashboardLayout from './components/DashboardLayout';
@@ -57,6 +59,7 @@ function App() {
                             <Route path="reports" element={<Reports />} />
                             <Route path="withdrawals" element={<Withdrawals />} />
                             <Route path="packages" element={<Packages />} />
+                            <Route path="support" element={<Support />} />
                         </Route>
 
                         {/* Protected Admin Routes */}
@@ -74,6 +77,7 @@ function App() {
                             <Route path="withdrawal-approvals" element={<WithdrawalApprovals />} />
                             <Route path="deposit-approvals" element={<DepositApprovals />} />
                             <Route path="income-processing" element={<IncomeProcessing />} />
+                            <Route path="announcements" element={<AnnouncementManagement />} />
                         </Route>
 
                         {/* Catch all */}

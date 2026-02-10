@@ -2,8 +2,8 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { TrendingUp, Users, Crown, DollarSign, Clock, Landmark, PieChart, ArrowRightLeft, Trophy, Target, TreeDeciduous, BarChart3, CircleDollarSign, Briefcase, Copy, Check } from 'lucide-react';
-
 import { dashboardService } from '../services/dashboard.service';
+import NewsTicker from '../components/NewsTicker';
 
 const Dashboard = () => {
     const { user } = useAuth();
@@ -73,9 +73,14 @@ const Dashboard = () => {
         return new Date(dateString).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
     };
 
+    if (loading) return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-golden-400"></div></div>;
+
     return (
-        <div className="space-y-8 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
-            {/* Welcome Section */}
+        <div className="space-y-6">
+            {/* News Ticker */}
+            <NewsTicker />
+
+            {/* Header */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -151,7 +156,6 @@ const Dashboard = () => {
                             { id: 'income', label: 'Income', icon: <DollarSign size={18} /> },
                             { id: 'business', label: 'Business', icon: <Briefcase size={18} /> },
                             { id: 'rank', label: 'Rank', icon: <Trophy size={18} /> },
-                            { id: 'withdrawal', label: 'Withdraw', icon: <Landmark size={18} /> },
                             { id: 'actions', label: 'Actions', icon: <PieChart size={18} /> }
                         ].map(tab => (
                             <button

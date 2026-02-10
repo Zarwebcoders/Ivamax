@@ -16,7 +16,8 @@ import {
     FiChevronRight,
     FiMenu,
     FiMoreVertical,
-    FiPackage
+    FiPackage,
+    FiHeadphones
 } from 'react-icons/fi';
 
 const DashboardLayout = () => {
@@ -51,6 +52,7 @@ const DashboardLayout = () => {
         { path: '/reports', label: 'Reports', icon: FiFileText },
         { path: '/withdrawals', label: 'Withdrawals', icon: FiCreditCard },
         { path: '/packages', label: 'Packages', icon: FiPackage },
+        { path: '/support', label: 'Support', icon: FiHeadphones },
     ];
 
     const handleLogout = () => {

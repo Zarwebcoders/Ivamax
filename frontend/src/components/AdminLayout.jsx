@@ -9,7 +9,8 @@ import {
     DollarSign,
     LogOut,
     Menu,
-    X
+    X,
+    Megaphone
 } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -27,6 +28,7 @@ const AdminLayout = () => {
         { path: '/admin/wallet-approvals', icon: Wallet, label: 'Wallet Approvals' },
         { path: '/admin/withdrawal-approvals', icon: ArrowDownLeft, label: 'Withdrawal Approvals' },
         { path: '/admin/income-processing', icon: DollarSign, label: 'Income Processing' },
+        { path: '/admin/announcements', icon: Megaphone, label: 'Announcements' },
     ];
 
     const isActive = (path) => {
@@ -61,8 +63,8 @@ const AdminLayout = () => {
                             key={item.path}
                             to={item.path}
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive(item.path)
-                                    ? 'bg-golden-50 text-golden-700 shadow-sm'
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                ? 'bg-golden-50 text-golden-700 shadow-sm'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                 } ${!sidebarOpen && 'justify-center'}`}
                         >
                             {isActive(item.path) && (
@@ -128,8 +130,8 @@ const AdminLayout = () => {
                                     to={item.path}
                                     onClick={() => setMobileOpen(false)}
                                     className={`flex items-center gap-3 px-4 py-4 rounded-xl text-lg font-medium ${isActive(item.path)
-                                            ? 'bg-golden-50 text-golden-700'
-                                            : 'text-gray-600'
+                                        ? 'bg-golden-50 text-golden-700'
+                                        : 'text-gray-600'
                                         }`}
                                 >
                                     <item.icon size={24} />

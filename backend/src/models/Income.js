@@ -76,6 +76,42 @@ const incomeSchema = new mongoose.Schema({
     processedAt: {
         type: Date,
     },
+    // Auto-processing fields
+    autoProcessed: {
+        type: Boolean,
+        default: false,
+    },
+    triggeredBy: {
+        type: String,
+        enum: ['auto', 'new_referral', 'tree_update', 'rank_update', 'manual'],
+        default: 'manual',
+    },
+    triggeredAt: {
+        type: Date,
+    },
+    pmrAmount: {
+        type: Number,
+        default: 0,
+    },
+    drrAmount: {
+        type: Number,
+        default: 0,
+    },
+    fcrAmount: {
+        type: Number,
+        default: 0,
+    },
+    totalAmount: {
+        type: Number,
+        default: 0,
+    },
+    lastUpdated: {
+        type: Date,
+    },
+    updateCount: {
+        type: Number,
+        default: 0,
+    },
 }, {
     timestamps: true,
 });

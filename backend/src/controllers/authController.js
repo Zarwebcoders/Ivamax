@@ -231,6 +231,28 @@ const register = async (req, res) => {
             // Don't fail registration for this, but log it
         }
 
+        // =========================================================
+        // 6. AUTO-CALCULATE INCOME FOR REFERRER AND UPLINE
+        // =========================================================
+        try {
+            const { autoCalculateIncomeForReferrer, autoCalculateIncomeForUpline } = require('../services/autoIncomeService');
+
+            // Calculate income for direct referrer
+            if (referrerId) {
+                console.log(`[AUTO-INCOME] Triggering income calculation for referrer: ${referrerId}`);
+                await autoCalculateIncomeForReferrer(referrerId);
+            }
+
+            // Calculate income for entire upline
+            console.log(`[AUTO-INCOME] Triggering income calculation for upline of: ${newUserId}`);
+            await autoCalculateIncomeForUpline(newUserId);
+
+            console.log(`[SUCCESS] Auto-income calculation completed for ${newUserId}`);
+        } catch (err) {
+            console.error('[WARNING] Failed to auto-calculate income:', err);
+            // Don't fail registration for this, but log it
+        }
+
         console.log(`[SUCCESS] Registration Complete for ${newUserId}`);
 
         res.status(201).json({

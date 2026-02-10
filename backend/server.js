@@ -43,6 +43,8 @@ app.use('/api/dashboard', require('./src/routes/dashboard'));
 app.use('/api/deposit', require('./src/routes/deposit'));
 app.use('/api/income', require('./src/routes/income'));
 app.use('/api/withdrawal', require('./src/routes/withdrawal'));
+app.use('/api/support', require('./src/routes/support'));
+app.use('/api/announcements', require('./src/routes/announcement'));
 
 // Health check
 app.get('/health', (req, res) => {
