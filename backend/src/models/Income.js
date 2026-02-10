@@ -62,6 +62,20 @@ const incomeSchema = new mongoose.Schema({
         type: String,
         default: '',
     },
+    metadata: {
+        pairs: Number,
+        leftCount: Number,
+        rightCount: Number,
+        referralDetails: [{
+            userId: String,
+            rank: Number,
+            income: Number,
+        }],
+        founderMembers: [String],
+    },
+    processedAt: {
+        type: Date,
+    },
 }, {
     timestamps: true,
 });

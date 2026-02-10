@@ -6,6 +6,7 @@ import {
     Wallet,
     CreditCard,
     ArrowDownLeft,
+    DollarSign,
     LogOut,
     Menu,
     X
@@ -25,6 +26,7 @@ const AdminLayout = () => {
         { path: '/admin/deposit-approvals', icon: CreditCard, label: 'Deposit Approvals' },
         { path: '/admin/wallet-approvals', icon: Wallet, label: 'Wallet Approvals' },
         { path: '/admin/withdrawal-approvals', icon: ArrowDownLeft, label: 'Withdrawal Approvals' },
+        { path: '/admin/income-processing', icon: DollarSign, label: 'Income Processing' },
     ];
 
     const isActive = (path) => {

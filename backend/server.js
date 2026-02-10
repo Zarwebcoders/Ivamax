@@ -11,7 +11,6 @@ const treeRoutes = require('./src/routes/tree');
 const app = express();
 
 // Connect to MongoDB
-// Connect to MongoDB
 connectDB();
 
 // Middleware
@@ -42,6 +41,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/tree', treeRoutes);
 app.use('/api/dashboard', require('./src/routes/dashboard'));
 app.use('/api/deposit', require('./src/routes/deposit'));
+app.use('/api/income', require('./src/routes/income'));
 
 // Health check
 app.get('/health', (req, res) => {

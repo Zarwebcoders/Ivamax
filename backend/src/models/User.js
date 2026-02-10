@@ -82,6 +82,24 @@ const userSchema = new mongoose.Schema({
         enum: ['user', 'admin'],
         default: 'user',
     },
+    currentRank: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 11,
+    },
+    monthlyIncome: {
+        type: Number,
+        default: 0,
+    },
+    totalEarnings: {
+        type: Number,
+        default: 0,
+    },
+    walletBalance: {
+        type: Number,
+        default: 0,
+    },
 }, {
     timestamps: true,
 });
