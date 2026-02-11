@@ -20,6 +20,11 @@ const autoCalculateAndCreditIncome = async (userId, triggeredBy = 'auto') => {
         const month = currentDate.getMonth() + 1;
         const year = currentDate.getFullYear();
 
+        // Get current user data
+        const currentUser = await User.findOne({ userId });
+        const oldRank = currentUser?.rank || 0;
+        const oldRankName = currentUser?.rankName || 'Member';
+
         // 1. Update user's rank first
         const rankData = await calculateUserRank(userId);
         await User.updateOne(
@@ -31,6 +36,9 @@ const autoCalculateAndCreditIncome = async (userId, triggeredBy = 'auto') => {
         );
 
         console.log(`   Rank updated: ${rankData.rankName} (${rankData.rank})`);
+
+        // Check if rank increased
+        const rankIncreased = rankData.rank > oldRank;
 
         // 2. Calculate all three income types
         const pmr = await calculatePairMatchingRoyalty(userId, month, year);
@@ -78,6 +86,20 @@ const autoCalculateAndCreditIncome = async (userId, triggeredBy = 'auto') => {
                     // Credit incremental income to wallet
                     await creditToWallet(userId, incrementalIncome);
                     console.log(`   ✅ Incremental income credited: $${incrementalIncome}`);
+
+                    // Notify about payment generated
+                    try {
+                        const { createNotification } = require('../controllers/notificationController');
+                        await createNotification({
+                            userId,
+                            type: 'PAYMENT_GENERATED',
+                            title: 'Income Credited!',
+                            message: `$${incrementalIncome.toFixed(2)} has been credited to your wallet.`,
+                            link: '/income'
+                        });
+                    } catch (err) {
+                        console.error('Failed to create payment notification:', err);
+                    }
                 }
             } else {
                 // Create new income record
@@ -116,9 +138,40 @@ const autoCalculateAndCreditIncome = async (userId, triggeredBy = 'auto') => {
                 // Credit to wallet
                 await creditToWallet(userId, totalIncome);
                 console.log(`   ✅ New income credited: $${totalIncome}`);
+
+                // Notify about payment generated
+                try {
+                    const { createNotification } = require('../controllers/notificationController');
+                    await createNotification({
+                        userId,
+                        type: 'PAYMENT_GENERATED',
+                        title: 'Income Credited!',
+                        message: `$${totalIncome.toFixed(2)} has been credited to your wallet.`,
+                        link: '/income'
+                    });
+                } catch (err) {
+                    console.error('Failed to create payment notification:', err);
+                }
             }
         } else {
             console.log(`   ℹ️  No income to credit`);
+        }
+
+        // Notify about rank achievement
+        if (rankIncreased) {
+            try {
+                const { createNotification } = require('../controllers/notificationController');
+                await createNotification({
+                    userId,
+                    type: 'RANK_ACHIEVED',
+                    title: 'Rank Upgraded!',
+                    message: `Congratulations! You achieved ${rankData.rankName} rank (Level ${rankData.rank}).`,
+                    link: '/profile'
+                });
+                console.log(`   🏆 Rank achievement notification sent`);
+            } catch (err) {
+                console.error('Failed to create rank notification:', err);
+            }
         }
 
         return {

@@ -118,7 +118,7 @@ const Withdrawals = () => {
             variants={containerVariants}
             className="space-y-8 min-h-screen px-2 bg-gray-50"
         >
-            <div>
+            <div className='flex flex-col md:flex-row justify-between items-center gap-4 card-glass p-4 border-2 border-gray-400 shadow-lg shadow-gray-400'>
                 <h1 className="text-2xl font-bold text-gray-800">Withdrawal</h1>
                 <p className="text-gray-500">Manage your payouts and fund requests</p>
             </div>
@@ -126,7 +126,7 @@ const Withdrawals = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Request Form */}
                 <div className="lg:col-span-1 space-y-6">
-                    <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 text-white shadow-xl">
+                    <div className="bg-gradient-to-br from-gray-900 to-gray-800 card-glass p-4 border-2 border-gray-400 shadow-lg shadow-gray-400 rounded-3xl p-6 text-white shadow-xl">
                         <p className="opacity-70 text-sm mb-1">Available Balance</p>
                         <h2 className="text-4xl font-bold mb-6">
                             ${stats?.availableBalance?.toFixed(2) || '0.00'}
@@ -137,20 +137,38 @@ const Withdrawals = () => {
                         </div>
                     </div>
 
-                    <form onSubmit={handleWithdrawal} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                    <form onSubmit={handleWithdrawal} className="bg-white rounded-2xl shadow-lg card-glass p-4 border-2 border-gray-400 shadow-lg shadow-gray-400">
                         <h3 className="text-lg font-bold text-gray-800 mb-4">Request Payout</h3>
 
                         <div className="space-y-4">
                             <div>
-                                <label className="text-sm font-semibold text-gray-600 mb-1 block">Withdrawal Method</label>
-                                <select
-                                    value={method}
-                                    onChange={(e) => setMethod(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-golden-500 outline-none bg-white"
-                                >
-                                    <option>USDT (TRC20)</option>
-                                    <option>Bank Transfer</option>
-                                </select>
+                                <label className="text-sm font-semibold text-gray-600 mb-3 block">Withdrawal Method</label>
+                                <div className="grid grid-cols-1 gap-3">
+                                    {/* USDT TRC20 Option */}
+                                    <div
+                                        onClick={() => setMethod('USDT (TRC20)')}
+                                        className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${method === 'USDT (TRC20)'
+                                                ? 'border-golden-500 bg-golden-50 shadow-md shadow-golden-200'
+                                                : 'border-gray-300 bg-white hover:border-golden-300 hover:bg-golden-50/30'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${method === 'USDT (TRC20)' ? 'border-golden-500' : 'border-gray-300'
+                                                }`}>
+                                                {method === 'USDT (TRC20)' && (
+                                                    <div className="w-3 h-3 rounded-full bg-golden-500"></div>
+                                                )}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <WalletIcon size={20} className="text-golden-600" />
+                                                    <p className="font-bold text-gray-800">USDT (TRC20)</p>
+                                                </div>
+                                                <p className="text-xs text-gray-500 mt-1">Withdraw to your USDT TRC20 wallet address</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div>
@@ -162,7 +180,7 @@ const Withdrawals = () => {
                                         value={walletAddress}
                                         onChange={(e) => setWalletAddress(e.target.value)}
                                         placeholder="Enter wallet address"
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-golden-500 outline-none bg-white"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-white"
                                         required
                                     />
                                 </div>
@@ -179,7 +197,7 @@ const Withdrawals = () => {
                                         placeholder="Enter amount"
                                         min="50"
                                         step="0.01"
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-golden-500 outline-none bg-white"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-white"
                                         required
                                     />
                                 </div>
@@ -208,7 +226,7 @@ const Withdrawals = () => {
                         </div>
                     </form>
 
-                    <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-sm text-blue-700">
+                    <div className="bg-blue-100 border border-blue-400 rounded-xl p-4 text-sm text-blue-700">
                         <p className="font-semibold mb-1 flex items-center gap-2">
                             <Clock size={16} /> Processing Time
                         </p>
@@ -218,8 +236,8 @@ const Withdrawals = () => {
 
                 {/* History Table */}
                 <div className="lg:col-span-2">
-                    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <div className="bg-white rounded-2xl shadow-xl border border-gray-400 shadow-lg shadow-gray-400 overflow-hidden">
+                        <div className="p-4 border-b border-gray-400 flex justify-between items-center">
                             <h3 className="text-lg font-bold text-gray-800">Withdrawal History</h3>
                         </div>
 

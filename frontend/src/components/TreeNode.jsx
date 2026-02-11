@@ -58,6 +58,9 @@ const TreeNode = ({ node, onExpand, isHighlighted }) => {
                 <p className="text-[8px] text-gray-400 truncate w-full text-center scale-90">
                     {node.userId}
                 </p>
+                <p className="text-[7px] font-semibold text-golden-600 truncate w-full text-center scale-90 mt-0.5">
+                    {node.rank || 'Member'}
+                </p>
 
                 <div className="flex justify-between w-full mt-1.5 pt-1 border-t border-gray-100 text-[8px]">
                     <div className="text-center w-1/2 flex flex-col items-center">

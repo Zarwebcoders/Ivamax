@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useWallet } from '../context/WalletContext';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import NotificationBell from './NotificationBell';
 import {
     FiHome,
     FiUser,
@@ -208,6 +209,9 @@ const DashboardLayout = () => {
                     </div>
 
                     <div className="flex items-center gap-4">
+                        {/* Notification Bell */}
+                        <NotificationBell />
+
                         {/* Wallet Button */}
                         {!isConnected ? (
                             <button

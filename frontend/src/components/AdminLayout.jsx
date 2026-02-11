@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import NotificationBell from './NotificationBell';
 
 const AdminLayout = () => {
     const { logout } = useAuth();
@@ -110,9 +111,12 @@ const AdminLayout = () => {
                     </div>
                     <span className="font-bold text-gray-900">Admin Panel</span>
                 </div>
-                <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 text-gray-600">
-                    {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-                </button>
+                <div className="flex items-center gap-2">
+                    <NotificationBell />
+                    <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 text-gray-600">
+                        {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
+                </div>
             </div>
 
             <AnimatePresence>

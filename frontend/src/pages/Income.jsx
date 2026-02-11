@@ -91,7 +91,7 @@ const Income = () => {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="card bg-gradient-to-br from-golden-400 to-golden-600 text-white p-8"
+                        className="card bg-gradient-to-br from-golden-400 to-golden-600 text-white p-8 shadow-lg shadow-gray-400"
                     >
                         <div className="flex items-center justify-between">
                             <div>
@@ -112,10 +112,10 @@ const Income = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="card p-6 hover:shadow-xl transition-shadow"
+                            className="card p-6 hover:shadow-xl transition-shadow border-2 border-gray-400 shadow-lg shadow-gray-400"
                         >
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                <div className="w-12 h-12 rounded-full bg-blue-200 flex items-center justify-center">
                                     <Users className="w-6 h-6 text-blue-600" />
                                 </div>
                                 <h3 className="font-bold text-lg">Pair Matching</h3>
@@ -135,10 +135,10 @@ const Income = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
-                            className="card p-6 hover:shadow-xl transition-shadow"
+                            className="card p-6 hover:shadow-xl transition-shadow border-2 border-gray-400 shadow-lg shadow-gray-400"
                         >
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                                <div className="w-12 h-12 rounded-full bg-green-200 flex items-center justify-center">
                                     <TrendingUp className="w-6 h-6 text-green-600" />
                                 </div>
                                 <h3 className="font-bold text-lg">Direct Referral</h3>
@@ -158,10 +158,10 @@ const Income = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
-                            className="card p-6 hover:shadow-xl transition-shadow"
+                            className="card p-6 hover:shadow-xl transition-shadow border-2 border-gray-400 shadow-lg shadow-gray-400"
                         >
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                                <div className="w-12 h-12 rounded-full bg-purple-200 flex items-center justify-center">
                                     <Award className="w-6 h-6 text-purple-600" />
                                 </div>
                                 <h3 className="font-bold text-lg">Founder Club</h3>
@@ -184,7 +184,7 @@ const Income = () => {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.4 }}
-                            className="card p-6"
+                            className="card p-6 border-2 border-gray-400 shadow-lg shadow-gray-400"
                         >
                             <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                                 <Users className="w-5 h-5 text-golden-600" />
@@ -223,7 +223,7 @@ const Income = () => {
             {activeTab === 'history' && (
                 <div className="space-y-4">
                     {incomeHistory.length === 0 ? (
-                        <div className="card p-12 text-center text-gray-500">
+                        <div className="card p-12 text-center text-gray-500 border-2 border-gray-400 shadow-lg shadow-gray-400">
                             <Calendar className="w-16 h-16 mx-auto mb-4 text-gray-300" />
                             <p>No income history available yet</p>
                         </div>

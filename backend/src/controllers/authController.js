@@ -253,6 +253,32 @@ const register = async (req, res) => {
             // Don't fail registration for this, but log it
         }
 
+        // =========================================================
+        // 7. CREATE WELCOME NOTIFICATION
+        // =========================================================
+        try {
+            const { createNotification } = require('./notificationController');
+            await createNotification({
+                userId: newUserId,
+                type: 'REGISTRATION',
+                title: 'Welcome to IVAMAX!',
+                message: `Registration successful! Your ID: ${newUserId}. Start building your network today.`
+            });
+
+            // Notify referrer about new team member
+            if (referrerId) {
+                await createNotification({
+                    userId: referrerId,
+                    type: 'NEW_TEAM_MEMBER',
+                    title: 'New Team Member!',
+                    message: `${fullName} (${newUserId}) joined your team on ${placementStrategy} side.`,
+                    link: '/tree'
+                });
+            }
+        } catch (err) {
+            console.error('[WARNING] Failed to create notifications:', err);
+        }
+
         console.log(`[SUCCESS] Registration Complete for ${newUserId}`);
 
         res.status(201).json({
@@ -371,14 +397,34 @@ const login = async (req, res) => {
 };
 
 // @desc    Get current user profile
+// @desc    Get current user profile
 // @route   GET /api/auth/me
 // @access  Private
 const getMe = async (req, res) => {
     try {
         const user = await User.findById(req.user._id).select('-password');
+
+        // Get sponsher information from Tree
+        const treeNode = await Tree.findOne({ userId: user.userId });
+        let sponsherData = {
+            sponsherId: null,
+            sponsherUsername: null
+        };
+
+        if (treeNode && treeNode.parentId) {
+            const sponsher = await User.findOne({ userId: treeNode.parentId }).select('userId fullName');
+            if (sponsher) {
+                sponsherData.sponsherId = sponsher.userId;
+                sponsherData.sponsherUsername = sponsher.fullName;
+            }
+        }
+
         res.json({
             success: true,
-            data: user,
+            data: {
+                ...user.toObject(),
+                ...sponsherData
+            },
         });
     } catch (error) {
         console.error(error);

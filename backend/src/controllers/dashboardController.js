@@ -21,8 +21,83 @@ const getDashboardStats = async (req, res) => {
         const rightPairs = treeBase?.rightPairs || 0;
         const matchingCompleted = treeBase?.matchingCompleted || 0;
 
-        // 3. Aggregate Incomes
-        const incomeStats = await Income.aggregate([
+        // 3. Aggregate Incomes (Current Month)
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth() + 1;
+        const currentYear = currentDate.getFullYear();
+
+        // Get last month
+        const lastMonthDate = new Date(currentYear, currentMonth - 2, 1); // -2 because month is 1-indexed
+        const lastMonth = lastMonthDate.getMonth() + 1;
+        const lastYear = lastMonthDate.getFullYear();
+
+        // Current month income
+        const currentMonthIncome = await Income.aggregate([
+            {
+                $match: {
+                    userId,
+                    month: currentMonth,
+                    year: currentYear
+                }
+            },
+            {
+                $group: {
+                    _id: '$incomeType',
+                    total: { $sum: '$netAmount' }
+                }
+            }
+        ]);
+
+        // Last month income
+        const lastMonthIncome = await Income.aggregate([
+            {
+                $match: {
+                    userId,
+                    month: lastMonth,
+                    year: lastYear
+                }
+            },
+            {
+                $group: {
+                    _id: '$incomeType',
+                    total: { $sum: '$netAmount' }
+                }
+            }
+        ]);
+
+        // Transform current month income
+        let currentPMR = 0, currentDRR = 0, currentFCR = 0, currentTotal = 0;
+        currentMonthIncome.forEach(stat => {
+            currentTotal += stat.total;
+            if (stat._id === 'PMR') currentPMR = stat.total;
+            if (stat._id === 'DRR') currentDRR = stat.total;
+            if (stat._id === 'FCR') currentFCR = stat.total;
+        });
+
+        // Transform last month income
+        let lastPMR = 0, lastDRR = 0, lastFCR = 0, lastTotal = 0;
+        lastMonthIncome.forEach(stat => {
+            lastTotal += stat.total;
+            if (stat._id === 'PMR') lastPMR = stat.total;
+            if (stat._id === 'DRR') lastDRR = stat.total;
+            if (stat._id === 'FCR') lastFCR = stat.total;
+        });
+
+        // Calculate percentage changes
+        const calculatePercentageChange = (current, last) => {
+            if (last === 0) {
+                return current > 0 ? 100 : 0; // If no last month income, show 100% if current exists
+            }
+            return ((current - last) / last) * 100;
+        };
+
+        const totalIncomeChange = calculatePercentageChange(currentTotal, lastTotal);
+        const pmrIncomeChange = calculatePercentageChange(currentPMR, lastPMR);
+        const drrIncomeChange = calculatePercentageChange(currentDRR, lastDRR);
+        const fcrIncomeChange = calculatePercentageChange(currentFCR, lastFCR);
+
+        // All-time income totals
+        const allTimeIncome = await Income.aggregate([
             { $match: { userId } },
             {
                 $group: {
@@ -32,9 +107,8 @@ const getDashboardStats = async (req, res) => {
             }
         ]);
 
-        // Transform array to object
         let pmrIncome = 0, drrIncome = 0, fcrIncome = 0, totalIncome = 0;
-        incomeStats.forEach(stat => {
+        allTimeIncome.forEach(stat => {
             totalIncome += stat.total;
             if (stat._id === 'PMR') pmrIncome = stat.total;
             if (stat._id === 'DRR') drrIncome = stat.total;
@@ -61,13 +135,23 @@ const getDashboardStats = async (req, res) => {
             if (stat._id === 'approved' || stat._id === 'paid') totalWithdrawn += stat.totalAmount;
         });
 
-        // 5. Calculate Progress to Next Rank (Mock Logic based on Pairs)
-        // Silver -> Gold requirement (Example: 500 pairs)
-        // This is a placeholder logic. You should replace with real business logic.
-        const nextRankTarget = 500;
-        const maxLeg = Math.max(leftPairs, rightPairs);
-        // Using pairs/BV for progress
-        const rankProgress = Math.min(100, Math.round((maxLeg / nextRankTarget) * 100));
+        // 5. Calculate Rank Progress with Next Rank
+        const { calculateUserRank } = require('../controllers/rankController');
+        const rankData = await calculateUserRank(userId);
+
+        let nextRankName = 'FOUNDER'; // Default if already at max rank
+        let rankProgress = 100; // Default if already at max rank
+
+        if (rankData.nextRank) {
+            nextRankName = rankData.nextRank.name;
+
+            // Calculate progress based on the limiting factor (left or right)
+            const leftProgress = (rankData.leftCount / rankData.nextRank.left) * 100;
+            const rightProgress = (rankData.rightCount / rankData.nextRank.right) * 100;
+
+            // Progress is limited by the weaker leg (1:1 ratio requirement)
+            rankProgress = Math.min(leftProgress, rightProgress, 100);
+        }
 
 
         // Response matches Frontend State shape
@@ -80,14 +164,25 @@ const getDashboardStats = async (req, res) => {
                 pmrIncome,
                 drrIncome,
                 fcrIncome,
+                // Current month incomes
+                currentMonthIncome: currentTotal,
+                currentPMR,
+                currentDRR,
+                currentFCR,
+                // Percentage changes
+                totalIncomeChange: parseFloat(totalIncomeChange.toFixed(1)),
+                pmrIncomeChange: parseFloat(pmrIncomeChange.toFixed(1)),
+                drrIncomeChange: parseFloat(drrIncomeChange.toFixed(1)),
+                fcrIncomeChange: parseFloat(fcrIncomeChange.toFixed(1)),
                 pendingWithdrawals,
                 totalWithdrawn,
                 leftPairs,
                 rightPairs,
                 matchingCompleted,
                 currentRank: user.rank || 'Member',
-                royaltyPercentage: 10, // Dynamic based on rank in future
-                rankProgress: rankProgress // Frontend expects just % maybe?
+                royaltyPercentage: rankData.income || 0, // Dynamic based on actual rank
+                nextRankName: nextRankName,
+                rankProgress: Math.round(rankProgress) // Rounded percentage
             }
         });
 

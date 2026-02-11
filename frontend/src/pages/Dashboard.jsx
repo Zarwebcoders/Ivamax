@@ -1,12 +1,14 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Users, Crown, DollarSign, Clock, Landmark, PieChart, ArrowRightLeft, Trophy, Target, TreeDeciduous, BarChart3, CircleDollarSign, Briefcase, Copy, Check } from 'lucide-react';
 import { dashboardService } from '../services/dashboard.service';
 import NewsTicker from '../components/NewsTicker';
 
 const Dashboard = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [stats, setStats] = useState({
         // Financials
         totalIncome: 0,
@@ -156,6 +158,7 @@ const Dashboard = () => {
                             { id: 'income', label: 'Income', icon: <DollarSign size={18} /> },
                             { id: 'business', label: 'Business', icon: <Briefcase size={18} /> },
                             { id: 'rank', label: 'Rank', icon: <Trophy size={18} /> },
+                            { id: 'withdrawal', label: 'Withdrawal', icon: <Landmark size={18} /> },
                             { id: 'actions', label: 'Actions', icon: <PieChart size={18} /> }
                         ].map(tab => (
                             <button
@@ -187,28 +190,28 @@ const Dashboard = () => {
                                 value: stats.totalIncome,
                                 icon: <DollarSign size={28} />,
                                 color: "from-amber-500 to-orange-500",
-                                trend: "+12.5%"
+                                trend: stats.totalIncomeChange || 0
                             },
                             {
                                 label: "PMR Income",
                                 value: stats.pmrIncome,
                                 icon: <TrendingUp size={28} />,
                                 color: "from-blue-500 to-cyan-500",
-                                trend: "+8.2%"
+                                trend: stats.pmrIncomeChange || 0
                             },
                             {
                                 label: "DRR Income",
                                 value: stats.drrIncome,
                                 icon: <Users size={28} />,
                                 color: "from-emerald-500 to-green-500",
-                                trend: "+15.3%"
+                                trend: stats.drrIncomeChange || 0
                             },
                             {
                                 label: "FCR Income",
                                 value: stats.fcrIncome,
                                 icon: <Crown size={28} />,
                                 color: "from-purple-500 to-pink-500",
-                                trend: "+5.7%"
+                                trend: stats.fcrIncomeChange || 0
                             }
                         ].map((stat, index) => (
                             <motion.div
@@ -233,11 +236,12 @@ const Dashboard = () => {
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-start md:flex-row md:items-center md:justify-between gap-1 md:gap-0">
-                                        <span className="text-sm text-green-600 font-medium flex items-center gap-1">
-                                            <TrendingUp size={16} />
-                                            {stat.trend}
+                                        <span className={`text-sm font-medium flex items-center gap-1 ${stat.trend >= 0 ? 'text-green-600' : 'text-red-600'
+                                            }`}>
+                                            <TrendingUp size={16} className={stat.trend < 0 ? 'rotate-180' : ''} />
+                                            {stat.trend >= 0 ? '+' : ''}{stat.trend.toFixed(1)}%
                                         </span>
-                                        <span className="text-xs text-gray-500">Last 30 days</span>
+                                        <span className="text-xs text-gray-500">vs Last Month</span>
                                     </div>
                                 </div>
                             </motion.div>
@@ -256,8 +260,8 @@ const Dashboard = () => {
                         transition={{ delay: 0.4 }}
                         className="lg:col-span-2"
                     >
-                        <div className="bg-white rounded-2xl p-6 border border-gray-400 shadow-xl shadow-black/20 hover:shadow-golden hover:border-golden-400 transition-all duration-300">
-                            <div className="flex items-center justify-between mb-6">
+                        <div className="bg-white rounded-2xl p-3 border border-gray-400 shadow-xl shadow-black/20 hover:shadow-golden hover:border-golden-400 transition-all duration-300">
+                            <div className="flex items-center justify-between mb-2">
                                 <h3 className="text-xl font-bold text-gray-800">Business Overview</h3>
                                 <div className="p-2 bg-blue-50 rounded-lg">
                                     <ArrowRightLeft className="text-blue-600" size={20} />
@@ -265,8 +269,8 @@ const Dashboard = () => {
                             </div>
 
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-                                <div className="group bg-gradient-to-br from-blue-100 to-cyan-100 rounded-xl p-5 border border-blue-300 hover:border-blue-700 shadow-lg hover:shadow-blue-300 transition-all duration-300">
-                                    <div className="flex items-center justify-between mb-3">
+                                <div className="group bg-gradient-to-br from-blue-100 to-cyan-100 rounded-xl p-3 border border-blue-300 hover:border-blue-700 shadow-lg hover:shadow-blue-300 transition-all duration-300">
+                                    <div className="flex items-center justify-between">
                                         <span className="text-sm font-medium text-blue-700">Left Pairs</span>
                                         <div className="hidden md:block p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
                                             <div className="text-blue-600 text-xl">⬅️</div>
@@ -282,8 +286,8 @@ const Dashboard = () => {
                                     </div>
                                 </div>
 
-                                <div className="group bg-gradient-to-br from-emerald-100 to-green-100 rounded-xl p-5 border border-emerald-300 hover:border-emerald-700 shadow-lg hover:shadow-emerald-300 transition-all duration-300">
-                                    <div className="flex items-center justify-between mb-3">
+                                <div className="group bg-gradient-to-br from-emerald-100 to-green-100 rounded-xl p-3 border border-emerald-300 hover:border-emerald-700 shadow-lg hover:shadow-emerald-300 transition-all duration-300">
+                                    <div className="flex items-center justify-between">
                                         <span className="text-sm font-medium text-emerald-700">Right Pairs</span>
                                         <div className="hidden md:block p-2 bg-emerald-100 rounded-lg group-hover:bg-emerald-200 transition-colors">
                                             <div className="text-emerald-600 text-xl">➡️</div>
@@ -299,8 +303,8 @@ const Dashboard = () => {
                                     </div>
                                 </div>
 
-                                <div className="group bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl p-5 border border-amber-300 hover:border-amber-700 shadow-lg hover:shadow-amber-300 transition-all duration-300">
-                                    <div className="flex items-center justify-between mb-3">
+                                <div className="group bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl p-3 border border-amber-300 hover:border-amber-700 shadow-lg hover:shadow-amber-300 transition-all duration-300">
+                                    <div className="flex items-center justify-between">
                                         <span className="text-sm font-medium text-amber-700">Matching Progress</span>
                                         <div className="hidden md:block p-2 bg-amber-100 rounded-lg group-hover:bg-amber-200 transition-colors">
                                             <div className="text-amber-600 text-xl">🎯</div>
@@ -356,17 +360,17 @@ const Dashboard = () => {
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between text-sm">
                                             <span className="text-gray-400">Next Rank</span>
-                                            <span className="text-amber-300 font-medium">Gold</span>
+                                            <span className="text-amber-300 font-medium">{stats.nextRankName || 'FOUNDER'}</span>
                                         </div>
                                         <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
                                             <motion.div
                                                 initial={{ width: 0 }}
-                                                animate={{ width: '65%' }}
+                                                animate={{ width: `${stats.rankProgress || 0}%` }}
                                                 className="h-full bg-gradient-to-r from-amber-500 to-yellow-500"
                                             />
                                         </div>
                                         <div className="text-xs text-gray-400">
-                                            65% progress to next rank
+                                            {stats.rankProgress || 0}% progress to next rank
                                         </div>
                                     </div>
                                 </div>
@@ -467,7 +471,7 @@ const Dashboard = () => {
                                     desc: "View hierarchy",
                                     icon: <TreeDeciduous size={24} />,
                                     color: "bg-blue-500",
-                                    path: "/tree-view"
+                                    path: "/tree"
                                 },
                                 {
                                     label: "Income Details",
@@ -495,6 +499,7 @@ const Dashboard = () => {
                                     key={action.label}
                                     whileHover={{ y: -5 }}
                                     whileTap={{ scale: 0.98 }}
+                                    onClick={() => navigate(action.path)}
                                     className="group bg-white rounded-3xl p-6 text-left border border-gray-400 shadow-lg shadow-gray-300 hover:shadow-lg hover:shadow-golden-300 transition-all duration-300"
                                 >
                                     <div className={`hidden md:flex w-14 h-14 rounded-xl ${action.color} items-center justify-center text-white mb-6 shadow-md group-hover:scale-110 transition-transform duration-300`}>

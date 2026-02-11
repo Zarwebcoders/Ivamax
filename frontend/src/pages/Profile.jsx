@@ -46,7 +46,9 @@ const Profile = () => {
                     bankName: u.bankName || '',
                     accountNumber: u.accountNumber || '',
                     ifscCode: u.ifscCode || '',
-                    rank: u.rank || 'Member'
+                    rank: u.rank || 'Member',
+                    sponsherId: u.sponsherId || null,
+                    sponsherUsername: u.sponsherUsername || null
                 }));
             }
         } catch (error) {
@@ -120,33 +122,70 @@ const Profile = () => {
             className="space-y-8 min-h-screen bg-gray-50 pb-20"
         >
             {/* Header Section */}
-            <div className="relative rounded-3xl bg-white p-8 shadow-xl shadow-gray-400/50 border border-gray-400 overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-golden-50 rounded-bl-full opacity-50"></div>
+            <div className="relative rounded-3xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8 md:p-10 shadow-2xl overflow-hidden">
+                {/* Animated Background Elements */}
+                <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-golden-500/20 to-transparent rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-tr from-golden-600/10 to-transparent rounded-full blur-2xl"></div>
 
-                <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                {/* Decorative Pattern */}
+                <div className="absolute inset-0 opacity-5">
+                    <div className="absolute top-10 right-20 w-32 h-32 border-2 border-golden-400 rounded-full"></div>
+                    <div className="absolute bottom-20 left-10 w-24 h-24 border-2 border-golden-400 rounded-lg rotate-45"></div>
+                </div>
+
+                <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8">
+                    {/* Avatar Section */}
                     <div className="relative group cursor-pointer">
-                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-golden-100 to-golden-200 p-1 shadow-xl">
-                            <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
-                                <User size={64} className="text-golden-500" />
+                        <div className="w-36 h-36 rounded-2xl bg-gradient-to-br from-golden-400 via-golden-500 to-golden-600 p-1 shadow-2xl shadow-golden-500/50 group-hover:shadow-golden-500/70 transition-all duration-300 group-hover:scale-105">
+                            <div className="w-full h-full rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center overflow-hidden">
+                                <User size={72} className="text-golden-400" />
                             </div>
                         </div>
-                        <div className="absolute bottom-0 right-0 p-2 bg-golden-500 rounded-full text-white shadow-lg border-2 border-white group-hover:bg-golden-600 transition-colors">
-                            <Edit2 size={16} />
+                        <div className="absolute -bottom-2 -right-2 p-3 bg-gradient-to-br from-golden-400 to-golden-600 rounded-xl text-white shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300 cursor-pointer">
+                            <Edit2 size={18} />
                         </div>
                     </div>
 
-                    <div className="text-center md:text-left flex-1">
-                        <div className="flex flex-col md:flex-row items-center gap-4 mb-2">
-                            <h1 className="text-3xl font-bold text-gray-800">{formData.fullName || 'User'}</h1>
-                            <span className="px-3 py-1 bg-gradient-to-r from-golden-500 to-golden-600 text-white text-sm font-bold rounded-full shadow-md">
+                    {/* User Info Section */}
+                    <div className="flex-1 text-center md:text-left">
+                        {/* Name and Rank */}
+                        <div className="flex flex-col md:flex-row items-center md:items-start gap-3 mb-4">
+                            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
+                                {formData.fullName || 'User'}
+                            </h1>
+                            <span className="px-4 py-2 bg-gradient-to-r from-golden-400 via-golden-500 to-golden-600 text-gray-900 text-sm font-bold rounded-full shadow-lg shadow-golden-500/50 uppercase tracking-wider">
                                 {formData.rank || 'Member'}
                             </span>
                         </div>
-                        <p className="text-gray-500 mb-4 flex items-center justify-center md:justify-start gap-2">
-                            <span className="font-mono bg-gray-100 px-2 py-1 rounded text-gray-600">ID: {formData.userId}</span>
-                            <span className="text-gray-400">•</span>
-                            <span>Joined {formData.joinDate}</span>
-                        </p>
+
+                        {/* User Details Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                            {/* User ID Card */}
+                            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all duration-300">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-golden-500/20 rounded-lg">
+                                        <User size={20} className="text-golden-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">User ID</p>
+                                        <p className="text-white font-mono font-bold text-lg">{formData.userId}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Join Date Card */}
+                            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all duration-300">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-golden-500/20 rounded-lg">
+                                        <CheckCircle size={20} className="text-golden-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Member Since</p>
+                                        <p className="text-white font-semibold text-lg">{formData.joinDate}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -227,6 +266,66 @@ const Profile = () => {
                                         onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
                                         className="w-full pl-12 pr-4 py-4 rounded-xl bg-gray-300 border-transparent text-gray-500 cursor-not-allowed font-medium"
                                         placeholder="Enter mobile number"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-700 ml-1">User Name (ID)</label>
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <User className="text-gray-400" size={20} />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        disabled={true}
+                                        value={formData.userId}
+                                        className="w-full pl-12 pr-4 py-4 rounded-xl bg-gray-300 border-transparent text-gray-500 cursor-not-allowed font-medium"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-700 ml-1">Activation Date</label>
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <CheckCircle className="text-gray-400" size={20} />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        disabled={true}
+                                        value={formData.joinDate}
+                                        className="w-full pl-12 pr-4 py-4 rounded-xl bg-gray-300 border-transparent text-gray-500 cursor-not-allowed font-medium"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-700 ml-1">Sponsher ID</label>
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <User className="text-gray-400" size={20} />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        disabled={true}
+                                        value={formData.sponsherId || 'N/A'}
+                                        className="w-full pl-12 pr-4 py-4 rounded-xl bg-gray-300 border-transparent text-gray-500 cursor-not-allowed font-medium"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-700 ml-1">Sponsher User Name</label>
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <User className="text-gray-400" size={20} />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        disabled={true}
+                                        value={formData.sponsherUsername || 'N/A'}
+                                        className="w-full pl-12 pr-4 py-4 rounded-xl bg-gray-300 border-transparent text-gray-500 cursor-not-allowed font-medium"
                                     />
                                 </div>
                             </div>
