@@ -4,6 +4,20 @@ import { X, Copy, CheckCircle, Wallet, ArrowRight, Loader2 } from 'lucide-react'
 import { useWallet } from '../context/WalletContext';
 import depositService from '../services/deposit.service';
 import { toast } from 'react-hot-toast';
+import { ethers } from 'ethers';
+
+// BSC Mainnet details
+const BSC_CHAIN_ID = '0x38'; // 56
+const USDT_BEP20_ADDRESS = '0x55d398326f99059fF775485246999027B3197955'; // Mainnet USDT
+// const USDT_BEP20_ADDRESS = '0x337610d27c682E347C9cD60BD4b3b107C9d343DD'; // Testnet USDT (optional for testing)
+
+const USDT_ABI = [
+    "function transfer(address to, uint256 amount) returns (bool)",
+    "function decimals() view returns (uint8)",
+    "function balanceOf(address account) view returns (uint256)"
+];
+
+const USDT_TRC20_ADDRESS = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'; // Mainnet USDT (TRC20)
 
 const ADMIN_WALLETS = {
     BEP20: "0x1234567890123456789012345678901234567890", // Replace with real admin address
@@ -25,9 +39,15 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
         onClose();
     };
 
-    const handleNetworkSelect = (selectedNetwork) => {
+    const handleNetworkSelect = async (selectedNetwork) => {
         setNetwork(selectedNetwork);
-        setStep(2);
+        if (selectedNetwork === 'BEP20') {
+            await handleBEP20Payment();
+        } else if (selectedNetwork === 'TRC20') {
+            await handleTRC20Payment();
+        } else {
+            setStep(2);
+        }
     };
 
     const handleCopy = (text) => {
@@ -36,21 +56,167 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const handlePaymentSubmit = async () => {
+    // Helper to ensure wallet is connected before payment
+    const ensureWalletConnected = async () => {
         if (!isConnected) {
-            await connectWallet();
+            try {
+                await connectWallet();
+                return true;
+            } catch (e) {
+                console.error("Failed to connect", e);
+                return false;
+            }
+        }
+        return true;
+    };
+
+    const handlePaymentSubmit = async () => {
+        // This is now mainly for TRC20 or retry scenarios
+        if (network === 'BEP20') {
+            await handleBEP20Payment();
+        } else if (network === 'TRC20') {
+            await handleTRC20Payment();
+        }
+    };
+
+    const handleTRC20Payment = async () => {
+        // specific logic for TronLink
+        if (!window.tronWeb || !window.tronWeb.defaultAddress.base58) {
+            toast.error("TronLink is not installed or locked. Opening manual entry.");
+            setStep(2); // Fallback to manual
             return;
         }
 
-        // For BEP20 (Automatic), we would do Web3 logic here
-        // For TRC20 (Manual), we take the hash input
+        setProcessing(true);
+        try {
+            const tronWeb = window.tronWeb;
+            const adminAddress = ADMIN_WALLETS.TRC20;
+            const amount = packageInfo.price * 1000000; // USDT TRC20 has 6 decimals
 
-        // Currently implementing Manual Flow for TRC20 (and simulating BEP20 success -> manual entry for now? or keeping as is?)
-        // Let's assume for this specific step the user is sending a "Manual Transaction Hash" even for BEP20 if auto fails, or we just focus on TRC20 manual entry.
+            // Use contract interaction for USDT
+            const contract = await tronWeb.contract().at(USDT_TRC20_ADDRESS);
 
-        // Let's modify the UI to ASK for a hash after "payment" or provide a distinct "Manual Entry" step.
-        // But the current UI in step 2 is different. Let me read the UI again.
-        // Wait, I need to see the UI code to know where to inject the input field.
+            // Check balance (Optional, likely handled by wallet but good for UX)
+            // const balance = await contract.balanceOf(tronWeb.defaultAddress.base58).call();
+            // if (balance.toNumber() < amount) throw new Error("Insufficient USDT (TRC20) balance");
+
+            const txHash = await contract.transfer(adminAddress, amount).send({
+                feeLimit: 100_000_000
+            });
+
+            toast.success("Transaction submitted to Tron Network!");
+            await handleManualSubmit(txHash);
+
+        } catch (error) {
+            console.error("Tron Payment Error:", error);
+            toast.error(error.message || "Tron payment failed");
+            setStep(2); // Fallback to manual on error so they can retry or see the manual screen
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    const handleBEP20Payment = async () => {
+        setProcessing(true);
+        try {
+            const connected = await ensureWalletConnected();
+            if (!connected) {
+                setProcessing(false);
+                return;
+            }
+
+            if (!window.ethereum) throw new Error("MetaMask is not installed");
+
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+            const userAddress = await signer.getAddress();
+
+            // Switch to BSC
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: BSC_CHAIN_ID }],
+                });
+            } catch (switchError) {
+                // This error code indicates that the chain has not been added to MetaMask.
+                if (switchError.code === 4902) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [
+                                {
+                                    chainId: BSC_CHAIN_ID,
+                                    chainName: 'Binance Smart Chain Mainnet',
+                                    rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                                    nativeCurrency: {
+                                        name: 'BNB',
+                                        symbol: 'BNB',
+                                        decimals: 18
+                                    },
+                                    blockExplorerUrls: ['https://bscscan.com']
+                                },
+                            ],
+                        });
+                    } catch (addError) {
+                        throw new Error("Failed to add BSC network to MetaMask");
+                    }
+                } else {
+                    throw switchError;
+                }
+            }
+
+            // Create Contract instance
+            const usdtContract = new ethers.Contract(USDT_BEP20_ADDRESS, USDT_ABI, signer);
+
+            // Get decimals (usually 18 for USDT on BSC, but safe to check)
+            const decimals = await usdtContract.decimals();
+
+            // Calculate amount
+            const amount = ethers.parseUnits(packageInfo.price.toString(), decimals);
+
+            // Check Balance (Optional: Commented out to allow testing flow even with 0 balance)
+            /*
+            const balance = await usdtContract.balanceOf(userAddress);
+            if (balance < amount) {
+                throw new Error("Insufficient USDT balance. Please ensure you have enough USDT (BEP20) in your wallet.");
+            }
+            */
+
+            // Admin address
+            const adminAddress = ADMIN_WALLETS.BEP20;
+
+            // Send Transaction
+            // We add a manual gasLimit to bypass the automatic estimateGas check,
+            // which fails if the user has insufficient funds. This ensures MetaMask opens.
+            const tx = await usdtContract.transfer(adminAddress, amount, { gasLimit: 100000 });
+
+            toast.loading("Transaction submitted. Waiting for confirmation...", { id: 'txPending' });
+
+            // Wait for confirmation
+            await tx.wait();
+
+            toast.dismiss('txPending');
+            toast.success("Transaction confirmed!");
+
+            // Submit to Backend
+            await handleManualSubmit(tx.hash);
+
+        } catch (error) {
+            console.error("Payment Error:", error);
+
+            // Parse error message
+            const errorMessage = error?.message || "";
+
+            if (error.code === 4001 || error.code === 'ACTION_REJECTED') {
+                toast.error("User rejected the transaction");
+            } else if (errorMessage.includes("transfer amount exceeds balance") || errorMessage.includes("insufficient funds")) {
+                toast.error("Insufficient USDT balance to complete this transaction.");
+            } else {
+                toast.error(error.reason || error.message || "Payment failed");
+            }
+        } finally {
+            setProcessing(false);
+        }
     };
 
     const handleManualSubmit = async (hash) => {
@@ -105,7 +271,8 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
 
                                 <button
                                     onClick={() => handleNetworkSelect('BEP20')}
-                                    className="w-full flex items-center justify-between p-4 rounded-xl border-2 border-gray-400 cursor-pointer shadow-lg shadow-gray-400 hover:border-golden-400 hover:bg-golden-50 transition-all group hover:translate-x-2 hover:shadow-gray-600"
+                                    disabled={processing}
+                                    className="w-full flex items-center justify-between p-4 rounded-xl border-2 border-gray-400 cursor-pointer shadow-lg shadow-gray-400 hover:border-golden-400 hover:bg-golden-50 transition-all group hover:translate-x-2 hover:shadow-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 font-bold">B</div>
@@ -114,12 +281,17 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                                             <p className="text-xs text-gray-500">Binance Smart Chain</p>
                                         </div>
                                     </div>
-                                    <ArrowRight size={20} className="text-gray-300 group-hover:text-golden-500" />
+                                    {processing && network === 'BEP20' ? (
+                                        <Loader2 size={20} className="animate-spin text-golden-500" />
+                                    ) : (
+                                        <ArrowRight size={20} className="text-gray-300 group-hover:text-golden-500" />
+                                    )}
                                 </button>
 
                                 <button
                                     onClick={() => handleNetworkSelect('TRC20')}
-                                    className="w-full flex items-center justify-between p-4 rounded-xl border-2 border-gray-400 cursor-pointer shadow-lg shadow-gray-400 hover:border-red-400 hover:bg-red-50 transition-all group hover:translate-x-2 hover:shadow-gray-600"
+                                    disabled={processing}
+                                    className="w-full flex items-center justify-between p-4 rounded-xl border-2 border-gray-400 cursor-pointer shadow-lg shadow-gray-400 hover:border-red-400 hover:bg-red-50 transition-all group hover:translate-x-2 hover:shadow-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold">T</div>
@@ -128,7 +300,11 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                                             <p className="text-xs text-gray-500">Tron Network</p>
                                         </div>
                                     </div>
-                                    <ArrowRight size={20} className="text-gray-300 group-hover:text-red-500" />
+                                    {processing && network === 'TRC20' ? (
+                                        <Loader2 size={20} className="animate-spin text-red-500" />
+                                    ) : (
+                                        <ArrowRight size={20} className="text-gray-300 group-hover:text-red-500" />
+                                    )}
                                 </button>
                             </div>
                         ) : (
@@ -170,6 +346,21 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                                     >
                                         <Wallet size={20} /> Connect Wallet
                                     </button>
+                                ) : network === 'BEP20' ? (
+                                    <button
+                                        onClick={handlePaymentSubmit}
+                                        disabled={processing}
+                                        className="w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all bg-gradient-to-r from-yellow-500 to-yellow-600 shadow-yellow-200 hover:shadow-yellow-300 transform hover:scale-[1.02]"
+                                    >
+                                        {processing ? (
+                                            <Loader2 size={24} className="animate-spin" />
+                                        ) : (
+                                            <>
+                                                <Wallet size={20} />
+                                                Pay ${packageInfo?.price} with MetaMask
+                                            </>
+                                        )}
+                                    </button>
                                 ) : (
                                     <div className="space-y-4 pt-2">
                                         <div className="relative">
@@ -190,10 +381,7 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                                                 handleManualSubmit(hash);
                                             }}
                                             disabled={processing}
-                                            className={`w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all ${network === 'BEP20'
-                                                ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 shadow-yellow-200 hover:shadow-yellow-300'
-                                                : 'bg-gradient-to-r from-red-500 to-red-600 shadow-red-200 hover:shadow-red-300'
-                                                }`}
+                                            className="w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all bg-gradient-to-r from-red-500 to-red-600 shadow-red-200 hover:shadow-red-300 hover:scale-[1.02]"
                                         >
                                             {processing ? (
                                                 <Loader2 size={24} className="animate-spin" />
@@ -208,7 +396,7 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                                 )}
 
                                 <p className="text-xs text-center text-gray-400">
-                                    {network === 'BEP20' ? 'Requires MetaMask / Web3 Wallet' : 'Requires TronLink Extension'}
+                                    {network === 'BEP20' ? 'Requires MetaMask / Web3 Wallet. Ensure you have BNB for gas.' : 'Requires TronLink Extension or Manual Transfer'}
                                 </p>
                             </div>
                         )}

@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Users, Crown, DollarSign, Clock, Landmark, PieChart, ArrowRightLeft, Trophy, Target, TreeDeciduous, BarChart3, CircleDollarSign, Briefcase, Copy, Check } from 'lucide-react';
+import { TrendingUp, Users, Crown, DollarSign, Clock, Landmark, PieChart, ArrowRightLeft, Trophy, Target, TreeDeciduous, BarChart3, CircleDollarSign, Briefcase, Copy, Check, MessageCircle, Send } from 'lucide-react';
 import { dashboardService } from '../services/dashboard.service';
 import NewsTicker from '../components/NewsTicker';
 
@@ -111,35 +111,97 @@ const Dashboard = () => {
 
                         {/* Referral Links Tabs */}
                         <div className="flex-1 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 w-full lg:w-auto">
-                            <div className="grid grid-cols-2 lg:flex lg:flex-wrap gap-2 mb-4">
-                                {[
-                                    { id: 'left', label: 'Left Link', color: 'blue' },
-                                    { id: 'right', label: 'Right Link', color: 'emerald' },
-                                    { id: 'placing-left', label: 'Placing Left', color: 'cyan' },
-                                    { id: 'placing-right', label: 'Placing Right', color: 'orange' }
-                                ].map((tab) => (
+                            {/* User ID Badge */}
+                            <div className="flex justify-center mb-2">
+                                <div className="bg-white/20 font-bold text-white px-8 py-2 rounded-xl text-lg shadow-sm border border-white/10 tracking-wider">
+                                    {user?.userId}
+                                </div>
+                            </div>
+
+                            {/* Pyramid Layout Buttons */}
+                            <div className="flex flex-col items-center gap-2 mb-4">
+                                {/* Row 1: Left & Right Links */}
+                                <div className="flex gap-4">
                                     <button
-                                        key={tab.id}
-                                        onClick={() => setActiveRefTab(tab.id)}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${activeRefTab === tab.id
-                                            ? `bg-white text-${tab.color}-600 shadow-lg`
-                                            : 'bg-black/20 text-white hover:bg-black/30'
+                                        onClick={() => setActiveRefTab('left')}
+                                        className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeRefTab === 'left'
+                                            ? 'bg-yellow-400 text-black shadow-lg scale-105'
+                                            : 'bg-yellow-400/20 text-yellow-100 hover:bg-yellow-400/30 border border-yellow-400/30'
                                             }`}
                                     >
-                                        {tab.label}
+                                        Left Link
                                     </button>
-                                ))}
+                                    <button
+                                        onClick={() => setActiveRefTab('right')}
+                                        className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeRefTab === 'right'
+                                            ? 'bg-green-500 text-white shadow-lg scale-105'
+                                            : 'bg-green-500/20 text-green-100 hover:bg-green-500/30 border border-green-500/30'
+                                            }`}
+                                    >
+                                        Right Link
+                                    </button>
+                                </div>
+
+                                {/* Row 2: Placing Left & Right */}
+                                <div className="flex gap-16">
+                                    <button
+                                        onClick={() => setActiveRefTab('placing-left')}
+                                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeRefTab === 'placing-left'
+                                            ? 'bg-orange-400 text-white shadow-lg scale-105'
+                                            : 'bg-orange-400/20 text-orange-100 hover:bg-orange-400/30 border border-orange-400/30'
+                                            }`}
+                                    >
+                                        Placing Left
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveRefTab('placing-right')}
+                                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeRefTab === 'placing-right'
+                                            ? 'bg-blue-500 text-white shadow-lg scale-105'
+                                            : 'bg-blue-500/20 text-blue-100 hover:bg-blue-500/30 border border-blue-500/30'
+                                            }`}
+                                    >
+                                        Placing Right
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Dynamic Link Display */}
-                            <div className="bg-gray-300/60 backdrop-blur-md rounded-xl p-2 flex items-center gap-2 border border-black shadow-inner">
+                            <div className="bg-gray-300/60 backdrop-blur-md rounded-xl p-2 flex items-center gap-2 border border-black shadow-inner mb-3">
                                 <input
                                     type="text"
                                     readOnly
-                                    value={`${window.location.origin}/register?ref=${user?.userId}&position=${activeRefTab}`}
+                                    value={`${window.location.origin}/register?ref=${user?.userId}&position=${activeRefTab === 'placing-left' || activeRefTab === 'placing-right' ? (activeRefTab === 'placing-left' ? 'placing-left' : 'placing-right') : activeRefTab}`}
                                     className="flex-1 bg-transparent px-3 py-1.5 text-sm font-medium text-gray-800 outline-none truncate"
                                 />
-                                <CopyButton link={`${window.location.origin}/register?ref=${user?.userId}&position=${activeRefTab}`} />
+                                <CopyButton link={`${window.location.origin}/register?ref=${user?.userId}&position=${activeRefTab === 'placing-left' || activeRefTab === 'placing-right' ? (activeRefTab === 'placing-left' ? 'placing-left' : 'placing-right') : activeRefTab}`} />
+                            </div>
+
+                            {/* Social Share Buttons */}
+                            <div className="grid grid-cols-3 gap-2">
+                                <button
+                                    onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`${window.location.origin}/register?ref=${user?.userId}&position=${activeRefTab}`)}`, '_blank')}
+                                    className="bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-lg"
+                                >
+                                    <MessageCircle size={18} />
+                                    <span className="text-xs font-bold hidden sm:inline">WhatsApp</span>
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(`${window.location.origin}/register?ref=${user?.userId}&position=${activeRefTab}`);
+                                        window.open('https://instagram.com', '_blank');
+                                    }}
+                                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 transition-all shadow-lg"
+                                >
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px]"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                                    <span className="text-xs font-bold hidden sm:inline">Instagram</span>
+                                </button>
+                                <button
+                                    onClick={() => window.open(`https://t.me/share/url?url=${encodeURIComponent(`${window.location.origin}/register?ref=${user?.userId}&position=${activeRefTab}`)}&text=Join me on IVAMAX!`, '_blank')}
+                                    className="bg-sky-500 hover:bg-sky-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-lg"
+                                >
+                                    <Send size={18} />
+                                    <span className="text-xs font-bold hidden sm:inline">Telegram</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -310,18 +372,23 @@ const Dashboard = () => {
                                             <div className="text-amber-600 text-xl">🎯</div>
                                         </div>
                                     </div>
-                                    <p className="text-3xl font-bold text-gray-800">{stats.matchingCompleted}</p>
+                                    {/* <p className="text-3xl font-bold text-gray-800">{stats.matchingCompleted}</p> */}
                                     <div className="mt-2 flex items-center gap-2">
-                                        <div className="flex-1 h-2 bg-amber-100 rounded-full overflow-hidden">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${(stats.matchingCompleted / Math.max(stats.leftPairs, stats.rightPairs)) * 100}%` }}
-                                                className="h-full bg-gradient-to-r from-amber-500 to-orange-500"
-                                            />
+                                        <div className="flex-1">
+                                            <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                                                {Math.min(stats.leftPairs || 0, stats.rightPairs || 0)}
+                                            </h2>
+                                            <div className="h-1.5 bg-amber-100 rounded-full overflow-hidden mb-2">
+                                                <motion.div
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${stats.rightPairs > 0 && stats.leftPairs > 0 ? (Math.min(stats.leftPairs, stats.rightPairs) / Math.max(stats.leftPairs, stats.rightPairs)) * 100 : 0}%` }}
+                                                    className="h-full bg-gradient-to-r from-amber-500 to-orange-500"
+                                                />
+                                            </div>
+                                            <span className="text-sm font-medium text-amber-600">
+                                                {stats.rightPairs > 0 && stats.leftPairs > 0 ? Math.round((Math.min(stats.leftPairs, stats.rightPairs) / Math.max(stats.leftPairs, stats.rightPairs)) * 100) : 0}% Balanced
+                                            </span>
                                         </div>
-                                        <span className="text-sm font-medium text-amber-600">
-                                            {Math.round((stats.matchingCompleted / Math.max(stats.leftPairs, stats.rightPairs)) * 100)}%
-                                        </span>
                                     </div>
                                 </div>
                             </div>

@@ -112,6 +112,15 @@ const incomeSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
+    // Deferred Payout Fields
+    paymentDueDate: {
+        type: Date,
+        index: true,
+    },
+    closingDate: {
+        type: Date,
+        index: true,
+    },
 }, {
     timestamps: true,
 });

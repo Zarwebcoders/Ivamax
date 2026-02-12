@@ -13,6 +13,10 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
+// Initialize Cron Jobs
+const initCronJobs = require('./src/services/cronService');
+initCronJobs();
+
 // Middleware
 const allowedOrigins = [
     'http://localhost:5173',
@@ -47,6 +51,7 @@ app.use('/api/support', require('./src/routes/support'));
 app.use('/api/announcements', require('./src/routes/announcement'));
 app.use('/api/notifications', require('./src/routes/notification'));
 app.use('/api/business', require('./src/routes/business'));
+app.use('/api/test', require('./src/routes/test')); // Testing Route
 
 // Health check
 app.get('/health', (req, res) => {

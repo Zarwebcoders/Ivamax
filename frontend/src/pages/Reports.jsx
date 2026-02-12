@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FileText, Calendar, Download, TrendingUp, BarChart2, Award } from 'lucide-react';
 
@@ -10,12 +10,34 @@ const Reports = () => {
         visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
     };
 
-    // Mock Data for Matching Report
-    const matchingData = [
-        { date: '2024-02-03', leftBV: 500, rightBV: 500, matched: 500, income: 50, flush: 0 },
-        { date: '2024-02-02', leftBV: 300, rightBV: 300, matched: 300, income: 30, flush: 0 },
-        { date: '2024-02-01', leftBV: 1200, rightBV: 1000, matched: 1000, income: 100, flush: 200 },
-    ];
+    const [matchingData, setMatchingData] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (reportType === 'matching') {
+            fetchMatchingHistory();
+        }
+    }, [reportType]);
+
+    const fetchMatchingHistory = async () => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/income/history/matching', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await response.json();
+            if (data.success) {
+                setMatchingData(data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching matching history:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const ReportCard = ({ title, icon: Icon, color, isActive, onClick }) => (
         <button

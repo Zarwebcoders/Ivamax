@@ -107,6 +107,9 @@ const getDashboardStats = async (req, res) => {
             }
         ]);
 
+        console.log(`📊 Dashboard Stats for ${userId}:`);
+        console.log('   All-Time Income Aggregation:', JSON.stringify(allTimeIncome, null, 2));
+
         let pmrIncome = 0, drrIncome = 0, fcrIncome = 0, totalIncome = 0;
         allTimeIncome.forEach(stat => {
             totalIncome += stat.total;
@@ -114,6 +117,8 @@ const getDashboardStats = async (req, res) => {
             if (stat._id === 'DRR') drrIncome = stat.total;
             if (stat._id === 'FCR') fcrIncome = stat.total;
         });
+
+        console.log(`   Calculated: Total=${totalIncome}, PMR=${pmrIncome}, DRR=${drrIncome}, FCR=${fcrIncome}`);
 
         // 4. Aggregate Withdrawals
         const withdrawalStats = await Withdrawal.aggregate([

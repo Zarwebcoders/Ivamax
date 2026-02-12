@@ -148,8 +148,8 @@ const Withdrawals = () => {
                                     <div
                                         onClick={() => setMethod('USDT (TRC20)')}
                                         className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${method === 'USDT (TRC20)'
-                                                ? 'border-golden-500 bg-golden-50 shadow-md shadow-golden-200'
-                                                : 'border-gray-300 bg-white hover:border-golden-300 hover:bg-golden-50/30'
+                                            ? 'border-golden-500 bg-golden-50 shadow-md shadow-golden-200'
+                                            : 'border-gray-300 bg-white hover:border-golden-300 hover:bg-golden-50/30'
                                             }`}
                                     >
                                         <div className="flex items-center gap-3">
@@ -165,6 +165,31 @@ const Withdrawals = () => {
                                                     <p className="font-bold text-gray-800">USDT (TRC20)</p>
                                                 </div>
                                                 <p className="text-xs text-gray-500 mt-1">Withdraw to your USDT TRC20 wallet address</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* USDT BEP20 Option */}
+                                    <div
+                                        onClick={() => setMethod('USDT (BEP20)')}
+                                        className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${method === 'USDT (BEP20)'
+                                            ? 'border-golden-500 bg-golden-50 shadow-md shadow-golden-200'
+                                            : 'border-gray-300 bg-white hover:border-golden-300 hover:bg-golden-50/30'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${method === 'USDT (BEP20)' ? 'border-golden-500' : 'border-gray-300'
+                                                }`}>
+                                                {method === 'USDT (BEP20)' && (
+                                                    <div className="w-3 h-3 rounded-full bg-golden-500"></div>
+                                                )}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <WalletIcon size={20} className="text-golden-600" />
+                                                    <p className="font-bold text-gray-800">USDT (BEP20)</p>
+                                                </div>
+                                                <p className="text-xs text-gray-500 mt-1">Withdraw to your USDT BEP20 wallet address</p>
                                             </div>
                                         </div>
                                     </div>

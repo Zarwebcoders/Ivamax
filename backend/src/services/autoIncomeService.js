@@ -1,12 +1,12 @@
 const User = require('../models/User');
 const Income = require('../models/Income');
 const Tree = require('../models/Tree');
-const { calculateUserRank } = require('./rankController');
+const { calculateUserRank } = require('../controllers/rankController');
 const {
     calculatePairMatchingRoyalty,
     calculateDirectReferralRoyalty,
     calculateFounderClubRoyalty
-} = require('./incomeController');
+} = require('../controllers/incomeController');
 
 /**
  * Auto-calculate and credit income to user
@@ -22,139 +22,173 @@ const autoCalculateAndCreditIncome = async (userId, triggeredBy = 'auto') => {
 
         // Get current user data
         const currentUser = await User.findOne({ userId });
-        const oldRank = currentUser?.rank || 0;
-        const oldRankName = currentUser?.rankName || 'Member';
+        const oldRank = currentUser?.currentRank || 0; // Number field
+        const oldRankName = currentUser?.rank || 'Member'; // String field
 
-        // 1. Update user's rank first
-        const rankData = await calculateUserRank(userId);
-        await User.updateOne(
-            { userId },
-            {
-                rank: rankData.rank,
-                rankName: rankData.rankName
-            }
-        );
+        /* 
+           TESTING MODE: Skip rank recalculation, use DB rank as-is
+           This allows manual rank setting in DB for testing
+        */
+        const TESTING_MODE = true;
 
-        console.log(`   Rank updated: ${rankData.rankName} (${rankData.rank})`);
+        let rankData;
+        if (TESTING_MODE) {
+            // Use existing rank from database (no recalculation)
+            rankData = {
+                rank: currentUser?.currentRank || 0,      // Number: 0-11
+                rankName: currentUser?.rank || 'Member'   // String: "FOUNDER", "ASSOCIATE", etc.
+            };
+            console.log(`   Using DB Rank: ${rankData.rankName} (${rankData.rank}) [TESTING MODE]`);
+        } else {
+            // 1. Update user's rank (Production Mode)
+            rankData = await calculateUserRank(userId);
+            await User.updateOne(
+                { userId },
+                {
+                    rank: rankData.rank,
+                    rankName: rankData.rankName
+                }
+            );
+            console.log(`   Rank updated: ${rankData.rankName} (${rankData.rank})`);
+        }
 
         // Check if rank increased
         const rankIncreased = rankData.rank > oldRank;
 
-        // 2. Calculate all three income types
-        const pmr = await calculatePairMatchingRoyalty(userId, month, year);
-        const drr = await calculateDirectReferralRoyalty(userId, month, year);
-        const fcr = await calculateFounderClubRoyalty(userId, month, year);
+        /* 
+           DEFERRED INCOME IMPLEMENTATION:
+           By default, Real-time income calculation is DISABLED (Deferred).
+           Income is calculated via 'Monthly Closing'.
+           
+           *** TESTING MODE ***
+           TESTING_MODE is already set above (skip rank recalculation + immediate income credit)
+        */
 
-        // 3. Calculate total income
-        const totalIncome = (pmr.amount || 0) + (drr.totalAmount || 0) + (fcr.amount || 0);
+        // Initialize variables with defaults for Deferred Mode
+        let pmr = { amount: 0, rankName: 'Member', rank: 0 };
+        let drr = { totalAmount: 0, amountUSDT: 0, amountToken: 0 };
+        let fcr = { amount: 0, qualified: false };
+        let totalIncome = 0;
 
-        console.log(`   PMR: $${pmr.amount || 0}`);
-        console.log(`   DRR: $${drr.totalAmount || 0}`);
-        console.log(`   FCR: $${fcr.amount || 0}`);
-        console.log(`   Total: $${totalIncome}`);
+        if (TESTING_MODE) {
+            // 2. Calculate all three income types (Enabled for Testing)
+            pmr = await calculatePairMatchingRoyalty(userId, month, year);
+            drr = await calculateDirectReferralRoyalty(userId, month, year);
+            fcr = await calculateFounderClubRoyalty(userId, month, year);
 
-        if (totalIncome > 0) {
-            // 4. Check if income already credited this month
-            const existingIncome = await Income.findOne({
-                userId,
-                month,
-                year,
-                autoProcessed: true
-            });
+            // 3. Calculate total income
+            totalIncome = (pmr.amount || 0) + (drr.totalAmount || 0) + (fcr.amount || 0);
 
-            if (existingIncome) {
-                // Update existing income record
-                const incrementalIncome = totalIncome - existingIncome.totalAmount;
+            console.log(`   PMR: $${pmr.amount || 0}`);
+            console.log(`   DRR: $${drr.totalAmount || 0}`);
+            console.log(`   FCR: $${fcr.amount || 0}`);
+            console.log(`   Total: $${totalIncome}`);
 
-                if (incrementalIncome > 0) {
-                    await Income.updateOne(
-                        { _id: existingIncome._id },
-                        {
-                            $set: {
-                                pmrAmount: pmr.amount || 0,
-                                drrAmount: drr.totalAmount || 0,
-                                fcrAmount: fcr.amount || 0,
-                                totalAmount: totalIncome,
-                                lastUpdated: new Date()
-                            },
-                            $inc: {
-                                updateCount: 1
-                            }
+            if (totalIncome > 0) {
+                let incrementalWalletCredit = 0;
+
+                // Helper function to process income type
+                const processIncomeType = async (type, amount, extraFields = {}) => {
+                    if (amount <= 0) return;
+
+                    const query = {
+                        userId,
+                        month,
+                        year,
+                        incomeType: type,
+                        autoProcessed: true
+                    };
+
+                    const existing = await Income.findOne(query);
+
+                    if (existing) {
+                        const diff = amount - existing.netAmount;
+                        if (diff > 0.01) { // Use small threshold for float comparison
+                            await Income.updateOne(
+                                { _id: existing._id },
+                                {
+                                    $set: {
+                                        netAmount: amount,
+                                        royaltyAmount: amount,
+                                        lastUpdated: new Date(),
+                                        ...extraFields
+                                    },
+                                    $inc: { updateCount: 1 }
+                                }
+                            );
+                            incrementalWalletCredit += diff;
+                            console.log(`   Detailed ${type}: Updated amount from ${existing.netAmount} to ${amount}. Credit: ${diff}`);
                         }
-                    );
+                    } else {
+                        // Create new record
+                        await Income.create({
+                            userId,
+                            incomeType: type,
+                            month,
+                            year,
+                            royaltyAmount: amount,
+                            netAmount: amount,
+                            rank: pmr.rankName || 'Member',
+                            autoProcessed: true,
+                            status: 'paid', // Mark as paid immediately for testing/deferred
+                            triggeredBy: triggeredBy === 'manual_test' ? 'manual' : triggeredBy,
+                            triggeredAt: new Date(),
+                            ...extraFields
+                        });
+                        incrementalWalletCredit += amount;
+                        console.log(`   Detailed ${type}: New record created. Credit: ${amount}`);
+                    }
+                };
 
-                    // Credit incremental income to wallet
-                    await creditToWallet(userId, incrementalIncome);
-                    console.log(`   ✅ Incremental income credited: $${incrementalIncome}`);
+                // Process PMR
+                await processIncomeType('PMR', pmr.amount || 0, {
+                    leftCount: pmr.leftCount || 0,
+                    rightCount: pmr.rightCount || 0,
+                    metadata: {
+                        pairs: pmr.totalId || 0,
+                        leftCount: pmr.leftCount || 0,
+                        rightCount: pmr.rightCount || 0
+                    }
+                });
 
-                    // Notify about payment generated
+                // Process DRR
+                await processIncomeType('DRR', drr.totalAmount || 0, {
+                    tokenAmount: drr.amountToken || 0,
+                    metadata: {
+                        referralDetails: drr.referralDetails || []
+                    }
+                });
+
+                // Process FCR
+                await processIncomeType('FCR', fcr.amount || 0, {
+                    metadata: {
+                        founderMembers: fcr.founderMembers || []
+                    }
+                });
+
+                // Wallet Credit & Notification
+                if (incrementalWalletCredit > 0) {
+                    await creditToWallet(userId, incrementalWalletCredit);
+                    console.log(`   ✅ Incremental income credited: $${incrementalWalletCredit}`);
+
                     try {
                         const { createNotification } = require('../controllers/notificationController');
                         await createNotification({
                             userId,
                             type: 'PAYMENT_GENERATED',
                             title: 'Income Credited!',
-                            message: `$${incrementalIncome.toFixed(2)} has been credited to your wallet.`,
+                            message: `$${incrementalWalletCredit.toFixed(2)} has been credited to your wallet.`,
                             link: '/income'
                         });
                     } catch (err) {
                         console.error('Failed to create payment notification:', err);
                     }
+                } else {
+                    console.log(`   ℹ️  No new incremental income to credit.`);
                 }
             } else {
-                // Create new income record
-                await Income.create({
-                    userId,
-                    month,
-                    year,
-                    pmrAmount: pmr.amount || 0,
-                    drrAmount: drr.totalAmount || 0,
-                    fcrAmount: fcr.amount || 0,
-                    totalAmount: totalIncome,
-                    autoProcessed: true,
-                    triggeredBy,
-                    triggeredAt: new Date(),
-                    status: 'credited',
-                    metadata: {
-                        pmr: {
-                            rank: pmr.rank,
-                            rankName: pmr.rankName,
-                            leftCount: pmr.leftCount,
-                            rightCount: pmr.rightCount,
-                            totalId: pmr.totalId
-                        },
-                        drr: {
-                            referralCount: drr.referralDetails?.length || 0,
-                            amountUSDT: drr.amountUSDT || 0,
-                            amountToken: drr.amountToken || 0
-                        },
-                        fcr: {
-                            qualified: fcr.qualified || false,
-                            founderMembers: fcr.founderMembers || []
-                        }
-                    }
-                });
-
-                // Credit to wallet
-                await creditToWallet(userId, totalIncome);
-                console.log(`   ✅ New income credited: $${totalIncome}`);
-
-                // Notify about payment generated
-                try {
-                    const { createNotification } = require('../controllers/notificationController');
-                    await createNotification({
-                        userId,
-                        type: 'PAYMENT_GENERATED',
-                        title: 'Income Credited!',
-                        message: `$${totalIncome.toFixed(2)} has been credited to your wallet.`,
-                        link: '/income'
-                    });
-                } catch (err) {
-                    console.error('Failed to create payment notification:', err);
-                }
+                console.log(`   ℹ️  No income to credit (Testing Mode)`);
             }
-        } else {
-            console.log(`   ℹ️  No income to credit`);
         }
 
         // Notify about rank achievement
