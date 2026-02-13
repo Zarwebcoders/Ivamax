@@ -46,7 +46,7 @@ const AdminLayout = () => {
         { path: '/admin/deposit-approvals', icon: CreditCard, label: 'Deposit Approvals' },
         { path: '/admin/wallet-approvals', icon: Wallet, label: 'Wallet Approvals' },
         { path: '/admin/withdrawal-approvals', icon: ArrowDownLeft, label: 'Withdrawal Approvals' },
-        { path: '/admin/income-processing', icon: DollarSign, label: 'Income Processing' },
+        // { path: '/admin/income-processing', icon: DollarSign, label: 'Income Processing' },
         { path: '/admin/announcements', icon: Megaphone, label: 'Announcements' },
     ];
 

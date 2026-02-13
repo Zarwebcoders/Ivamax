@@ -182,6 +182,21 @@ const UserManagement = () => {
         }
     };
 
+    const handleToggleStatus = async (user) => {
+        if (window.confirm(`Are you sure you want to ${user.isActive ? 'deactivate' : 'activate'} ${user.fullName}?`)) {
+            try {
+                console.log('Sending toggle request for:', user._id);
+                await adminService.toggleUserStatus(user._id);
+                console.log('Toggle success, fetching users...');
+                await fetchUsers(); // Refresh list
+                alert(`User ${user.isActive ? 'deactivated' : 'activated'} successfully`);
+            } catch (error) {
+                console.error('Error toggling status:', error);
+                alert(`Failed to update status: ${error.response?.data?.message || error.message}`);
+            }
+        }
+    };
+
     return (
         <div className="space-y-6 relative">
             <motion.div
@@ -269,9 +284,21 @@ const UserManagement = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                                {user.isActive ? 'Active' : 'Inactive'}
-                                            </span>
+                                            <div className="flex items-center space-x-2">
+                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                    {user.isActive ? 'Active' : 'Inactive'}
+                                                </span>
+                                                <button
+                                                    onClick={() => handleToggleStatus(user)}
+                                                    className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-golden-500 ${user.isActive ? 'bg-green-500' : 'bg-gray-200'}`}
+                                                >
+                                                    <span className="sr-only">Use setting</span>
+                                                    <span
+                                                        aria-hidden="true"
+                                                        className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${user.isActive ? 'translate-x-5' : 'translate-x-0'}`}
+                                                    ></span>
+                                                </button>
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {new Date(user.createdAt).toLocaleDateString()}
@@ -491,19 +518,16 @@ const UserManagement = () => {
                                                 </div>
 
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Default Placement Strategy</label>
-                                                    <p className="text-xs text-gray-500 mb-1">Determines where new direct referrals are placed.</p>
+                                                    <label className="block text-sm font-medium text-gray-700">Placement Side</label>
+                                                    <p className="text-xs text-gray-500 mb-1">Update the user's position side.</p>
                                                     <select
-                                                        name="defaultPlacement"
-                                                        value={formData.defaultPlacement || 'placing-left'}
+                                                        name="placementSide"
+                                                        value={formData.placementSide || 'Left'}
                                                         onChange={handleInputChange}
                                                         className="input w-full mt-1"
-                                                        placeholder="Select placement strategy"
                                                     >
-                                                        <option value="left">Left (Direct)</option>
-                                                        <option value="right">Right (Direct)</option>
-                                                        <option value="placing-left">Placing Left</option>
-                                                        <option value="placing-right">Placing Right</option>
+                                                        <option value="Left">Left</option>
+                                                        <option value="Right">Right</option>
                                                     </select>
                                                 </div>
                                             </div>

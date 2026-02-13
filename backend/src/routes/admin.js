@@ -9,7 +9,8 @@ const {
     getDeposits,
     approveDeposit,
     createUser,
-    updateUser
+    updateUser,
+    toggleUserStatus
 } = require('../controllers/adminController');
 
 // Protect all admin routes
@@ -20,6 +21,7 @@ router.get('/stats', getAdminStats);
 router.get('/users', getAllUsers);
 router.post('/create-user', createUser); // NEW
 router.put('/users/:id', updateUser); // NEW
+router.put('/users/:id/toggle-status', toggleUserStatus); // NEW
 
 router.get('/wallet/requests', getWalletRequests);
 router.put('/wallet/approve/:requestId', approveWalletChange);

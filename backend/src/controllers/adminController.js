@@ -363,6 +363,35 @@ const updateUser = async (req, res) => {
     }
 };
 
+// @desc    Toggle user active status
+// @route   PUT /api/admin/users/:id/toggle-status
+// @access  Private/Admin
+const toggleUserStatus = async (req, res) => {
+    try {
+        console.log(`[DEBUG] Toggling status for user ID: ${req.params.id}`);
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            console.log('[DEBUG] User not found');
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        console.log(`[DEBUG] Current status: ${user.isActive}. Toggling to: ${!user.isActive}`);
+        user.isActive = !user.isActive;
+        await user.save();
+        console.log(`[DEBUG] New status saved: ${user.isActive}`);
+
+        res.json({
+            success: true,
+            message: `User ${user.isActive ? 'activated' : 'deactivated'} successfully`,
+            user
+        });
+    } catch (error) {
+        console.error('Toggle User Status Error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 module.exports = {
     getAdminStats,
     getAllUsers,
@@ -371,5 +400,6 @@ module.exports = {
     getDeposits,
     approveDeposit,
     createUser,
-    updateUser
+    updateUser,
+    toggleUserStatus
 };

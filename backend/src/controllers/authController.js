@@ -267,6 +267,10 @@ const login = async (req, res) => {
         const user = await User.findOne(query);
 
         if (user && (await user.comparePassword(password))) {
+            if (!user.isActive) {
+                return res.status(403).json({ message: 'Account is inactive. Please contact support.' });
+            }
+
             const treeNode = await Tree.findOne({ userId: user.userId });
             res.json({
                 _id: user._id,

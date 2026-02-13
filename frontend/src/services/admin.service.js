@@ -21,6 +21,11 @@ const adminService = {
         return response.data;
     },
 
+    toggleUserStatus: async (userId) => {
+        const response = await api.put(`/admin/users/${userId}/toggle-status`);
+        return response.data;
+    },
+
     // Add more admin services as needed
 };
 
