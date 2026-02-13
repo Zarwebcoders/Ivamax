@@ -28,7 +28,10 @@ const Dashboard = () => {
         rankProgress: 0,
         // Profile
         memberSince: new Date(),
-        networkSize: 0
+        networkSize: 0,
+        // Referral Constraints
+        isLeftDirectFilled: false,
+        isRightDirectFilled: false
     });
 
     const [loading, setLoading] = useState(true);
@@ -42,6 +45,13 @@ const Dashboard = () => {
                 const data = await dashboardService.getStats();
                 if (data.success) {
                     setStats(prev => ({ ...prev, ...data.data }));
+
+                    // Auto-select valid tab if current is filled
+                    if (data.data.isLeftDirectFilled && activeRefTab === 'left') {
+                        setActiveRefTab('placing-left');
+                    } else if (data.data.isRightDirectFilled && activeRefTab === 'right') {
+                        setActiveRefTab('placing-right');
+                    }
                 }
             } catch (error) {
                 console.error("Failed to fetch dashboard stats", error);
@@ -50,7 +60,7 @@ const Dashboard = () => {
             }
         };
         fetchDashboardData();
-    }, []);
+    }, []); // Run only on mount
 
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -123,22 +133,30 @@ const Dashboard = () => {
                                 {/* Row 1: Left & Right Links */}
                                 <div className="flex gap-4">
                                     <button
-                                        onClick={() => setActiveRefTab('left')}
-                                        className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeRefTab === 'left'
+                                        onClick={() => !stats.isLeftDirectFilled && setActiveRefTab('left')}
+                                        disabled={stats.isLeftDirectFilled}
+                                        className={`px-6 py-2 rounded-xl text-sm font-bold transition-all relative ${activeRefTab === 'left'
                                             ? 'bg-yellow-400 text-black shadow-lg scale-105'
-                                            : 'bg-yellow-400/20 text-yellow-100 hover:bg-yellow-400/30 border border-yellow-400/30'
+                                            : stats.isLeftDirectFilled
+                                                ? 'bg-gray-400/50 text-gray-300 cursor-not-allowed border border-gray-500/30'
+                                                : 'bg-yellow-400/20 text-yellow-100 hover:bg-yellow-400/30 border border-yellow-400/30'
                                             }`}
                                     >
                                         Left Link
+                                        {stats.isLeftDirectFilled && <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full shadow-md">Filled</span>}
                                     </button>
                                     <button
-                                        onClick={() => setActiveRefTab('right')}
-                                        className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeRefTab === 'right'
+                                        onClick={() => !stats.isRightDirectFilled && setActiveRefTab('right')}
+                                        disabled={stats.isRightDirectFilled}
+                                        className={`px-6 py-2 rounded-xl text-sm font-bold transition-all relative ${activeRefTab === 'right'
                                             ? 'bg-green-500 text-white shadow-lg scale-105'
-                                            : 'bg-green-500/20 text-green-100 hover:bg-green-500/30 border border-green-500/30'
+                                            : stats.isRightDirectFilled
+                                                ? 'bg-gray-400/50 text-gray-300 cursor-not-allowed border border-gray-500/30'
+                                                : 'bg-green-500/20 text-green-100 hover:bg-green-500/30 border border-green-500/30'
                                             }`}
                                     >
                                         Right Link
+                                        {stats.isRightDirectFilled && <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full shadow-md">Filled</span>}
                                     </button>
                                 </div>
 

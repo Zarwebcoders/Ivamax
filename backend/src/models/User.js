@@ -57,6 +57,11 @@ const userSchema = new mongoose.Schema({
         enum: ['Left', 'Right', null],
         default: null,
     },
+    defaultPlacement: {
+        type: String,
+        enum: ['left', 'right', 'placing-left', 'placing-right'],
+        default: 'placing-left',
+    },
     rank: {
         type: String,
         default: 'Member',
@@ -122,7 +127,7 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
 userSchema.statics.generateUserId = async function () {
     const lastUser = await this.findOne().sort({ createdAt: -1 });
     if (!lastUser) {
-        return 'IVA100001';
+        return 'IVA1001';
     }
     const lastId = parseInt(lastUser.userId.replace('IVA', ''));
     const newId = lastId + 1;

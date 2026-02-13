@@ -82,9 +82,9 @@ const Packages = () => {
                         <h2 className="text-xl font-bold text-white mb-1">Premium Starter</h2>
                         <div className="flex items-center justify-center text-white">
                             <span className="text-lg font-medium opacity-80">$</span>
-                            <span className="text-4xl font-black tracking-tighter">250</span>
+                            <span className="text-4xl font-black tracking-tighter">1</span>
                         </div>
-                        <p className="text-golden-100 mt-1 text-xs font-medium">Lifetime Access</p>
+                        <p className="text-golden-100 mt-1 text-xs font-medium">Lifetime Access (Testing)</p>
                     </div>
 
                     {/* Features Body */}
@@ -112,7 +112,7 @@ const Packages = () => {
 
                         {/* CTA Button */}
                         <button
-                            onClick={() => handleActivate({ name: 'Premium Starter', price: 250 })}
+                            onClick={() => handleActivate({ name: 'Premium Starter', price: 1 })}
                             className="w-full bg-gradient-to-r from-gray-900 to-gray-800 text-white font-bold py-3 rounded-xl shadow-lg shadow-gray-400 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 flex items-center justify-center group overflow-hidden relative"
                         >
                             <span className="relative z-10 flex items-center gap-2">

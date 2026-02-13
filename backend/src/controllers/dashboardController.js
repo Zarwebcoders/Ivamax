@@ -187,7 +187,10 @@ const getDashboardStats = async (req, res) => {
                 currentRank: user.rank || 'Member',
                 royaltyPercentage: rankData.income || 0, // Dynamic based on actual rank
                 nextRankName: nextRankName,
-                rankProgress: Math.round(rankProgress) // Rounded percentage
+                rankProgress: Math.round(rankProgress), // Rounded percentage
+                // Referral Link Constraints
+                isLeftDirectFilled: !!treeBase?.leftDirectId,
+                isRightDirectFilled: !!treeBase?.rightDirectId
             }
         });
 

@@ -258,7 +258,7 @@ const createUser = async (req, res) => {
             }
         }
 
-        if (!referrerId) referrerId = 'IVA100001'; // Default to Root if missing
+        if (!referrerId) referrerId = 'IVA1001'; // Default to Root if missing
         if (!strategy) strategy = 'placing-left'; // Default strategy
 
         // Verify Referrer Exists
@@ -338,6 +338,7 @@ const updateUser = async (req, res) => {
         user.fullName = req.body.fullName || user.fullName;
         user.mobile = req.body.mobile || user.mobile;
         user.email = req.body.email || user.email;
+        if (req.body.defaultPlacement) user.defaultPlacement = req.body.defaultPlacement;
 
         // Password update
         if (req.body.password && req.body.password.trim() !== '') {

@@ -121,7 +121,7 @@ const getTree = async (req, res) => {
 // TEMP DEBUG
 const checkRawNodes = async (req, res) => {
     try {
-        const nodes = await Tree.find({ userId: { $in: ['IVA100001', 'IVA100002', 'IVA100003'] } });
+        const nodes = await Tree.find({ userId: { $in: ['IVA1001', 'IVA1002', 'IVA1003'] } });
         res.json(nodes);
     } catch (e) {
         res.json({ error: e.message });

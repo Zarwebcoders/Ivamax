@@ -54,19 +54,20 @@ const register = async (req, res) => {
 
         // Defaults if parsing failed or partial info
         if (!referrerId) {
-            referrerId = 'IVA100001'; // Default Admin/Root if no referrer
+            referrerId = 'IVA1001'; // Default Admin/Root if no referrer
         }
         // If strategy logic is missing, default to 'left' or 'placing-left'?? 
         // For now, if no strategy, we can't place in binary tree properly. 
         // But let's assume 'placing-left' (spillover) is the safest default if they just have a generic link.
-        if (!placementStrategy) {
-            placementStrategy = 'placing-left';
-        }
-
         // Verify Referrer Exists
         const referrerUser = await User.findOne({ userId: referrerId });
         if (!referrerUser) {
             return res.status(400).json({ message: 'Invalid Referral ID' });
+        }
+
+        // If strategy not explicitly provided, use Referrer's Default Preference
+        if (!placementStrategy) {
+            placementStrategy = referrerUser.defaultPlacement || 'placing-left';
         }
 
         // =========================================================

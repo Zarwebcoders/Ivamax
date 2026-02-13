@@ -98,7 +98,8 @@ const UserManagement = () => {
             password: '', // Leave blank if not changing
             confirmPassword: '',
             referralLink: '', // Not editable
-            placementSide: '' // Not editable
+            placementSide: '', // Not editable
+            defaultPlacement: user.defaultPlacement || 'placing-left'
         });
         setFormError('');
         setIsModalOpen(true);
@@ -146,7 +147,8 @@ const UserManagement = () => {
                     fullName: formData.fullName,
                     email: formData.email,
                     mobile: formData.mobile,
-                    ...(formData.password && { password: formData.password })
+                    ...(formData.password && { password: formData.password }),
+                    defaultPlacement: formData.defaultPlacement
                 };
 
                 const response = await adminService.updateUser(selectedUser._id, updateData);
@@ -448,6 +450,27 @@ const UserManagement = () => {
                                                 />
                                             </div>
                                         </div>
+
+                                        {modalMode === 'edit' && (
+                                            <div className="mt-4 border-t pt-4">
+                                                <h4 className="text-sm font-semibold text-gray-900 mb-2">Settings</h4>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700">Default Placement Strategy</label>
+                                                    <p className="text-xs text-gray-500 mb-1">Determines where new direct referrals are placed.</p>
+                                                    <select
+                                                        name="defaultPlacement"
+                                                        value={formData.defaultPlacement || 'placing-left'}
+                                                        onChange={handleInputChange}
+                                                        className="input w-full mt-1"
+                                                    >
+                                                        <option value="left">Left (Direct)</option>
+                                                        <option value="right">Right (Direct)</option>
+                                                        <option value="placing-left">Extreme Left (Spillover)</option>
+                                                        <option value="placing-right">Extreme Right (Spillover)</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
