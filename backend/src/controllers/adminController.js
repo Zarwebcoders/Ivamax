@@ -239,10 +239,12 @@ const createUser = async (req, res) => {
         const { findPlacement, updateUplineCounts } = require('../services/treeService');
 
         // Check if user already exists
+        /* TEMPORARY: Commented out for testing
         const userExists = await User.findOne({ email });
         if (userExists) {
             return res.status(400).json({ message: 'User already exists with this email' });
         }
+        */
 
         // 1. REFERRAL LINK PARSING (Admin override possible)
         let referrerId = req.body.referrerId || null;

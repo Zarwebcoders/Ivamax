@@ -169,7 +169,7 @@ const UserManagement = () => {
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="card p-6 flex flex-col md:flex-row justify-between items-center gap-4"
+                className="card p-6 flex flex-col md:flex-row justify-between items-center gap-4 shadow-lg shadow-gray-500 border border-gray-400"
             >
                 <div>
                     <h1 className="text-2xl font-bold gradient-text">User Management</h1>
@@ -202,7 +202,7 @@ const UserManagement = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="card overflow-hidden"
+                className="card overflow-hidden shadow-lg shadow-gray-500 border border-gray-400"
             >
                 <div className="overflow-x-auto">
                     <table className="table w-full">
@@ -227,7 +227,7 @@ const UserManagement = () => {
                                 </tr>
                             ) : users.length > 0 ? (
                                 users.map((user) => (
-                                    <tr key={user._id} className="hover:bg-gray-50">
+                                    <tr key={user._id} className="hover:bg-gray-300">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 <div className="h-10 w-10 flex-shrink-0">
