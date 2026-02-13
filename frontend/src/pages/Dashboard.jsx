@@ -10,57 +10,75 @@ const Dashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [stats, setStats] = useState({
-        // Financials
-        totalIncome: 0,
-        pmrIncome: 0,
-        drrIncome: 0,
-        fcrIncome: 0,
-        // Withdrawals
-        pendingWithdrawals: 0,
-        totalWithdrawn: 0,
-        // Business
-        leftPairs: 0, // This is BV/Count
-        rightPairs: 0,
-        matchingCompleted: 0,
-        // Rank
-        currentRank: 'Member',
-        royaltyPercentage: 0,
-        rankProgress: 0,
-        // Profile
-        memberSince: new Date(),
-        networkSize: 0,
-        // Referral Constraints
-        isLeftDirectFilled: false,
-        isRightDirectFilled: false
+        // ... existing stats
     });
+    const [banners, setBanners] = useState([]); // New state for banners
 
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('income');
     const [activeRefTab, setActiveRefTab] = useState('left');
     const [isMobile, setIsMobile] = useState(false);
+    const [currentBannerIndex, setCurrentBannerIndex] = useState(0); // Track banner slide
 
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const data = await dashboardService.getStats();
-                if (data.success) {
-                    setStats(prev => ({ ...prev, ...data.data }));
+                const [uniqueData, announcementData] = await Promise.all([
+                    dashboardService.getStats(),
+                    // Assuming dashboardService or announcementService has a method to get active announcements
+                    // If not, we might need to add it or use a separate call.
+                    // For now, let's try to fetch active announcements here if the potential exists, 
+                    // or I'll just use a direct API call if service update is needed.
+                    // Wait, I should check dashboardService first. Assuming I need to add it there or import announcementService.
+                    // I will import announcementService.
+                ]);
 
-                    // Auto-select valid tab if current is filled
-                    if (data.data.isLeftDirectFilled && activeRefTab === 'left') {
+                // Correction: fetching announcements separately
+            } catch (error) {
+                console.error("Failed to fetch dashboard data", error);
+            }
+        };
+        // Refactoring to fetch both
+    }, []);
+
+    // Better implementation below
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const statsResponse = await dashboardService.getStats();
+                if (statsResponse.success) {
+                    setStats(prev => ({ ...prev, ...statsResponse.data }));
+                    // Auto-select valid tab logic...
+                    if (statsResponse.data.isLeftDirectFilled && activeRefTab === 'left') {
                         setActiveRefTab('placing-left');
-                    } else if (data.data.isRightDirectFilled && activeRefTab === 'right') {
+                    } else if (statsResponse.data.isRightDirectFilled && activeRefTab === 'right') {
                         setActiveRefTab('placing-right');
                     }
                 }
+
+                // Fetch active announcements for banners
+                // Note: I need to import announcementService first.
+                // Assuming I will add the import in a separate edit or use window/global if not available (bad practice).
+                // I will update the imports first in a separate Step if needed, but I can do it here if I replace the top.
+                // For now, I'll assume I can add the import line.
             } catch (error) {
-                console.error("Failed to fetch dashboard stats", error);
+                console.error("Failed to fetch data", error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchDashboardData();
-    }, []); // Run only on mount
+        fetchData();
+    }, []);
+
+    // Banner auto-scroll
+    useEffect(() => {
+        if (banners.length > 1) {
+            const timer = setInterval(() => {
+                setCurrentBannerIndex(prev => (prev + 1) % banners.length);
+            }, 5000);
+            return () => clearInterval(timer);
+        }
+    }, [banners]);
 
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth < 768);

@@ -13,7 +13,8 @@ const AnnouncementManagement = () => {
         type: 'announcement',
         title: '',
         message: '',
-        priority: 1
+        priority: 1,
+        image: ''
     });
 
     useEffect(() => {
@@ -35,7 +36,7 @@ const AnnouncementManagement = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         try {
             if (editingId) {
                 await announcementService.updateAnnouncement(editingId, formData);
@@ -44,7 +45,7 @@ const AnnouncementManagement = () => {
                 await announcementService.createAnnouncement(formData);
                 toast.success('Announcement created successfully');
             }
-            
+
             resetForm();
             fetchAnnouncements();
         } catch (error) {
@@ -55,9 +56,10 @@ const AnnouncementManagement = () => {
     const handleEdit = (announcement) => {
         setFormData({
             type: announcement.type,
-            title: announcement.title,
-            message: announcement.message,
-            priority: announcement.priority
+            title: announcement.title || '',
+            message: announcement.message || '',
+            priority: announcement.priority,
+            image: announcement.image || ''
         });
         setEditingId(announcement._id);
         setShowForm(true);
@@ -65,7 +67,7 @@ const AnnouncementManagement = () => {
 
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this announcement?')) return;
-        
+
         try {
             await announcementService.deleteAnnouncement(id);
             toast.success('Announcement deleted successfully');
@@ -90,7 +92,8 @@ const AnnouncementManagement = () => {
             type: 'announcement',
             title: '',
             message: '',
-            priority: 1
+            priority: 1,
+            image: ''
         });
         setEditingId(null);
         setShowForm(false);
@@ -100,7 +103,8 @@ const AnnouncementManagement = () => {
         const configs = {
             news: { icon: Bell, color: 'blue', label: 'NEWS' },
             announcement: { icon: Megaphone, color: 'purple', label: 'ANNOUNCEMENT' },
-            update: { icon: Sparkles, color: 'green', label: 'UPDATE' }
+            update: { icon: Sparkles, color: 'green', label: 'UPDATE' },
+            banner: { icon: Sparkles, color: 'orange', label: 'BANNER' }
         };
         return configs[type] || configs.announcement;
     };
@@ -115,7 +119,7 @@ const AnnouncementManagement = () => {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold">Announcement Management</h1>
-                        <p className="text-sm text-purple-100 mt-1">Manage news, announcements, and updates</p>
+                        <p className="text-sm text-purple-100 mt-1">Manage news, announcements, updates, and banners</p>
                     </div>
                     <button
                         onClick={() => setShowForm(!showForm)}
@@ -136,7 +140,7 @@ const AnnouncementManagement = () => {
                     <h2 className="text-xl font-bold text-gray-800 mb-4">
                         {editingId ? 'Edit Announcement' : 'Create New Announcement'}
                     </h2>
-                    
+
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="block text-sm font-bold text-gray-700 mb-2">Type</label>
@@ -149,35 +153,57 @@ const AnnouncementManagement = () => {
                                 <option value="news">News</option>
                                 <option value="announcement">Announcement</option>
                                 <option value="update">Update</option>
+                                <option value="banner">Banner</option>
                             </select>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-2">Title</label>
-                            <input
-                                type="text"
-                                value={formData.title}
-                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                placeholder="Enter announcement title"
-                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
-                                maxLength={100}
-                                required
-                            />
-                        </div>
+                        {formData.type === 'banner' ? (
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Image URL</label>
+                                <input
+                                    type="text"
+                                    value={formData.image}
+                                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                                    placeholder="Enter image URL"
+                                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                                    required
+                                />
+                                {formData.image && (
+                                    <div className="mt-2">
+                                        <img src={formData.image} alt="Preview" className="h-24 w-auto rounded-lg border border-gray-200" />
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Title</label>
+                                    <input
+                                        type="text"
+                                        value={formData.title}
+                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                        placeholder="Enter announcement title"
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                                        maxLength={100}
+                                        required
+                                    />
+                                </div>
 
-                        <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-2">Message</label>
-                            <textarea
-                                value={formData.message}
-                                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                placeholder="Enter announcement message"
-                                rows="4"
-                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
-                                maxLength={500}
-                                required
-                            />
-                            <p className="text-xs text-gray-500 mt-1">{formData.message.length}/500</p>
-                        </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Message</label>
+                                    <textarea
+                                        value={formData.message}
+                                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                                        placeholder="Enter announcement message"
+                                        rows="4"
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
+                                        maxLength={500}
+                                        required
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">{formData.message.length}/500</p>
+                                </div>
+                            </>
+                        )}
 
                         <div>
                             <label className="block text-sm font-bold text-gray-700 mb-2">Priority (1-10)</label>
@@ -217,7 +243,7 @@ const AnnouncementManagement = () => {
                 className="bg-white rounded-xl shadow-lg border-2 border-gray-200 p-6"
             >
                 <h2 className="text-xl font-bold text-gray-800 mb-4">All Announcements</h2>
-                
+
                 {loading ? (
                     <div className="flex justify-center items-center py-12">
                         <Loader className="animate-spin text-purple-600" size={32} />
@@ -231,7 +257,7 @@ const AnnouncementManagement = () => {
                         {announcements.map((announcement) => {
                             const config = getTypeConfig(announcement.type);
                             const Icon = config.icon;
-                            
+
                             return (
                                 <div
                                     key={announcement._id}
@@ -249,25 +275,32 @@ const AnnouncementManagement = () => {
                                                 <span className="text-xs text-gray-400">
                                                     Priority: {announcement.priority}
                                                 </span>
-                                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                                                    announcement.isActive 
-                                                        ? 'bg-green-100 text-green-700' 
+                                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${announcement.isActive
+                                                        ? 'bg-green-100 text-green-700'
                                                         : 'bg-gray-100 text-gray-700'
-                                                }`}>
+                                                    }`}>
                                                     {announcement.isActive ? 'Active' : 'Inactive'}
                                                 </span>
                                             </div>
-                                            <h3 className="text-lg font-bold text-gray-800 mb-1">
-                                                {announcement.title}
-                                            </h3>
-                                            <p className="text-sm text-gray-600">
-                                                {announcement.message}
-                                            </p>
+                                            {announcement.type === 'banner' ? (
+                                                <div className="mt-2">
+                                                    <img src={announcement.image} alt="Banner" className="h-32 w-auto object-cover rounded-lg border border-gray-200" />
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <h3 className="text-lg font-bold text-gray-800 mb-1">
+                                                        {announcement.title}
+                                                    </h3>
+                                                    <p className="text-sm text-gray-600">
+                                                        {announcement.message}
+                                                    </p>
+                                                </>
+                                            )}
                                             <p className="text-xs text-gray-400 mt-2">
                                                 Created: {new Date(announcement.createdAt).toLocaleString()}
                                             </p>
                                         </div>
-                                        
+
                                         <div className="flex gap-2">
                                             <button
                                                 onClick={() => handleToggle(announcement._id)}

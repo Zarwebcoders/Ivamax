@@ -57,19 +57,30 @@ const getAllAnnouncements = async (req, res) => {
 // Create new announcement (admin only)
 const createAnnouncement = async (req, res) => {
     try {
-        const { type, title, message, priority } = req.body;
+        const { type, title, message, priority, image } = req.body;
 
-        if (!title || !message) {
-            return res.status(400).json({
-                success: false,
-                message: 'Title and message are required'
-            });
+        // Validation based on type
+        if (type === 'banner') {
+            if (!image) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Image URL is required for banner'
+                });
+            }
+        } else {
+            if (!title || !message) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Title and message are required'
+                });
+            }
         }
 
         const announcement = new Announcement({
             type: type || 'announcement',
             title,
             message,
+            image,
             priority: priority || 1,
             createdBy: req.user.userId
         });
@@ -94,7 +105,7 @@ const createAnnouncement = async (req, res) => {
 const updateAnnouncement = async (req, res) => {
     try {
         const { id } = req.params;
-        const { type, title, message, priority, isActive } = req.body;
+        const { type, title, message, priority, isActive, image } = req.body;
 
         const announcement = await Announcement.findById(id);
 
@@ -106,8 +117,9 @@ const updateAnnouncement = async (req, res) => {
         }
 
         if (type) announcement.type = type;
-        if (title) announcement.title = title;
-        if (message) announcement.message = message;
+        if (title !== undefined) announcement.title = title;
+        if (message !== undefined) announcement.message = message;
+        if (image !== undefined) announcement.image = image;
         if (priority !== undefined) announcement.priority = priority;
         if (isActive !== undefined) announcement.isActive = isActive;
 

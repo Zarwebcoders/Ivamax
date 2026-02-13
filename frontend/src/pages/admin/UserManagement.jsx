@@ -94,6 +94,17 @@ const UserManagement = () => {
     const openEditModal = (user) => {
         setModalMode('edit');
         setSelectedUser(user);
+
+        // Determine initial placement selection based on user's actual position (placementSide)
+        // detailed logic: if user is on Left, default to 'left' or 'placing-left' (preferred?).
+        // User asked to select the option that is the user's position.
+        // So if user.placementSide is 'Left', select 'left'. If 'Right', select 'right'.
+        // We fallback to user.defaultPlacement if placementSide is missing.
+        let initialPlacement = user.defaultPlacement || 'placing-left';
+        if (user.placementSide) {
+            initialPlacement = user.placementSide.toLowerCase(); // 'left' or 'right'
+        }
+
         setFormData({
             fullName: user.fullName,
             email: user.email,
@@ -103,7 +114,7 @@ const UserManagement = () => {
             referralLink: '', // Not editable
             placementSide: user.placementSide || 'Left',
             rank: user.rank || 'Member',
-            defaultPlacement: user.defaultPlacement || 'placing-left'
+            defaultPlacement: initialPlacement
         });
         setFormError('');
         setIsModalOpen(true);
@@ -164,7 +175,8 @@ const UserManagement = () => {
                     ...(formData.password && { password: formData.password }),
                     defaultPlacement: formData.defaultPlacement,
                     rank: formData.rank,
-                    placementSide: formData.placementSide
+                    // Derive placementSide from defaultPlacement selection
+                    placementSide: (formData.defaultPlacement === 'left' || formData.defaultPlacement === 'placing-left') ? 'Left' : 'Right'
                 };
 
                 const response = await adminService.updateUser(selectedUser._id, updateData);
@@ -517,17 +529,19 @@ const UserManagement = () => {
                                                     </div>
                                                 </div>
 
-                                                <div>
+                                                <div className="mb-4">
                                                     <label className="block text-sm font-medium text-gray-700">Placement Side</label>
-                                                    <p className="text-xs text-gray-500 mb-1">Update the user's position side.</p>
+                                                    <p className="text-xs text-gray-500 mb-1">Set the user's placement preference.</p>
                                                     <select
-                                                        name="placementSide"
-                                                        value={formData.placementSide || 'Left'}
+                                                        name="defaultPlacement"
+                                                        value={formData.defaultPlacement || 'placing-left'}
                                                         onChange={handleInputChange}
                                                         className="input w-full mt-1"
                                                     >
-                                                        <option value="Left">Left</option>
-                                                        <option value="Right">Right</option>
+                                                        <option value="placing-left">Placing Left</option>
+                                                        <option value="placing-right">Placing Right</option>
+                                                        <option value="left">Left</option>
+                                                        <option value="right">Right</option>
                                                     </select>
                                                 </div>
                                             </div>
