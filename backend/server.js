@@ -43,8 +43,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from uploads directory
+// Serve static files from uploads directory if it exists
 const path = require('path');
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const fs = require('fs');
+const uploadDir = path.join(__dirname, 'uploads');
+if (fs.existsSync(uploadDir)) {
+    app.use('/uploads', express.static(uploadDir));
+}
 
 // Routes
 app.use('/api/auth', authRoutes);
