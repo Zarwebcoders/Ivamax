@@ -14,6 +14,22 @@ const UserManagement = () => {
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
 
+    // Modal State
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalMode, setModalMode] = useState('create'); // 'create' or 'edit'
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [formData, setFormData] = useState({
+        fullName: '',
+        email: '',
+        mobile: '',
+        password: '',
+        confirmPassword: '',
+        referralLink: '', // For create only
+        placementSide: 'Left' // For create only
+    });
+    const [formError, setFormError] = useState('');
+    const [submitLoading, setSubmitLoading] = useState(false);
+
     // Debounce search
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -57,8 +73,99 @@ const UserManagement = () => {
         }
     };
 
+    const openCreateModal = () => {
+        setModalMode('create');
+        setFormData({
+            fullName: '',
+            email: '',
+            mobile: '',
+            password: '',
+            confirmPassword: '',
+            referralLink: '',
+            placementSide: 'Left'
+        });
+        setFormError('');
+        setIsModalOpen(true);
+    };
+
+    const openEditModal = (user) => {
+        setModalMode('edit');
+        setSelectedUser(user);
+        setFormData({
+            fullName: user.fullName,
+            email: user.email,
+            mobile: user.mobile,
+            password: '', // Leave blank if not changing
+            confirmPassword: '',
+            referralLink: '', // Not editable
+            placementSide: '' // Not editable
+        });
+        setFormError('');
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setSelectedUser(null);
+    };
+
+    const handleInputChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setFormError('');
+        setSubmitLoading(true);
+
+        try {
+            if (modalMode === 'create') {
+                if (formData.password !== formData.confirmPassword) {
+                    throw new Error("Passwords do not match");
+                }
+                if (!formData.password) {
+                    throw new Error("Password is required");
+                }
+
+                const response = await adminService.createUser(formData);
+                if (response.success) {
+                    alert('User created successfully!');
+                    closeModal();
+                    fetchUsers();
+                }
+            } else {
+                // Edit Mode
+                if (formData.password && formData.password !== formData.confirmPassword) {
+                    throw new Error("Passwords do not match");
+                }
+
+                const updateData = {
+                    fullName: formData.fullName,
+                    email: formData.email,
+                    mobile: formData.mobile,
+                    ...(formData.password && { password: formData.password })
+                };
+
+                const response = await adminService.updateUser(selectedUser._id, updateData);
+                if (response.success) {
+                    alert('User updated successfully!');
+                    closeModal();
+                    fetchUsers();
+                }
+            }
+        } catch (error) {
+            console.error('Submit Error:', error);
+            setFormError(error.response?.data?.message || error.message || 'Operation failed');
+        } finally {
+            setSubmitLoading(false);
+        }
+    };
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -69,8 +176,8 @@ const UserManagement = () => {
                     <p className="text-text-tertiary">View and manage all registered users</p>
                 </div>
 
-                <div className="w-full md:w-auto">
-                    <div className="relative">
+                <div className="flex flex-col md:flex-row gap-4 items-center w-full md:w-auto">
+                    <div className="relative w-full md:w-auto">
                         <input
                             type="text"
                             placeholder="Search by name, email, or ID..."
@@ -82,6 +189,12 @@ const UserManagement = () => {
                             🔍
                         </span>
                     </div>
+                    <button
+                        onClick={openCreateModal}
+                        className="btn btn-primary whitespace-nowrap"
+                    >
+                        + Create User
+                    </button>
                 </div>
             </motion.div>
 
@@ -146,7 +259,12 @@ const UserManagement = () => {
                                             {new Date(user.createdAt).toLocaleDateString()}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <button className="text-golden-600 hover:text-golden-900 mr-3">Edit</button>
+                                            <button
+                                                onClick={() => openEditModal(user)}
+                                                className="text-golden-600 hover:text-golden-900 mr-3"
+                                            >
+                                                Edit
+                                            </button>
                                             <button className="text-indigo-600 hover:text-indigo-900">View Tree</button>
                                         </td>
                                     </tr>
@@ -203,6 +321,156 @@ const UserManagement = () => {
                     </div>
                 </div>
             </motion.div>
+
+            {/* Modal */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                    <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={closeModal} aria-hidden="true"></div>
+                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+                            <form onSubmit={handleSubmit}>
+                                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                    <div className="mb-4">
+                                        <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                            {modalMode === 'create' ? 'Create New User' : 'Edit User'}
+                                        </h3>
+                                        <p className="text-sm text-gray-500 mt-1">
+                                            {modalMode === 'create' ? 'Add a new user to the system.' : `Editing details for ${selectedUser?.userId}`}
+                                        </p>
+                                    </div>
+
+                                    {formError && (
+                                        <div className="mb-4 bg-red-50 border-l-4 border-red-500 p-4">
+                                            <p className="text-sm text-red-700">{formError}</p>
+                                        </div>
+                                    )}
+
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700">Full Name *</label>
+                                            <input
+                                                type="text"
+                                                name="fullName"
+                                                required
+                                                value={formData.fullName}
+                                                onChange={handleInputChange}
+                                                className="input w-full mt-1"
+                                                placeholder="Enter full name"
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700">Mobile Number *</label>
+                                                <input
+                                                    type="text"
+                                                    name="mobile"
+                                                    required
+                                                    value={formData.mobile}
+                                                    onChange={handleInputChange}
+                                                    className="input w-full mt-1"
+                                                    placeholder="Enter mobile"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700">Email Address *</label>
+                                                <input
+                                                    type="email"
+                                                    name="email"
+                                                    required
+                                                    value={formData.email}
+                                                    onChange={handleInputChange}
+                                                    className="input w-full mt-1"
+                                                    placeholder="Enter email"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {modalMode === 'create' && (
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700">Referral ID (Optional)</label>
+                                                    <input
+                                                        type="text"
+                                                        name="referralLink"
+                                                        value={formData.referralLink}
+                                                        onChange={handleInputChange}
+                                                        className="input w-full mt-1"
+                                                        placeholder="Sponsor ID (e.g. IVA...)"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700">Placement</label>
+                                                    <select
+                                                        name="placementSide"
+                                                        value={formData.placementSide}
+                                                        onChange={handleInputChange}
+                                                        className="input w-full mt-1"
+                                                    >
+                                                        <option value="Left">Left</option>
+                                                        <option value="Right">Right</option>
+                                                        <option value="placing-left">Extreme Left</option>
+                                                        <option value="placing-right">Extreme Right</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700">
+                                                    {modalMode === 'edit' ? 'New Password (Optional)' : 'Password *'}
+                                                </label>
+                                                <input
+                                                    type="password"
+                                                    name="password"
+                                                    required={modalMode === 'create'}
+                                                    value={formData.password}
+                                                    onChange={handleInputChange}
+                                                    className="input w-full mt-1"
+                                                    placeholder={modalMode === 'edit' ? "Leave blank to keep" : "Create password"}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700">
+                                                    Confirm Password {modalMode === 'create' && '*'}
+                                                </label>
+                                                <input
+                                                    type="password"
+                                                    name="confirmPassword"
+                                                    required={modalMode === 'create' || formData.password.length > 0}
+                                                    value={formData.confirmPassword}
+                                                    onChange={handleInputChange}
+                                                    className="input w-full mt-1"
+                                                    placeholder="Confirm password"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                    <button
+                                        type="submit"
+                                        disabled={submitLoading}
+                                        className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-golden-600 text-base font-medium text-white hover:bg-golden-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-golden-500 sm:ml-3 sm:w-auto sm:text-sm ${submitLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    >
+                                        {submitLoading ? 'Processing...' : (modalMode === 'create' ? 'Create Account' : 'Save Changes')}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={closeModal}
+                                        className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

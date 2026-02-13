@@ -58,7 +58,7 @@ const AdminDashboard = () => {
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="card-glass p-6"
+                className="card-glass p-6 shadow-lg shadow-gray-500 border border-gray-400"
             >
                 <h1 className="text-3xl font-bold gradient-text mb-2">
                     Admin Dashboard
@@ -82,7 +82,7 @@ const AdminDashboard = () => {
                     initial="hidden"
                     animate="visible"
                     variants={cardVariants}
-                    className="card hover-lift"
+                    className="card hover-lift shadow-lg shadow-gray-500 border border-gray-400"
                 >
                     <div className="flex items-center justify-between">
                         <div>
@@ -103,7 +103,7 @@ const AdminDashboard = () => {
                     initial="hidden"
                     animate="visible"
                     variants={cardVariants}
-                    className="card hover-lift"
+                    className="card hover-lift shadow-lg shadow-gray-500 border border-gray-400"
                 >
                     <div className="flex items-center justify-between">
                         <div>
@@ -124,7 +124,7 @@ const AdminDashboard = () => {
                     initial="hidden"
                     animate="visible"
                     variants={cardVariants}
-                    className="card hover-lift"
+                    className="card hover-lift shadow-lg shadow-gray-500 border border-gray-400"
                 >
                     <div className="flex items-center justify-between">
                         <div>
@@ -145,7 +145,7 @@ const AdminDashboard = () => {
                     initial="hidden"
                     animate="visible"
                     variants={cardVariants}
-                    className="card hover-lift"
+                    className="card hover-lift shadow-lg shadow-gray-500 border border-gray-400"
                 >
                     <div className="flex items-center justify-between">
                         <div>
@@ -168,7 +168,7 @@ const AdminDashboard = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="card"
+                    className="card shadow-lg shadow-gray-500 border border-gray-400"
                 >
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-xl font-bold text-text-primary">Recent Users</h3>
@@ -189,7 +189,7 @@ const AdminDashboard = () => {
                             <tbody className="divide-y divide-gray-100">
                                 {stats.recentUsers.length > 0 ? (
                                     stats.recentUsers.map((user) => (
-                                        <tr key={user._id} className="hover:bg-gray-50 transition-colors">
+                                        <tr key={user._id} className="transition-colors hover:bg-gray-300">
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center">
                                                     <div className="w-8 h-8 rounded-full bg-golden-100 text-golden-600 flex items-center justify-center text-xs font-bold mr-3">
@@ -228,11 +228,11 @@ const AdminDashboard = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="card"
+                    className="card shadow-lg shadow-gray-500 border border-gray-400"
                 >
                     <h3 className="text-xl font-bold text-text-primary mb-4">Admin Actions</h3>
                     <div className="grid grid-cols-2 gap-4">
-                        <button className="p-4 rounded-xl border border-gray-100 hover:border-golden-300 hover:shadow-golden-lg transition-all group text-left">
+                        <button className="p-4 rounded-xl border border-gray-400 hover:border-golden-300 hover:shadow-golden-lg hover:shadow-gray-500 transition-all group text-left">
                             <div className="w-10 h-10 rounded-lg bg-green-100 text-green-600 flex items-center justify-center text-xl mb-3 group-hover:bg-golden-500 group-hover:text-white transition-colors">
                                 ✅
                             </div>
@@ -242,7 +242,7 @@ const AdminDashboard = () => {
                             </p>
                         </button>
 
-                        <button className="p-4 rounded-xl border border-gray-100 hover:border-golden-300 hover:shadow-golden-lg transition-all group text-left">
+                        <button className="p-4 rounded-xl border border-gray-400 hover:border-golden-300 hover:shadow-golden-lg hover:shadow-gray-500 transition-all group text-left">
                             <div className="w-10 h-10 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center text-xl mb-3 group-hover:bg-golden-500 group-hover:text-white transition-colors">
                                 💸
                             </div>
@@ -252,7 +252,7 @@ const AdminDashboard = () => {
                             </p>
                         </button>
 
-                        <button className="p-4 rounded-xl border border-gray-100 hover:border-golden-300 hover:shadow-golden-lg transition-all group text-left">
+                        <button className="p-4 rounded-xl border border-gray-400 hover:border-golden-300 hover:shadow-golden-lg hover:shadow-gray-500 transition-all group text-left">
                             <div className="w-10 h-10 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xl mb-3 group-hover:bg-golden-500 group-hover:text-white transition-colors">
                                 👥
                             </div>
@@ -262,7 +262,7 @@ const AdminDashboard = () => {
                             </p>
                         </button>
 
-                        <button className="p-4 rounded-xl border border-gray-100 hover:border-golden-300 hover:shadow-golden-lg transition-all group text-left">
+                        <button className="p-4 rounded-xl border border-gray-400 hover:border-golden-300 hover:shadow-golden-lg hover:shadow-gray-500 transition-all group text-left">
                             <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-xl mb-3 group-hover:bg-golden-500 group-hover:text-white transition-colors">
                                 📄
                             </div>

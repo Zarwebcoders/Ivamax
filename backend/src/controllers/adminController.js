@@ -229,11 +229,140 @@ const approveDeposit = async (req, res) => {
     }
 };
 
+// @desc    Create new user (Admin)
+// @route   POST /api/admin/create-user
+// @access  Private/Admin
+const createUser = async (req, res) => {
+    try {
+        const { fullName, mobile, email, password, referralLink, placementSide } = req.body;
+        const { generateToken } = require('../utils/generateToken');
+        const { findPlacement, updateUplineCounts } = require('../services/treeService');
+
+        // Check if user already exists
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return res.status(400).json({ message: 'User already exists with this email' });
+        }
+
+        // 1. REFERRAL LINK PARSING (Admin override possible)
+        let referrerId = req.body.referrerId || null;
+        let strategy = placementSide ? placementSide.toLowerCase() : null;
+
+        if ((!referrerId || !strategy) && referralLink) {
+            // Logic similar to authController but simplified for admin input
+            // Admin likely inputs ID directly
+            if (referralLink.match(/^IVA\d+$/i)) {
+                referrerId = referralLink.toUpperCase();
+            }
+        }
+
+        if (!referrerId) referrerId = 'IVA100001'; // Default to Root if missing
+        if (!strategy) strategy = 'placing-left'; // Default strategy
+
+        // Verify Referrer Exists
+        const referrerUser = await User.findOne({ userId: referrerId });
+        if (!referrerUser) {
+            return res.status(400).json({ message: 'Invalid Referral ID' });
+        }
+
+        // 2. FIND PLACEMENT
+        const { parentId, side } = await findPlacement(referrerId, strategy);
+
+        // 3. CREATE START
+        const newUserId = await User.generateUserId();
+
+        const newUser = await User.create({
+            userId: newUserId,
+            fullName,
+            mobile,
+            email,
+            password,
+            plainPassword: password,
+            referralId: referrerId,
+            placementSide: side,
+            role: 'user',
+            isActive: true // Admin created users are active by default? Or wait for deposit? Let's say false until deposit.
+            // keeping isActive false as per schema default
+        });
+
+        // 4. CREATE TREE NODE
+        const parentTree = await Tree.findOne({ userId: parentId });
+        const newLevel = parentTree.level + 1;
+
+        const newTree = await Tree.create({
+            userId: newUserId,
+            parentId: String(parentId),
+            level: newLevel,
+            leftDirectId: null,
+            rightDirectId: null,
+        });
+
+        // 5. UPDATE PARENT
+        if (side === 'Left') {
+            await Tree.updateOne({ userId: parentId }, { leftDirectId: newUserId });
+        } else {
+            await Tree.updateOne({ userId: parentId }, { rightDirectId: newUserId });
+        }
+
+        // 6. UPDATE UPLINE
+        await updateUplineCounts(newUserId);
+
+        res.status(201).json({
+            success: true,
+            message: 'User created successfully',
+            user: newUser
+        });
+
+    } catch (error) {
+        console.error('Create User Error:', error);
+        res.status(500).json({ message: error.message || 'Server error' });
+    }
+};
+
+// @desc    Update user (Admin)
+// @route   PUT /api/admin/users/:id
+// @access  Private/Admin
+const updateUser = async (req, res) => {
+    try {
+        const userId = req.params.id; // This is the _id or userId? Route usually sends _id. 
+        // Let's assume params.id is user's _id
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        user.fullName = req.body.fullName || user.fullName;
+        user.mobile = req.body.mobile || user.mobile;
+        user.email = req.body.email || user.email;
+
+        // Password update
+        if (req.body.password && req.body.password.trim() !== '') {
+            user.password = req.body.password;
+            user.plainPassword = req.body.password;
+        }
+
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'User updated successfully',
+            user
+        });
+    } catch (error) {
+        console.error('Update User Error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 module.exports = {
     getAdminStats,
     getAllUsers,
     approveWalletChange,
     getWalletRequests,
     getDeposits,
-    approveDeposit
+    approveDeposit,
+    createUser,
+    updateUser
 };

@@ -11,6 +11,16 @@ const adminService = {
         return response.data;
     },
 
+    createUser: async (userData) => {
+        const response = await api.post('/admin/create-user', userData);
+        return response.data;
+    },
+
+    updateUser: async (userId, userData) => {
+        const response = await api.put(`/admin/users/${userId}`, userData);
+        return response.data;
+    },
+
     // Add more admin services as needed
 };
 

@@ -1,62 +1,8 @@
 const User = require('../models/User');
 const Tree = require('../models/Tree');
 const { generateToken } = require('../utils/generateToken');
+const { findPlacement, updateUplineCounts } = require('../services/treeService');
 
-// Helper to find the correct placement based on strategy
-const findPlacement = async (sponsorId, strategy) => {
-    let currentId = sponsorId;
-    let parentNode = null;
-    let side = null;
-
-    // Fetch Sponsor's Tree Node
-    const sponsorTree = await Tree.findOne({ userId: sponsorId });
-    if (!sponsorTree) {
-        throw new Error('Sponsor tree node not found');
-    }
-
-    if (strategy === 'left') {
-        // 1. Normal Left Link: Direct placement
-        if (sponsorTree.leftDirectId) {
-            throw new Error('Sponsor\'s Left position is already occupied');
-        }
-        return { parentId: sponsorId, side: 'Left' };
-
-    } else if (strategy === 'right') {
-        // 2. Normal Right Link: Direct placement
-        if (sponsorTree.rightDirectId) {
-            throw new Error('Sponsor\'s Right position is already occupied');
-        }
-        return { parentId: sponsorId, side: 'Right' };
-
-    } else if (strategy === 'placing-left') {
-        // 3. Placing Left Link: Extreme Left (Power Leg)
-        // Start from sponsor and traverse LEFT until we find a null spot
-        let current = sponsorTree;
-        while (current) {
-            if (!current.leftDirectId) {
-                // Found empty spot
-                return { parentId: current.userId, side: 'Left' };
-            }
-            // Move down to the next node on the left
-            current = await Tree.findOne({ userId: current.leftDirectId });
-        }
-
-    } else if (strategy === 'placing-right') {
-        // 4. Placing Right Link: Extreme Right (Power Leg)
-        // Start from sponsor and traverse RIGHT until we find a null spot
-        let current = sponsorTree;
-        while (current) {
-            if (!current.rightDirectId) {
-                // Found empty spot
-                return { parentId: current.userId, side: 'Right' };
-            }
-            // Move down to the next node on the right
-            current = await Tree.findOne({ userId: current.rightDirectId });
-        }
-    }
-
-    throw new Error('Invalid placement strategy');
-};
 
 // @desc    Register new user
 // @route   POST /api/auth/register
@@ -299,63 +245,7 @@ const register = async (req, res) => {
     }
 };
 
-// HELPER: Bubble up counts
-const updateUplineCounts = async (startUserId) => {
-    let currentId = startUserId;
 
-    // We loop until we hit the top or a broken link
-    while (currentId) {
-        // Find the node itself to get its parent
-        const currentNode = await Tree.findOne({ userId: currentId });
-        if (!currentNode || !currentNode.parentId) break;
-
-        const parentId = currentNode.parentId;
-        const parentNode = await Tree.findOne({ userId: parentId });
-
-        if (!parentNode) break;
-
-        // Determine which side 'currentId' is on relative to 'parentNode'
-        if (parentNode.leftDirectId === currentId) {
-            // It's on the Left
-            await Tree.updateOne(
-                { userId: parentId },
-                { $inc: { totalLeftMembers: 1 } }
-            );
-            // CRITICAL: For the NEXT iteration (Grandparent), is the Parent Left or Right?
-            // The loop continues, setting currentId = parentId.
-            // The NEXT iteration will find Grandparent, check if Parent is L or R of Grandparent.
-            // Wait, this logic is SLIGHTLY flawed. 
-            // If I am on the Left of Parent, I contribute to Parent's Left count.
-            // My Parent is on the Right of Grandparent. Does my existence contribute to Grandparent's Right count?
-            // YES. Because I am in the total downline.
-            // But my logic below: `parentNode.leftDirectId === currentId` checks DIRECT child.
-            // This works for the immediate parent.
-            // But when `currentId` becomes `parentId` (the Parent),
-            // The Grandparent checks if `Parent` is Left or Right.
-            // If Parent is Right of Grandparent, then we increment Grandparent's RIGHT count.
-            // THIS IS CORRECT. We are bubbling up the "Active Node" and seeing which side it hangs off.
-        } else if (parentNode.rightDirectId === currentId) {
-            // It's on the Right
-            await Tree.updateOne(
-                { userId: parentId },
-                { $inc: { totalRightMembers: 1 } }
-            );
-        } else {
-            // Edge case: Maybe intermediate node where direct link is different?
-            // In a strict binary tree, parent->left MUST be the child in tha left chain.
-            // But wait! If I am deep down, say Gen 5.
-            // Gen 4 is my parent. Gen 4.left = Me. -> Gen 4 LeftCount++ . Correct.
-            // Gen 3 is Gen 4's parent. Gen 3.right = Gen 4. -> Gen 3 RightCount++. Correct.
-            // Logic holds.
-
-            // However, what if I am NOT the direct child? 
-            // `currentId` in this loop IS the direct child of `parentId` because we fetch `parentId` FROM `currentId`.
-            // So the relationship is always direct for the pair we are examining.
-        }
-
-        currentId = parentId; // Move up one level
-    }
-};
 
 // @desc    Login user
 // @route   POST /api/auth/login
