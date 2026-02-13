@@ -28,9 +28,11 @@ app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1 || origin.startsWith('http://192.168.')) {
+
+        if (allowedOrigins.includes(origin) || origin.startsWith('http://192.168.')) {
             callback(null, true);
         } else {
+            console.log('Blocked by CORS:', origin); // Log for debugging
             callback(new Error('Not allowed by CORS'));
         }
     },
