@@ -90,7 +90,68 @@ const updateUplineCounts = async (startUserId) => {
     }
 };
 
+// Move User Node (Admin Function)
+const moveUserNode = async (userId, newSponsorId, side) => {
+    // 1. Validation: Prevent moving to self
+    if (userId === newSponsorId) {
+        throw new Error('Cannot move user under themselves');
+    }
+
+    // 2. Fetch Trees
+    const userTree = await Tree.findOne({ userId });
+    const newSponsorTree = await Tree.findOne({ userId: newSponsorId });
+
+    if (!userTree) throw new Error('User tree node not found');
+    if (!newSponsorTree) throw new Error('New Sponsor tree node not found');
+
+    // 3. Circular Dependency Check: Ensure newSponsor is NOT in user's downline
+    // We can traverse up from newSponsor to see if we hit userId
+    let current = newSponsorTree;
+    while (current && current.userId !== userId && current.parentId) {
+        current = await Tree.findOne({ userId: current.parentId });
+    }
+    if (current && current.userId === userId) {
+        throw new Error('Cannot move user into their own downline');
+    }
+
+    // 4. Check Target Spot Availability
+    if (side === 'Left' && newSponsorTree.leftDirectId) {
+        throw new Error(`Sponsor's ${side} side is already occupied by ${newSponsorTree.leftDirectId}`);
+    }
+    if (side === 'Right' && newSponsorTree.rightDirectId) {
+        throw new Error(`Sponsor's ${side} side is already occupied by ${newSponsorTree.rightDirectId}`);
+    }
+
+    // 5. Remove from Old Parent
+    if (userTree.parentId) {
+        const oldParentTree = await Tree.findOne({ userId: userTree.parentId });
+        if (oldParentTree) {
+            if (oldParentTree.leftDirectId === userId) {
+                oldParentTree.leftDirectId = null;
+            } else if (oldParentTree.rightDirectId === userId) {
+                oldParentTree.rightDirectId = null;
+            }
+            await oldParentTree.save();
+        }
+    }
+
+    // 6. Add to New Sponsor
+    if (side === 'Left') {
+        newSponsorTree.leftDirectId = userId;
+    } else {
+        newSponsorTree.rightDirectId = userId;
+    }
+    await newSponsorTree.save();
+
+    // 7. Update User's Parent
+    userTree.parentId = newSponsorId;
+    await userTree.save();
+
+    return { success: true };
+};
+
 module.exports = {
     findPlacement,
-    updateUplineCounts
+    updateUplineCounts,
+    moveUserNode
 };

@@ -33,6 +33,11 @@ const UserManagement = () => {
     const [formError, setFormError] = useState('');
     const [submitLoading, setSubmitLoading] = useState(false);
 
+    // Sponsor Search State
+    const [sponsorSearch, setSponsorSearch] = useState('');
+    const [sponsorOptions, setSponsorOptions] = useState([]);
+    const [showSponsorDropdown, setShowSponsorDropdown] = useState(false);
+
     // Debounce search
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -46,6 +51,31 @@ const UserManagement = () => {
     useEffect(() => {
         fetchUsers();
     }, [pagination.page, debouncedSearch]);
+
+    const handleSponsorSearch = async (query) => {
+        setSponsorSearch(query);
+        if (query.length > 1) {
+            try {
+                // Reuse getAllUsers but with search param and limit
+                const response = await adminService.getAllUsers(1, 5, query);
+                if (response.success) {
+                    setSponsorOptions(response.data);
+                    setShowSponsorDropdown(true);
+                }
+            } catch (error) {
+                console.error("Error searching sponsors", error);
+            }
+        } else {
+            setSponsorOptions([]);
+            setShowSponsorDropdown(false);
+        }
+    };
+
+    const selectSponsor = (user) => {
+        setFormData({ ...formData, newSponsorId: user.userId });
+        setSponsorSearch(`${user.fullName} (${user.userId})`);
+        setShowSponsorDropdown(false);
+    };
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -114,8 +144,10 @@ const UserManagement = () => {
             referralLink: '', // Not editable
             placementSide: user.placementSide || 'Left',
             rank: user.rank || 'Member',
-            defaultPlacement: initialPlacement
+            defaultPlacement: initialPlacement,
+            newSponsorId: user.referralId || ''
         });
+        setSponsorSearch(user.referralId || '');
         setFormError('');
         setIsModalOpen(true);
     };
@@ -168,6 +200,9 @@ const UserManagement = () => {
                     throw new Error("Passwords do not match");
                 }
 
+                // Derive placementSide from defaultPlacement for the move operation
+                const placementSideDerived = (formData.defaultPlacement === 'right' || formData.defaultPlacement === 'placing-right') ? 'Right' : 'Left';
+
                 const updateData = {
                     fullName: formData.fullName,
                     email: formData.email,
@@ -175,8 +210,9 @@ const UserManagement = () => {
                     ...(formData.password && { password: formData.password }),
                     defaultPlacement: formData.defaultPlacement,
                     rank: formData.rank,
-                    // Derive placementSide from defaultPlacement selection
-                    placementSide: (formData.defaultPlacement === 'left' || formData.defaultPlacement === 'placing-left') ? 'Left' : 'Right'
+                    // Send newSponsorId Only if changed
+                    newSponsorId: formData.newSponsorId !== selectedUser.referralId ? formData.newSponsorId : undefined,
+                    placementSide: placementSideDerived
                 };
 
                 const response = await adminService.updateUser(selectedUser._id, updateData);
@@ -515,6 +551,34 @@ const UserManagement = () => {
                                         {modalMode === 'edit' && (
                                             <div className="mt-4 border-t pt-4">
                                                 <h4 className="text-sm font-semibold text-gray-900 mb-2">Settings & Status</h4>
+
+                                                {/* Sponsor Change Section */}
+                                                <div className="mb-4 relative">
+                                                    <label className="block text-sm font-medium text-gray-700">Sponsor (Referral ID)</label>
+                                                    <p className="text-xs text-gray-500 mb-1">Search to change sponsor & move user.</p>
+                                                    <input
+                                                        type="text"
+                                                        value={sponsorSearch}
+                                                        onChange={(e) => handleSponsorSearch(e.target.value)}
+                                                        className="input w-full mt-1"
+                                                        placeholder="Search by Name or ID..."
+                                                        onFocus={() => sponsorSearch.length > 1 && setShowSponsorDropdown(true)}
+                                                    />
+                                                    {showSponsorDropdown && sponsorOptions.length > 0 && (
+                                                        <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto mt-1">
+                                                            {sponsorOptions.map(option => (
+                                                                <div
+                                                                    key={option._id}
+                                                                    className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
+                                                                    onClick={() => selectSponsor(option)}
+                                                                >
+                                                                    <span className="font-semibold">{option.userId}</span> - {option.fullName}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+
                                                 <div className="grid grid-cols-1 gap-4 mb-4">
                                                     <div>
                                                         <label className="block text-sm font-medium text-gray-700">Rank</label>
@@ -529,9 +593,11 @@ const UserManagement = () => {
                                                     </div>
                                                 </div>
 
+
+
                                                 <div className="mb-4">
-                                                    <label className="block text-sm font-medium text-gray-700">Placement Side</label>
-                                                    <p className="text-xs text-gray-500 mb-1">Set the user's placement preference.</p>
+                                                    <label className="block text-sm font-medium text-gray-700">Placement</label>
+                                                    <p className="text-xs text-gray-500 mb-1">Select placement preference and position.</p>
                                                     <select
                                                         name="defaultPlacement"
                                                         value={formData.defaultPlacement || 'placing-left'}
