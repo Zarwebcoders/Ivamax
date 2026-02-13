@@ -33,8 +33,10 @@ const getAdminStats = async (req, res) => {
             data: {
                 totalUsers,
                 activeUsers,
-                pendingWallets, // Adjust logic if "pending wallet" means something else (e.g. connection approval)
+                activeUsers,
+                pendingWallets,
                 pendingWithdrawals,
+                pendingDeposits: await Deposit.countDocuments({ status: 'pending' }),
                 totalDistributed: totalDistributed[0]?.total || 0,
                 recentUsers
             }
@@ -339,6 +341,8 @@ const updateUser = async (req, res) => {
         user.mobile = req.body.mobile || user.mobile;
         user.email = req.body.email || user.email;
         if (req.body.defaultPlacement) user.defaultPlacement = req.body.defaultPlacement;
+        if (req.body.rank) user.rank = req.body.rank;
+        if (req.body.placementSide) user.placementSide = req.body.placementSide;
 
         // Password update
         if (req.body.password && req.body.password.trim() !== '') {

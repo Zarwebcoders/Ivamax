@@ -16,8 +16,10 @@ const UserManagement = () => {
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false); // New state for view modal
     const [modalMode, setModalMode] = useState('create'); // 'create' or 'edit'
     const [selectedUser, setSelectedUser] = useState(null);
+    const [viewUser, setViewUser] = useState(null); // New state for selected viewing user
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
@@ -25,7 +27,8 @@ const UserManagement = () => {
         password: '',
         confirmPassword: '',
         referralLink: '', // For create only
-        placementSide: 'Left' // For create only
+        placementSide: 'Left', // For create only
+        rank: 'Member'
     });
     const [formError, setFormError] = useState('');
     const [submitLoading, setSubmitLoading] = useState(false);
@@ -98,7 +101,8 @@ const UserManagement = () => {
             password: '', // Leave blank if not changing
             confirmPassword: '',
             referralLink: '', // Not editable
-            placementSide: '', // Not editable
+            placementSide: user.placementSide || 'Left',
+            rank: user.rank || 'Member',
             defaultPlacement: user.defaultPlacement || 'placing-left'
         });
         setFormError('');
@@ -108,6 +112,16 @@ const UserManagement = () => {
     const closeModal = () => {
         setIsModalOpen(false);
         setSelectedUser(null);
+    };
+
+    const openViewModal = (user) => {
+        setViewUser(user);
+        setIsViewModalOpen(true);
+    };
+
+    const closeViewModal = () => {
+        setIsViewModalOpen(false);
+        setViewUser(null);
     };
 
     const handleInputChange = (e) => {
@@ -148,7 +162,9 @@ const UserManagement = () => {
                     email: formData.email,
                     mobile: formData.mobile,
                     ...(formData.password && { password: formData.password }),
-                    defaultPlacement: formData.defaultPlacement
+                    defaultPlacement: formData.defaultPlacement,
+                    rank: formData.rank,
+                    placementSide: formData.placementSide
                 };
 
                 const response = await adminService.updateUser(selectedUser._id, updateData);
@@ -267,7 +283,13 @@ const UserManagement = () => {
                                             >
                                                 Edit
                                             </button>
-                                            <button className="text-indigo-600 hover:text-indigo-900">View Tree</button>
+                                            <button
+                                                onClick={() => openViewModal(user)}
+                                                className="text-blue-600 hover:text-blue-900 mr-3"
+                                            >
+                                                View Data
+                                            </button>
+                                            {/* <button className="text-indigo-600 hover:text-indigo-900">View Tree</button> */}
                                         </td>
                                     </tr>
                                 ))
@@ -324,9 +346,9 @@ const UserManagement = () => {
                 </div>
             </motion.div>
 
-            {/* Modal */}
+            {/* Create/Edit Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                <div className="fixed inset-0 z-[200] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
                     <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={closeModal} aria-hidden="true"></div>
                         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
@@ -453,7 +475,21 @@ const UserManagement = () => {
 
                                         {modalMode === 'edit' && (
                                             <div className="mt-4 border-t pt-4">
-                                                <h4 className="text-sm font-semibold text-gray-900 mb-2">Settings</h4>
+                                                <h4 className="text-sm font-semibold text-gray-900 mb-2">Settings & Status</h4>
+                                                <div className="grid grid-cols-1 gap-4 mb-4">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700">Rank</label>
+                                                        <input
+                                                            type="text"
+                                                            name="rank"
+                                                            value={formData.rank}
+                                                            onChange={handleInputChange}
+                                                            className="input w-full mt-1"
+                                                            placeholder="e.g. Member, Silver, Gold"
+                                                        />
+                                                    </div>
+                                                </div>
+
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700">Default Placement Strategy</label>
                                                     <p className="text-xs text-gray-500 mb-1">Determines where new direct referrals are placed.</p>
@@ -462,11 +498,12 @@ const UserManagement = () => {
                                                         value={formData.defaultPlacement || 'placing-left'}
                                                         onChange={handleInputChange}
                                                         className="input w-full mt-1"
+                                                        placeholder="Select placement strategy"
                                                     >
                                                         <option value="left">Left (Direct)</option>
                                                         <option value="right">Right (Direct)</option>
-                                                        <option value="placing-left">Extreme Left (Spillover)</option>
-                                                        <option value="placing-right">Extreme Right (Spillover)</option>
+                                                        <option value="placing-left">Placing Left</option>
+                                                        <option value="placing-right">Placing Right</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -490,6 +527,116 @@ const UserManagement = () => {
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* View Full Details Modal */}
+            {isViewModalOpen && viewUser && (
+                <div className="fixed inset-0 z-[200] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                    <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={closeViewModal} aria-hidden="true"></div>
+                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full">
+                            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h3 className="text-xl leading-6 font-bold text-gray-900" id="modal-title">
+                                            User Details
+                                        </h3>
+                                        <p className="text-sm text-gray-500">
+                                            Full database record for {viewUser.userId}
+                                        </p>
+                                    </div>
+                                    <button onClick={closeViewModal} className="text-gray-400 hover:text-gray-500">
+                                        <span className="text-2xl">&times;</span>
+                                    </button>
+                                </div>
+
+                                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                                    {/* Personal Info */}
+                                    <div className="col-span-1 md:col-span-2">
+                                        <h4 className="font-semibold text-golden-600 border-b pb-1 mb-2">Personal Information</h4>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="col-span-2 text-xs text-gray-400">ObjectId: {viewUser._id}</div>
+                                            <div><span className="font-medium text-gray-500">Full Name:</span> {viewUser.fullName}</div>
+                                            <div><span className="font-medium text-gray-500">User ID:</span> {viewUser.userId}</div>
+                                            <div><span className="font-medium text-gray-500">Email:</span> {viewUser.email}</div>
+                                            <div><span className="font-medium text-gray-500">Mobile:</span> {viewUser.mobile}</div>
+                                            <div><span className="font-medium text-gray-500">Role:</span> {viewUser.role}</div>
+                                            <div>
+                                                <span className="font-medium text-gray-500">Status:</span>
+                                                <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${viewUser.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                    {viewUser.isActive ? 'Active' : 'Inactive'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Security (Requested) */}
+                                    <div className="col-span-1 md:col-span-2">
+                                        <h4 className="font-semibold text-red-600 border-b pb-1 mb-2">Security & Access</h4>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div><span className="font-medium text-gray-500">Plain Password:</span> <span className="font-mono bg-gray-100 px-1 rounded">{viewUser.plainPassword || 'N/A'}</span></div>
+                                            <div><span className="font-medium text-gray-500">Email Verified:</span> {viewUser.isEmailVerified ? 'Yes' : 'No'}</div>
+                                            <div className="col-span-2"><span className="font-medium text-gray-500">Wallet Address:</span> <span className="text-xs">{viewUser.walletAddress || 'Not Set'}</span></div>
+                                        </div>
+                                    </div>
+
+                                    {/* Network & Placement */}
+                                    <div className="col-span-1 border-r pr-2">
+                                        <h4 className="font-semibold text-blue-600 border-b pb-1 mb-2">Network</h4>
+                                        <div className="space-y-1">
+                                            <div><span className="font-medium text-gray-500">Sponsor ID:</span> {viewUser.referralId || 'Root'}</div>
+                                            <div><span className="font-medium text-gray-500">Placement Side:</span> {viewUser.placementSide || 'N/A'}</div>
+                                            <div><span className="font-medium text-gray-500">Default Placement:</span> {viewUser.defaultPlacement || 'Default'}</div>
+                                            <div className="text-xs truncate"><span className="font-medium text-gray-500">Ref Link:</span> {viewUser.referralLink || 'N/A'}</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Financials */}
+                                    <div className="col-span-1 pl-2">
+                                        <h4 className="font-semibold text-green-600 border-b pb-1 mb-2">Financials</h4>
+                                        <div className="space-y-1">
+                                            <div><span className="font-medium text-gray-500">Wallet Balance:</span> ${viewUser.walletBalance}</div>
+                                            <div><span className="font-medium text-gray-500">Total Earnings:</span> ${viewUser.totalEarnings}</div>
+                                            <div><span className="font-medium text-gray-500">Invested:</span> ${viewUser.investmentAmount}</div>
+                                            <div><span className="font-medium text-gray-500">Inv Date:</span> {viewUser.investmentDate ? new Date(viewUser.investmentDate).toLocaleDateString() : 'N/A'}</div>
+                                            <div><span className="font-medium text-gray-500">Package:</span> {viewUser.packageType || 'None'}</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Ranks */}
+                                    <div className="col-span-1 md:col-span-2">
+                                        <h4 className="font-semibold text-purple-600 border-b pb-1 mb-2">Rank & Performance</h4>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                            <div><span className="font-medium text-gray-500">Current Rank:</span> {viewUser.rank}</div>
+                                            <div><span className="font-medium text-gray-500">Closing Rank:</span> {viewUser.closingRank}</div>
+                                            <div><span className="font-medium text-gray-500">Royalty %:</span> {viewUser.royaltyPercentage}%</div>
+                                            <div><span className="font-medium text-gray-500">Monthly Income:</span> ${viewUser.monthlyIncome}</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Timestamps */}
+                                    <div className="col-span-1 md:col-span-2 text-xs text-gray-400 border-t pt-2 mt-2">
+                                        <div className="grid grid-cols-2">
+                                            <div>Reg Date: {new Date(viewUser.registrationDate || viewUser.createdAt).toLocaleString()}</div>
+                                            <div>Last Updated: {new Date(viewUser.updatedAt).toLocaleString()}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                <button
+                                    type="button"
+                                    onClick={closeViewModal}
+                                    className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+                                >
+                                    Close
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

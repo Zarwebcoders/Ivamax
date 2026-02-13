@@ -1,13 +1,16 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import adminService from '../../services/admin.service';
 
 const AdminDashboard = () => {
+    const navigate = useNavigate();
     const [stats, setStats] = useState({
         totalUsers: 0,
         activeUsers: 0,
         pendingWallets: 0,
         pendingWithdrawals: 0,
+        pendingDeposits: 0,
         totalDistributed: 0,
         recentUsers: []
     });
@@ -172,7 +175,7 @@ const AdminDashboard = () => {
                 >
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-xl font-bold text-text-primary">Recent Users</h3>
-                        <button className="text-sm text-golden-500 hover:text-golden-600 font-semibold">
+                        <button onClick={() => navigate('/admin/users')} className="text-sm text-golden-500 hover:text-golden-600 font-semibold">
                             View All
                         </button>
                     </div>
@@ -232,7 +235,10 @@ const AdminDashboard = () => {
                 >
                     <h3 className="text-xl font-bold text-text-primary mb-4">Admin Actions</h3>
                     <div className="grid grid-cols-2 gap-4">
-                        <button className="p-4 rounded-xl border border-gray-400 hover:border-golden-300 hover:shadow-golden-lg hover:shadow-gray-500 transition-all group text-left">
+                        <button
+                            onClick={() => navigate('/admin/wallet-approvals')}
+                            className="p-4 rounded-xl border border-gray-400 hover:border-golden-300 hover:shadow-golden-lg hover:shadow-gray-500 transition-all group text-left"
+                        >
                             <div className="w-10 h-10 rounded-lg bg-green-100 text-green-600 flex items-center justify-center text-xl mb-3 group-hover:bg-golden-500 group-hover:text-white transition-colors">
                                 ✅
                             </div>
@@ -242,7 +248,10 @@ const AdminDashboard = () => {
                             </p>
                         </button>
 
-                        <button className="p-4 rounded-xl border border-gray-400 hover:border-golden-300 hover:shadow-golden-lg hover:shadow-gray-500 transition-all group text-left">
+                        <button
+                            onClick={() => navigate('/admin/withdrawal-approvals')}
+                            className="p-4 rounded-xl border border-gray-400 hover:border-golden-300 hover:shadow-golden-lg hover:shadow-gray-500 transition-all group text-left"
+                        >
                             <div className="w-10 h-10 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center text-xl mb-3 group-hover:bg-golden-500 group-hover:text-white transition-colors">
                                 💸
                             </div>
@@ -252,7 +261,10 @@ const AdminDashboard = () => {
                             </p>
                         </button>
 
-                        <button className="p-4 rounded-xl border border-gray-400 hover:border-golden-300 hover:shadow-golden-lg hover:shadow-gray-500 transition-all group text-left">
+                        <button
+                            onClick={() => navigate('/admin/users')}
+                            className="p-4 rounded-xl border border-gray-400 hover:border-golden-300 hover:shadow-golden-lg hover:shadow-gray-500 transition-all group text-left"
+                        >
                             <div className="w-10 h-10 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xl mb-3 group-hover:bg-golden-500 group-hover:text-white transition-colors">
                                 👥
                             </div>
@@ -262,13 +274,16 @@ const AdminDashboard = () => {
                             </p>
                         </button>
 
-                        <button className="p-4 rounded-xl border border-gray-400 hover:border-golden-300 hover:shadow-golden-lg hover:shadow-gray-500 transition-all group text-left">
+                        <button
+                            onClick={() => navigate('/admin/deposit-approvals')}
+                            className="p-4 rounded-xl border border-gray-400 hover:border-golden-300 hover:shadow-golden-lg hover:shadow-gray-500 transition-all group text-left"
+                        >
                             <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-xl mb-3 group-hover:bg-golden-500 group-hover:text-white transition-colors">
-                                📄
+                                📥
                             </div>
-                            <h4 className="font-semibold text-text-primary">Generate Reports</h4>
+                            <h4 className="font-semibold text-text-primary">Approve Deposits</h4>
                             <p className="text-xs text-text-tertiary mt-1">
-                                Export system data
+                                {stats.pendingDeposits || 0} pending requests
                             </p>
                         </button>
                     </div>
