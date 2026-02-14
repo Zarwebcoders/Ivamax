@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Users, Crown, DollarSign, Clock, Landmark, PieChart, ArrowRightLeft, Trophy, Target, TreeDeciduous, BarChart3, CircleDollarSign, Briefcase, Copy, Check, MessageCircle, Send } from 'lucide-react';
+import { TrendingUp, Users, Crown, DollarSign, Clock, Landmark, PieChart, ArrowRightLeft, Trophy, Target, TreeDeciduous, BarChart3, CircleDollarSign, Briefcase, Copy, Check, MessageCircle, Send, Award } from 'lucide-react';
 import { announcementService } from '../services/announcement.service';
 import { dashboardService } from '../services/dashboard.service';
 import NewsTicker from '../components/NewsTicker';
@@ -152,12 +152,14 @@ const Dashboard = () => {
                         </p>
                     </div>
 
+
                     {/* Banner / Graphic Area */}
+
                     <div className="relative w-full h-64 md:h-80 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20 mb-8 group">
                         {/* Announcement Badge */}
-                        <div className="absolute top-4 left-4 z-20">
+                        {/* <div className="absolute top-4 left-4 z-20">
                             <div className="bg-white/90 backdrop-blur-md rounded-full pl-2 pr-4 py-2 flex items-center gap-3 shadow-lg border border-purple-100">
-                                <div className="bg-purple-600 p-2 rounded-full">
+                                <div className="bg-purple-600 p-2 rounded-full">t
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
                                         <path fillRule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" clipRule="evenodd" />
                                     </svg>
@@ -171,7 +173,7 @@ const Dashboard = () => {
                                     </svg>
                                 </button>
                             </div>
-                        </div>
+                        </div> */}
 
                         {/* Main Banner Image */}
                         <motion.img
@@ -236,7 +238,7 @@ const Dashboard = () => {
                     </div>
 
                     {/* Stats Footer in Hero */}
-                    <div className="flex gap-4">
+                    {/* <div className="flex gap-4">
                         <div className="bg-[#C5A02E]/40 backdrop-blur-sm rounded-xl px-6 py-3 border border-[#8B701D]/20">
                             <span className="text-xs font-bold uppercase tracking-wider text-[#5A4610] block mb-1">Member Since</span>
                             <span className="text-lg font-black text-gray-900">{formatDate(stats.memberSince)}</span>
@@ -245,7 +247,7 @@ const Dashboard = () => {
                             <span className="text-xs font-bold uppercase tracking-wider text-[#5A4610] block mb-1">Network Size</span>
                             <span className="text-lg font-black text-gray-900">{stats.networkSize} Members</span>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
             )}
 
@@ -412,6 +414,31 @@ const Dashboard = () => {
                             </div>
                         </div>
 
+                        {/* Ranks Row (Current Rank & Closing Rank) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            {/* Current Rank Card */}
+                            <div className="bg-purple-50/50 rounded-2xl p-6 border border-purple-100 shadow-sm hover:shadow-md transition-shadow">
+                                <div className="flex justify-between items-start mb-4">
+                                    <span className="text-purple-600 font-bold uppercase tracking-wider text-sm">Current Rank</span>
+                                    <div className="bg-purple-500 text-white p-2 rounded-lg shadow-purple-200 shadow-lg">
+                                        <Crown size={20} />
+                                    </div>
+                                </div>
+                                <h4 className="text-3xl font-black text-gray-900 truncate uppercase tracking-tight">{stats.currentRank || 'Member'}</h4>
+                            </div>
+
+                            {/* Closing Rank Card */}
+                            <div className="bg-orange-50/50 rounded-2xl p-6 border border-orange-100 shadow-sm hover:shadow-md transition-shadow">
+                                <div className="flex justify-between items-start mb-4">
+                                    <span className="text-orange-600 font-bold uppercase tracking-wider text-sm">Closing Rank</span>
+                                    <div className="bg-orange-500 text-white p-2 rounded-lg shadow-orange-200 shadow-lg">
+                                        <Award size={20} />
+                                    </div>
+                                </div>
+                                <h4 className="text-3xl font-black text-gray-900 truncate uppercase tracking-tight">{stats.closingRank || 'None'}</h4>
+                            </div>
+                        </div>
+
                         {/* Matching Progress */}
                         <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100">
                             <div className="flex justify-between items-center mb-2">
@@ -433,20 +460,59 @@ const Dashboard = () => {
 
                 {/* Rank Card */}
                 {(!isMobile || activeTab === 'rank') && (
-                    <div className="bg-[#1a1a1a] rounded-3xl p-8 text-white flex flex-col items-center text-center justify-center border border-gray-800 shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-8 opacity-5">
-                            <Crown size={180} />
-                        </div>
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="bg-[#0F172A] rounded-3xl p-[2px] shadow-2xl relative group h-full"
+                    >
+                        {/* Golden Gradient Border */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-500 rounded-3xl opacity-80 group-hover:opacity-100 transition-opacity"></div>
 
-                        <div className="relative z-10">
-                            <div className="w-20 h-20 bg-[#C5A02E]/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#C5A02E]/40">
-                                <Trophy className="text-[#FDD835]" size={40} />
+                        <div className="relative bg-[#0F172A] rounded-[22px] p-6 h-full flex flex-col items-center text-center w-full">
+
+                            {/* Icon */}
+                            <div className="w-16 h-16 bg-[#3D2B1F]/80 rounded-2xl flex items-center justify-center mb-4 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+                                <Trophy className="text-[#F59E0B] drop-shadow-md" size={32} />
                             </div>
 
-                            <h3 className="text-amber-400 font-bold text-sm uppercase tracking-widest mb-2">Your Current Rank</h3>
-                            <h2 className="text-4xl font-black text-white mb-1">{stats.currentRank}</h2>
+                            <h4 className="text-[#F59E0B] font-medium text-sm mb-1 tracking-wider uppercase">Your Current Rank</h4>
+                            <h2 className="text-4xl font-black text-white mb-6 tracking-wide drop-shadow-lg uppercase">{stats.currentRank}</h2>
+
+                            {/* Royalty Detail Card */}
+                            <div className="w-full bg-[#1E293B] rounded-xl p-4 mb-6 border border-gray-700/50 text-left relative overflow-hidden group/royalty">
+                                {/* Glow */}
+                                <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 blur-2xl rounded-full -mr-8 -mt-8 pointer-events-none"></div>
+
+                                <div className="flex justify-between items-start mb-1 relative z-10">
+                                    <span className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Royalty Percentage</span>
+                                    <Target className="text-[#F59E0B]" size={16} />
+                                </div>
+                                <div className="flex items-baseline gap-2 relative z-10">
+                                    <span className="text-3xl font-bold text-white">{stats.royaltyPercentage || '0'}%</span>
+                                    <span className="text-[10px] text-[#F59E0B] font-medium leading-none self-center">of network<br />earnings</span>
+                                </div>
+                            </div>
+
+                            {/* Next Rank Progress */}
+                            <div className="w-full mt-auto">
+                                <div className="flex justify-between items-end mb-2">
+                                    <span className="text-gray-500 text-xs font-semibold">Next Rank</span>
+                                    <span className="text-[#F59E0B] text-xs font-extrabold uppercase tracking-wider">{stats.nextRankName || 'NEXT LEVEL'}</span>
+                                </div>
+                                <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden mb-2 shadow-inner">
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${stats.rankProgress || 0}%` }}
+                                        className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.6)]"
+                                    />
+                                </div>
+                                <p className="text-gray-500 text-[10px] text-center font-medium">
+                                    <span className="text-gray-300">{stats.rankProgress || 0}%</span> progress to next rank
+                                </p>
+                            </div>
                         </div>
-                    </div>
+                    </motion.div>
                 )}
             </div>
 
