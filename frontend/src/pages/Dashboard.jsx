@@ -260,10 +260,10 @@ const Dashboard = () => {
             {(!isMobile || activeTab === 'income') && (
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
-                        { label: "Total Income", value: stats.totalIncome, color: "text-amber-500", bgIcon: "bg-amber-100", icon: <DollarSign size={24} className="text-amber-600" /> },
-                        { label: "PMR Income", value: stats.pmrIncome, color: "text-blue-500", bgIcon: "bg-blue-100", icon: <TrendingUp size={24} className="text-blue-600" /> },
-                        { label: "DRR Income", value: stats.drrIncome, color: "text-green-500", bgIcon: "bg-green-100", icon: <Users size={24} className="text-green-600" /> },
-                        { label: "FCR Income", value: stats.fcrIncome, color: "text-purple-500", bgIcon: "bg-purple-100", icon: <Crown size={24} className="text-purple-600" /> }
+                        { label: "Total Income", value: stats.totalIncome || 0, color: "text-amber-500", bgIcon: "bg-amber-100", icon: <DollarSign size={24} className="text-amber-600" /> },
+                        { label: "PMR Income", value: stats.pmrIncome || 0, color: "text-blue-500", bgIcon: "bg-blue-100", icon: <TrendingUp size={24} className="text-blue-600" /> },
+                        { label: "DRR Income", value: stats.drrIncome || 0, color: "text-green-500", bgIcon: "bg-green-100", icon: <Users size={24} className="text-green-600" /> },
+                        { label: "FCR Income", value: stats.fcrIncome || 0, color: "text-purple-500", bgIcon: "bg-purple-100", icon: <Crown size={24} className="text-purple-600" /> }
                     ].map((item, idx) => (
                         <div key={idx} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between h-40 hover:shadow-lg transition-shadow">
                             <div className="flex justify-between items-start">
@@ -531,7 +531,7 @@ const Dashboard = () => {
                         {[
                             {
                                 label: "Available Balance",
-                                value: stats.totalIncome - stats.totalWithdrawn,
+                                value: (stats.totalIncome || 0) - (stats.totalWithdrawn || 0),
                                 icon: <DollarSign size={24} />,
                                 color: "text-green-600",
                                 bgColor: "bg-gradient-to-br from-green-100 to-emerald-100",
@@ -540,7 +540,7 @@ const Dashboard = () => {
                             },
                             {
                                 label: "Total Withdrawn",
-                                value: stats.totalWithdrawn,
+                                value: stats.totalWithdrawn || 0,
                                 icon: <Landmark size={24} />,
                                 color: "text-blue-600",
                                 bgColor: "bg-gradient-to-br from-blue-100 to-cyan-100",
@@ -549,7 +549,7 @@ const Dashboard = () => {
                             },
                             {
                                 label: "Pending Requests",
-                                value: stats.pendingWithdrawals,
+                                value: stats.pendingWithdrawals || 0,
                                 icon: <Clock size={24} />,
                                 color: "text-amber-600",
                                 bgColor: "bg-gradient-to-br from-amber-100 to-orange-100",

@@ -1,14 +1,9 @@
-import axios from 'axios';
-
-const API_URL = 'http://localhost:5000/api/announcements';
+import api from './api';
 
 // Get active announcements (for users)
 export const getActiveAnnouncements = async () => {
     try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`${API_URL}/active`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await api.get('/announcements/active');
         return response.data;
     } catch (error) {
         throw error.response?.data || error;
@@ -18,11 +13,7 @@ export const getActiveAnnouncements = async () => {
 // Get all announcements (for admin)
 export const getAllAnnouncements = async (params = {}) => {
     try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`${API_URL}/all`, {
-            headers: { Authorization: `Bearer ${token}` },
-            params
-        });
+        const response = await api.get('/announcements/all', { params });
         return response.data;
     } catch (error) {
         throw error.response?.data || error;
@@ -32,10 +23,7 @@ export const getAllAnnouncements = async (params = {}) => {
 // Create announcement (admin only)
 export const createAnnouncement = async (data) => {
     try {
-        const token = localStorage.getItem('token');
-        const response = await axios.post(API_URL, data, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await api.post('/announcements', data);
         return response.data;
     } catch (error) {
         throw error.response?.data || error;
@@ -45,10 +33,7 @@ export const createAnnouncement = async (data) => {
 // Update announcement (admin only)
 export const updateAnnouncement = async (id, data) => {
     try {
-        const token = localStorage.getItem('token');
-        const response = await axios.put(`${API_URL}/${id}`, data, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await api.put(`/announcements/${id}`, data);
         return response.data;
     } catch (error) {
         throw error.response?.data || error;
@@ -58,10 +43,7 @@ export const updateAnnouncement = async (id, data) => {
 // Delete announcement (admin only)
 export const deleteAnnouncement = async (id) => {
     try {
-        const token = localStorage.getItem('token');
-        const response = await axios.delete(`${API_URL}/${id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await api.delete(`/announcements/${id}`);
         return response.data;
     } catch (error) {
         throw error.response?.data || error;
@@ -71,10 +53,7 @@ export const deleteAnnouncement = async (id) => {
 // Toggle announcement status (admin only)
 export const toggleAnnouncementStatus = async (id) => {
     try {
-        const token = localStorage.getItem('token');
-        const response = await axios.patch(`${API_URL}/${id}/toggle`, {}, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await api.patch(`/announcements/${id}/toggle`);
         return response.data;
     } catch (error) {
         throw error.response?.data || error;
