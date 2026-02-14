@@ -87,41 +87,75 @@ const TreeView = () => {
         }
     };
 
+    const [expandedNodes, setExpandedNodes] = useState({}); // Map of userId -> boolean
+
+    // ... existing code ...
+
+    const toggleNode = (userId) => {
+        setExpandedNodes(prev => ({
+            ...prev,
+            [userId]: !prev[userId]
+        }));
+    };
+
     // Helper to render tree recursively
     const renderTree = (node) => {
         if (!node) return null;
+
+        const isExpanded = !!expandedNodes[node.userId];
+        const hasChildren = node.children && node.children.length > 0 && !node.empty;
 
         return (
             <div className="flex flex-col items-center">
                 <TreeNode
                     node={node}
-                    onExpand={handleExpand}
+                    onExpand={handleExpand} // This is for traversing/focusing
                     isHighlighted={node.userId === highlightedUserId}
                 />
 
-                {node.children && node.children.length > 0 && !node.empty && (
-                    <div className="relative flex justify-center mt-6 gap-6 md:gap-12">
-                        {/* 
-                            Dynamic Connector Lines 
-                            Logic: We need a bridge spanning from the center of Left Child to center of Right Child.
-                            And a vertical line from Parent to that bridge.
-                        */}
-
-                        {/* Parent Vertical Line (Down) */}
-                        <div className="absolute top-[-1.5rem] left-1/2 -translate-x-1/2 h-3 border-l border-gray-300 z-0"></div>
-
-                        {/* Horizontal Bridge Line - Only if we have multiple children (standard 2 in binary) */}
-                        <div className="absolute top-[-0.75rem] left-1/4 right-1/4 h-3 border-t border-r border-l border-gray-300 rounded-t-lg z-0"></div>
-
-                        {node.children.map((child, index) => (
-                            <div key={index} className="relative flex flex-col items-center">
-                                {/* Child Vertical Line (Up to bridge) */}
-                                <div className="absolute top-[-0.75rem] h-3 border-l border-gray-300 z-0"></div>
-                                {renderTree(child)}
-                            </div>
-                        ))}
-                    </div>
+                {/* Toggle Button for Expansion */}
+                {hasChildren && (
+                    <button
+                        onClick={() => toggleNode(node.userId)}
+                        className="mt-2 w-6 h-6 flex items-center justify-center rounded-full bg-white border border-gray-300 shadow-sm hover:bg-gray-50 z-10 transition-colors"
+                        title={isExpanded ? "Collapse" : "Expand"}
+                    >
+                        <span className="text-sm font-bold text-gray-600 mb-[1px]">
+                            {isExpanded ? '−' : '+'}
+                        </span>
+                    </button>
                 )}
+
+                {/* Recursive Children Rendering */}
+                <AnimatePresence>
+                    {isExpanded && hasChildren && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="relative flex justify-center mt-4 gap-6 md:gap-12 overflow-hidden px-4 py-2"
+                        >
+                            {/* 
+                                Dynamic Connector Lines 
+                            */}
+
+                            {/* Parent Vertical Line (Down) */}
+                            <div className="absolute top-[-1rem] left-1/2 -translate-x-1/2 h-4 border-l border-gray-300 z-0"></div>
+
+                            {/* Horizontal Bridge Line */}
+                            <div className="absolute top-0 left-1/4 right-1/4 h-3 border-t border-r border-l border-gray-300 rounded-t-lg z-0"></div>
+
+                            {node.children.map((child, index) => (
+                                <div key={index} className="relative flex flex-col items-center pt-3">
+                                    {/* Child Vertical Line (Up to bridge) */}
+                                    {/* We need individual lines connecting up to the bridge */}
+                                    <div className="absolute top-0 h-3 border-l border-gray-300 z-0"></div>
+                                    {renderTree(child)}
+                                </div>
+                            ))}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         );
     };

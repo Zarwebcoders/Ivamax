@@ -11,8 +11,9 @@ export const withdrawalService = {
         return response.data;
     },
 
-    getWithdrawalHistory: async (limit = 20, page = 1) => {
-        const response = await api.get(`/withdrawal/history?limit=${limit}&page=${page}`);
+    getWithdrawalHistory: async (limit = 20, page = 1, status = '') => {
+        const url = `/withdrawal/history?limit=${limit}&page=${page}${status ? `&status=${status}` : ''}`;
+        const response = await api.get(url);
         return response.data;
     },
 

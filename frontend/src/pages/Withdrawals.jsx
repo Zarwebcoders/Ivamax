@@ -14,17 +14,18 @@ const Withdrawals = () => {
     const [stats, setStats] = useState(null);
     const [history, setHistory] = useState([]);
     const [loadingData, setLoadingData] = useState(true);
+    const [activeTab, setActiveTab] = useState('All');
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [activeTab]);
 
     const fetchData = async () => {
         try {
             setLoadingData(true);
             const [statsData, historyData] = await Promise.all([
                 withdrawalService.getWithdrawalStats(),
-                withdrawalService.getWithdrawalHistory(20, 1)
+                withdrawalService.getWithdrawalHistory(20, 1, activeTab === 'All' ? '' : activeTab)
             ]);
 
             if (statsData.success) setStats(statsData.data);
@@ -40,8 +41,8 @@ const Withdrawals = () => {
     const handleWithdrawal = async (e) => {
         e.preventDefault();
 
-        if (!amount || parseFloat(amount) < 50) {
-            toast.error('Minimum withdrawal amount is $50');
+        if (!amount || parseFloat(amount) < 10) {
+            toast.error('Minimum withdrawal amount is $10');
             return;
         }
 
@@ -220,7 +221,7 @@ const Withdrawals = () => {
                                         value={amount}
                                         onChange={(e) => setAmount(e.target.value)}
                                         placeholder="Enter amount"
-                                        min="50"
+                                        min="10"
                                         step="0.01"
                                         className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-white"
                                         required
@@ -228,7 +229,7 @@ const Withdrawals = () => {
                                 </div>
                                 <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
                                     <AlertCircle size={12} />
-                                    Min withdrawal: $50. Fee: 2%
+                                    Min withdrawal: $10. No Fee
                                 </p>
                             </div>
 
@@ -262,8 +263,22 @@ const Withdrawals = () => {
                 {/* History Table */}
                 <div className="lg:col-span-2">
                     <div className="bg-white rounded-2xl shadow-xl border border-gray-400 shadow-lg shadow-gray-400 overflow-hidden">
-                        <div className="p-4 border-b border-gray-400 flex justify-between items-center">
+                        <div className="p-4 border-b border-gray-400 flex flex-col sm:flex-row justify-between items-center gap-4">
                             <h3 className="text-lg font-bold text-gray-800">Withdrawal History</h3>
+                            <div className="flex gap-2">
+                                {['All', 'Approved', 'Pending'].map((tab) => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setActiveTab(tab)}
+                                        className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === tab
+                                            ? 'bg-golden-500 text-white shadow-md'
+                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                            }`}
+                                    >
+                                        {tab}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
                         <div className="overflow-x-auto">

@@ -3,51 +3,37 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Users, Crown, DollarSign, Clock, Landmark, PieChart, ArrowRightLeft, Trophy, Target, TreeDeciduous, BarChart3, CircleDollarSign, Briefcase, Copy, Check, MessageCircle, Send } from 'lucide-react';
+import { announcementService } from '../services/announcement.service';
 import { dashboardService } from '../services/dashboard.service';
 import NewsTicker from '../components/NewsTicker';
 
 const Dashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [stats, setStats] = useState({
-        // ... existing stats
-    });
-    const [banners, setBanners] = useState([]); // New state for banners
+    const [stats, setStats] = useState({});
 
+    // Banner states
+    const [banners, setBanners] = useState([]);
+    const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+
+    // UI states
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('income');
     const [activeRefTab, setActiveRefTab] = useState('left');
     const [isMobile, setIsMobile] = useState(false);
-    const [currentBannerIndex, setCurrentBannerIndex] = useState(0); // Track banner slide
 
-    useEffect(() => {
-        const fetchDashboardData = async () => {
-            try {
-                const [uniqueData, announcementData] = await Promise.all([
-                    dashboardService.getStats(),
-                    // Assuming dashboardService or announcementService has a method to get active announcements
-                    // If not, we might need to add it or use a separate call.
-                    // For now, let's try to fetch active announcements here if the potential exists, 
-                    // or I'll just use a direct API call if service update is needed.
-                    // Wait, I should check dashboardService first. Assuming I need to add it there or import announcementService.
-                    // I will import announcementService.
-                ]);
-
-                // Correction: fetching announcements separately
-            } catch (error) {
-                console.error("Failed to fetch dashboard data", error);
-            }
-        };
-        // Refactoring to fetch both
-    }, []);
-
-    // Better implementation below
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const statsResponse = await dashboardService.getStats();
+                // Parallel fetch for stats and announcements
+                const [statsResponse, announcementsResponse] = await Promise.all([
+                    dashboardService.getStats(),
+                    announcementService.getActiveAnnouncements()
+                ]);
+
                 if (statsResponse.success) {
                     setStats(prev => ({ ...prev, ...statsResponse.data }));
+
                     // Auto-select valid tab logic...
                     if (statsResponse.data.isLeftDirectFilled && activeRefTab === 'left') {
                         setActiveRefTab('placing-left');
@@ -56,11 +42,12 @@ const Dashboard = () => {
                     }
                 }
 
-                // Fetch active announcements for banners
-                // Note: I need to import announcementService first.
-                // Assuming I will add the import in a separate edit or use window/global if not available (bad practice).
-                // I will update the imports first in a separate Step if needed, but I can do it here if I replace the top.
-                // For now, I'll assume I can add the import line.
+                if (announcementsResponse.success) {
+                    // Filter for banners
+                    const bannerItems = announcementsResponse.data.filter(a => a.type === 'banner');
+                    setBanners(bannerItems);
+                }
+
             } catch (error) {
                 console.error("Failed to fetch data", error);
             } finally {
@@ -109,6 +96,54 @@ const Dashboard = () => {
         <div className="space-y-6">
             {/* News Ticker */}
             <NewsTicker />
+
+            {/* Banner Section */}
+            {banners.length > 0 && (
+                <div className="relative w-full h-48 md:h-64 rounded-2xl overflow-hidden shadow-2xl mb-6 group">
+                    <div className="absolute inset-0 bg-gray-900 animate-pulse"></div>
+
+                    <motion.img
+                        key={currentBannerIndex}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.5 }}
+                        src={`http://localhost:5000/${banners[currentBannerIndex].image.replace(/\\/g, '/')}`}
+                        alt={banners[currentBannerIndex].title}
+                        className="w-full h-full object-cover relative z-10"
+                        onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://via.placeholder.com/800x400?text=Banner+Error'
+                        }}
+                    />
+
+                    {/* Banner Overlay Content */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-20 flex flex-col justify-end p-6">
+                        <motion.h2
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            className="text-white text-2xl md:text-3xl font-bold mb-2 shadow-sm"
+                        >
+                            {banners[currentBannerIndex].title}
+                        </motion.h2>
+                        <p className="text-gray-200 text-sm md:text-base line-clamp-2 max-w-2xl">
+                            {banners[currentBannerIndex].message}
+                        </p>
+                    </div>
+
+                    {/* Indicators */}
+                    <div className="absolute bottom-4 right-4 flex gap-2 z-30">
+                        {banners.map((_, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => setCurrentBannerIndex(idx)}
+                                className={`w-2 h-2 rounded-full transition-all ${idx === currentBannerIndex ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/80'
+                                    }`}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Header */}
             <motion.div

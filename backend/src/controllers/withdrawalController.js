@@ -3,8 +3,8 @@ const Withdrawal = require('../models/Withdrawal');
 const Wallet = require('../models/Wallet');
 
 // Constants
-const MIN_WITHDRAWAL = 50;
-const WITHDRAWAL_FEE_PERCENT = 2;
+const MIN_WITHDRAWAL = 10;
+const WITHDRAWAL_FEE_PERCENT = 0;
 
 // Request withdrawal
 const requestWithdrawal = async (req, res) => {
@@ -52,8 +52,9 @@ const requestWithdrawal = async (req, res) => {
         }
 
         // Calculate fee and net amount
-        const fee = (withdrawalAmount * WITHDRAWAL_FEE_PERCENT) / 100;
-        const totalDeduction = withdrawalAmount + fee;
+        // Calculate fee and net amount
+        const fee = 0;
+        const totalDeduction = withdrawalAmount;
 
         // Check sufficient balance
         if (user.walletBalance < totalDeduction) {
@@ -101,14 +102,19 @@ const requestWithdrawal = async (req, res) => {
 const getWithdrawalHistory = async (req, res) => {
     try {
         const userId = req.user.userId;
-        const { limit = 20, page = 1 } = req.query;
+        const { limit = 20, page = 1, status } = req.query;
 
-        const withdrawals = await Withdrawal.find({ userId })
+        const filter = { userId };
+        if (status && status !== 'All') {
+            filter.status = status.toLowerCase();
+        }
+
+        const withdrawals = await Withdrawal.find(filter)
             .sort({ requestDate: -1 })
             .limit(parseInt(limit))
             .skip((parseInt(page) - 1) * parseInt(limit));
 
-        const total = await Withdrawal.countDocuments({ userId });
+        const total = await Withdrawal.countDocuments(filter);
 
         res.json({
             success: true,

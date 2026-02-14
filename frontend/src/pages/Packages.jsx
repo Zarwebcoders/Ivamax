@@ -79,7 +79,7 @@ const Packages = () => {
                             <span className="text-white text-xs font-bold tracking-wider uppercase">Most Popular</span>
                         </motion.div>
 
-                        <h2 className="text-xl font-bold text-white mb-1">Premium Starter</h2>
+                        <h2 className="text-xl font-bold text-white mb-1">Binary Pack</h2>
                         <div className="flex items-center justify-center text-white">
                             <span className="text-lg font-medium opacity-80">$</span>
                             <span className="text-4xl font-black tracking-tighter">1</span>
