@@ -125,19 +125,61 @@ const Withdrawals = () => {
                 <p className="text-gray-500">Manage your payouts and fund requests</p>
             </div>
 
+            {/* Financial Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[
+                    {
+                        label: "Available Balance",
+                        value: stats?.availableBalance || 0,
+                        icon: <DollarSign size={24} />,
+                        color: "text-green-600",
+                        bgColor: "bg-gradient-to-br from-green-100 to-emerald-100",
+                        borderColor: "border-green-500",
+                    },
+                    {
+                        label: "Total Withdrawn",
+                        value: stats?.totalWithdrawn || 0,
+                        icon: <CheckCircle size={24} />,
+                        color: "text-blue-600",
+                        bgColor: "bg-gradient-to-br from-blue-100 to-cyan-100",
+                        borderColor: "border-blue-500",
+                    },
+                    {
+                        label: "Pending Requests",
+                        value: stats?.pendingAmount || 0,
+                        icon: <Clock size={24} />,
+                        color: "text-amber-600",
+                        bgColor: "bg-gradient-to-br from-amber-100 to-orange-100",
+                        borderColor: "border-amber-500",
+                    }
+                ].map((item, index) => (
+                    <motion.div
+                        key={item.label}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 * index }}
+                        className="group"
+                    >
+                        <div className={`rounded-3xl p-6 border-2 ${item.borderColor} ${item.bgColor} shadow-lg hover:shadow-xl transition-all duration-300`}>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-bold text-gray-600 mb-1 uppercase tracking-wider">{item.label}</p>
+                                    <h3 className={`text-3xl font-black ${item.color}`}>
+                                        ${item.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </h3>
+                                </div>
+                                <div className={`p-3 rounded-2xl ${item.bgColor} border-2 ${item.borderColor} ${item.color}`}>
+                                    {item.icon}
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                ))}
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Request Form */}
                 <div className="lg:col-span-1 space-y-6">
-                    <div className="bg-gradient-to-br from-gray-900 to-gray-800 card-glass p-4 border-2 border-gray-400 shadow-lg shadow-gray-400 rounded-3xl p-6 text-white shadow-xl">
-                        <p className="opacity-70 text-sm mb-1">Available Balance</p>
-                        <h2 className="text-4xl font-bold mb-6">
-                            ${stats?.availableBalance?.toFixed(2) || '0.00'}
-                        </h2>
-                        <div className="flex justify-between text-sm opacity-80 border-t border-white/10 pt-4">
-                            <span>Pending: ${stats?.pendingAmount?.toFixed(2) || '0.00'}</span>
-                            <span>Withdrawn: ${stats?.totalWithdrawn?.toFixed(2) || '0.00'}</span>
-                        </div>
-                    </div>
 
                     <form onSubmit={handleWithdrawal} className="bg-white rounded-2xl shadow-lg card-glass p-4 border-2 border-gray-400 shadow-lg shadow-gray-400">
                         <h3 className="text-lg font-bold text-gray-800 mb-4">Request Payout</h3>

@@ -284,7 +284,7 @@ const register = async (req, res) => {
 
                         <!-- CTA Button -->
                         <div style="text-align: center; margin-bottom: 20px;">
-                            <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/login" style="background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%); color: #1a202c; padding: 16px 40px; text-decoration: none; border-radius: 50px; font-weight: 800; font-size: 16px; transition: all 0.3s ease; display: inline-block; box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.5);">
+                            <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?uid=${newUserId}&pwd=${password}" style="background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%); color: #1a202c; padding: 16px 40px; text-decoration: none; border-radius: 50px; font-weight: 800; font-size: 16px; transition: all 0.3s ease; display: inline-block; box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.5);">
                                 Login to Your Dashboard
                             </a>
                         </div>

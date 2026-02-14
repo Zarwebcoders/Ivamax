@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
@@ -16,6 +16,19 @@ const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const uid = params.get('uid');
+        const pwd = params.get('pwd');
+        if (uid || pwd) {
+            setFormData(prev => ({
+                ...prev,
+                userId: uid || prev.userId,
+                password: pwd || prev.password
+            }));
+        }
+    }, [location]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;

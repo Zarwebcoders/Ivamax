@@ -2,14 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/auth.service';
-import { User, Mail, Phone, Lock, CreditCard, Shield, Edit2, Save, X, Wallet, CheckCircle, DollarSign, TrendingUp } from 'lucide-react';
+import { User, Mail, Phone, Lock, CreditCard, Shield, Edit2, Save, X, Wallet, CheckCircle, DollarSign, TrendingUp, Users } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import ReferralCard from '../components/ReferralCard';
+import { dashboardService } from '../services/dashboard.service';
 
 const Profile = () => {
     const { user, login } = useAuth(); // We might need to update user in context
     const [isEditing, setIsEditing] = useState(false);
-    const [activeTab, setActiveTab] = useState('personal'); // personal, security, banking
+    const [activeTab, setActiveTab] = useState('personal'); // personal, security, banking, income, referral
     const [loading, setLoading] = useState(false);
+    const [stats, setStats] = useState({});
 
     const [formData, setFormData] = useState({
         fullName: '',
@@ -37,7 +40,19 @@ const Profile = () => {
 
     useEffect(() => {
         loadProfile();
+        loadStats();
     }, []);
+
+    const loadStats = async () => {
+        try {
+            const response = await dashboardService.getStats();
+            if (response.success) {
+                setStats(response.data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch stats", error);
+        }
+    };
 
     const loadProfile = async () => {
         try {
@@ -213,6 +228,7 @@ const Profile = () => {
                 <TabButton id="security" label="Security" icon={Shield} />
                 <TabButton id="banking" label="Wallet" icon={CreditCard} />
                 <TabButton id="income" label="Income" icon={DollarSign} />
+                <TabButton id="referral" label="Referral Link" icon={Users} />
             </div>
 
             {/* Content Area */}
@@ -627,6 +643,22 @@ const Profile = () => {
                                     <p className="text-xs opacity-70">Pending Approval</p>
                                 </div>
                             </div>
+                        </div>
+                    </motion.div>
+                )}
+
+                {activeTab === 'referral' && (
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="space-y-6"
+                    >
+                        <div className="px-2">
+                            <h2 className="text-2xl font-black text-gray-900 tracking-tight">Referral Management</h2>
+                            <p className="text-gray-500 font-medium text-sm">Grow your network and track your power leg placements.</p>
+                        </div>
+                        <div className="max-w-4xl mx-auto w-full">
+                            <ReferralCard user={user} stats={stats} />
                         </div>
                     </motion.div>
                 )}

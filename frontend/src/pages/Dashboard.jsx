@@ -20,7 +20,7 @@ const Dashboard = () => {
     // UI states
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('income');
-    const [activeRefTab, setActiveRefTab] = useState('left');
+
     const [isMobile, setIsMobile] = useState(false);
     const [isBusinessFlipped, setIsBusinessFlipped] = useState(false);
 
@@ -36,12 +36,7 @@ const Dashboard = () => {
                 if (statsResponse.success) {
                     setStats(prev => ({ ...prev, ...statsResponse.data }));
 
-                    // Auto-select valid tab logic...
-                    if (statsResponse.data.isLeftDirectFilled && activeRefTab === 'left') {
-                        setActiveRefTab('placing-left');
-                    } else if (statsResponse.data.isRightDirectFilled && activeRefTab === 'right') {
-                        setActiveRefTab('placing-right');
-                    }
+
                 }
 
                 if (announcementsResponse.success) {
@@ -99,6 +94,31 @@ const Dashboard = () => {
             {/* News Ticker */}
             <NewsTicker />
 
+            {/* Activation Notice */}
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-50 border-l-4 border-red-500 p-4 rounded-xl shadow-sm flex items-center gap-4"
+            >
+                <div className="bg-red-100 p-2 rounded-full">
+                    <Clock className="text-red-600" size={20} />
+                </div>
+                <div>
+                    <p className="text-red-800 font-black text-xs md:text-sm uppercase tracking-wider">
+                        Account Activation Required
+                    </p>
+                    <p className="text-red-600 text-[10px] md:text-xs font-bold">
+                        Please activate your ID within 24 hours to secure your position and start earning.
+                    </p>
+                </div>
+                <button
+                    onClick={() => navigate('/packages')}
+                    className="ml-auto bg-red-600 text-white px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-red-700 transition-colors shadow-lg shadow-red-200"
+                >
+                    Activate Now
+                </button>
+            </motion.div>
+
             {/* Banner Section */}
 
 
@@ -116,7 +136,7 @@ const Dashboard = () => {
                         { id: 'overview', label: 'Overview', icon: <Users size={18} /> },
                         { id: 'income', label: 'Income', icon: <DollarSign size={18} /> },
                         { id: 'business', label: 'Business', icon: <Briefcase size={18} /> },
-                        { id: 'referral', label: 'Referral', icon: <UserPlus size={18} /> },
+
                         { id: 'rank', label: 'Rank', icon: <Trophy size={18} /> },
                         { id: 'withdrawal', label: 'Withdrawal', icon: <Landmark size={18} /> },
                         { id: 'actions', label: 'Actions', icon: <PieChart size={18} /> },
@@ -292,105 +312,77 @@ const Dashboard = () => {
 
             {/* Business Overview Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Desktop and Tablet: Flip Card */}
+                {/* Desktop and Tablet: Business Overview */}
                 {!isMobile && (
-                    <div className="lg:col-span-2 perspective-1000 min-h-[500px]">
-                        <motion.div
-                            initial={false}
-                            animate={{ rotateY: isBusinessFlipped ? 180 : 0 }}
-                            transition={{ duration: 0.6, animationDirection: "normal" }}
-                            className="relative w-full h-full preserve-3d"
-                            style={{ transformStyle: 'preserve-3d' }}
-                        >
-                            {/* FRONT FACE - Business Overview */}
-                            <div className="absolute inset-0 backface-hidden bg-white rounded-3xl p-8 border border-gray-100 shadow-xl overflow-hidden"
-                                style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
-                                <div className="flex items-center justify-between mb-8">
-                                    <h3 className="text-2xl font-black text-gray-900">Business Overview</h3>
-                                    <button
-                                        onClick={() => setIsBusinessFlipped(true)}
-                                        className="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
-                                    >
-                                        <span className="text-xs font-bold uppercase hidden md:inline">Referral Center</span>
-                                        <ArrowRightLeft size={20} />
-                                    </button>
+                    <div className="lg:col-span-2 bg-white rounded-3xl p-8 border border-gray-100 shadow-xl overflow-hidden min-h-[500px]">
+                        <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-2xl font-black text-gray-900">Business Overview</h3>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6">
+                            {/* Left Pairs Card */}
+                            <div className="bg-blue-50/50 rounded-2xl p-4 md:p-6 border border-blue-100 flex flex-col justify-between">
+                                <div className="flex justify-between items-start mb-2 md:mb-4">
+                                    <span className="text-blue-600 font-bold uppercase tracking-wider text-[10px] md:text-sm">Left Pairs</span>
+                                    <div className="bg-blue-500 text-white p-1 rounded hidden md:block">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                                    </div>
                                 </div>
+                                <h4 className="text-2xl md:text-4xl font-black text-gray-900">{stats.leftPairs || 0}</h4>
+                            </div>
 
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6">
-                                    {/* Left Pairs Card */}
-                                    <div className="bg-blue-50/50 rounded-2xl p-4 md:p-6 border border-blue-100 flex flex-col justify-between">
-                                        <div className="flex justify-between items-start mb-2 md:mb-4">
-                                            <span className="text-blue-600 font-bold uppercase tracking-wider text-[10px] md:text-sm">Left Pairs</span>
-                                            <div className="bg-blue-500 text-white p-1 rounded hidden md:block">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                                            </div>
-                                        </div>
-                                        <h4 className="text-2xl md:text-4xl font-black text-gray-900">{stats.leftPairs || 0}</h4>
+                            {/* Right Pairs Card */}
+                            <div className="bg-emerald-50/50 rounded-2xl p-4 md:p-6 border border-emerald-100 flex flex-col justify-between">
+                                <div className="flex justify-between items-start mb-2 md:mb-4">
+                                    <span className="text-emerald-600 font-bold uppercase tracking-wider text-[10px] md:text-sm">Right Pairs</span>
+                                    <div className="bg-emerald-500 text-white p-1 rounded hidden md:block">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                                     </div>
+                                </div>
+                                <h4 className="text-2xl md:text-4xl font-black text-gray-900">{stats.rightPairs || 0}</h4>
+                            </div>
 
-                                    {/* Right Pairs Card */}
-                                    <div className="bg-emerald-50/50 rounded-2xl p-4 md:p-6 border border-emerald-100 flex flex-col justify-between">
-                                        <div className="flex justify-between items-start mb-2 md:mb-4">
-                                            <span className="text-emerald-600 font-bold uppercase tracking-wider text-[10px] md:text-sm">Right Pairs</span>
-                                            <div className="bg-emerald-500 text-white p-1 rounded hidden md:block">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                                            </div>
-                                        </div>
-                                        <h4 className="text-2xl md:text-4xl font-black text-gray-900">{stats.rightPairs || 0}</h4>
+                            {/* Matching Progress */}
+                            <div className="col-span-2 md:col-span-1 bg-amber-50 rounded-2xl p-4 md:p-6 border border-amber-100 flex flex-col justify-between">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-amber-600 font-bold uppercase tracking-wider text-xs md:text-sm">Matching</span>
+                                    <Target className="text-amber-500" size={20} />
+                                </div>
+                                <div>
+                                    <div className="flex items-end gap-2 mb-2">
+                                        <h4 className="text-3xl md:text-4xl font-black text-gray-900">{Math.min(stats.leftPairs || 0, stats.rightPairs || 0)}</h4>
                                     </div>
-
-                                    {/* Matching Progress */}
-                                    <div className="col-span-2 md:col-span-1 bg-amber-50 rounded-2xl p-4 md:p-6 border border-amber-100 flex flex-col justify-between">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-amber-600 font-bold uppercase tracking-wider text-xs md:text-sm">Matching</span>
-                                            <Target className="text-amber-500" size={20} />
-                                        </div>
-                                        <div>
-                                            <div className="flex items-end gap-2 mb-2">
-                                                <h4 className="text-3xl md:text-4xl font-black text-gray-900">{Math.min(stats.leftPairs || 0, stats.rightPairs || 0)}</h4>
-                                            </div>
-                                            <div className="h-2 w-full bg-amber-200 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-amber-500"
-                                                    style={{ width: `${stats.rightPairs > 0 && stats.leftPairs > 0 ? (Math.min(stats.leftPairs, stats.rightPairs) / Math.max(stats.leftPairs, stats.rightPairs)) * 100 : 0}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
+                                    <div className="h-2 w-full bg-amber-200 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-amber-500"
+                                            style={{ width: `${stats.rightPairs > 0 && stats.leftPairs > 0 ? (Math.min(stats.leftPairs, stats.rightPairs) / Math.max(stats.leftPairs, stats.rightPairs)) * 100 : 0}%` }}
+                                        ></div>
                                     </div>
-
-                                    {/* Current Rank Card */}
-                                    <div className="bg-purple-50/50 rounded-2xl p-4 md:p-6 border border-purple-100 shadow-sm hover:shadow-md transition-shadow">
-                                        <div className="flex justify-between items-start mb-2 md:mb-4">
-                                            <span className="text-purple-600 font-bold uppercase tracking-wider text-[10px] md:text-sm">Current Rank</span>
-                                            <div className="bg-purple-500 text-white p-1.5 md:p-2 rounded-lg shadow-purple-200 shadow-lg hidden md:block">
-                                                <Crown size={20} />
-                                            </div>
-                                        </div>
-                                        <h4 className="text-lg md:text-3xl font-black text-gray-900 truncate uppercase tracking-tight">{stats.currentRank || 'Member'}</h4>
-                                    </div>
-
-                                    {/* Closing Rank Card */}
-                                    <div className="bg-orange-50/50 rounded-2xl p-4 md:p-6 border border-orange-100 shadow-sm hover:shadow-md transition-shadow">
-                                        <div className="flex justify-between items-start mb-2 md:mb-4">
-                                            <span className="text-orange-600 font-bold uppercase tracking-wider text-[10px] md:text-sm">Closing Rank</span>
-                                            <div className="bg-orange-500 text-white p-1.5 md:p-2 rounded-lg shadow-orange-200 shadow-lg hidden md:block">
-                                                <Award size={20} />
-                                            </div>
-                                        </div>
-                                        <h4 className="text-lg md:text-3xl font-black text-gray-900 truncate uppercase tracking-tight">{stats.closingRank || 'None'}</h4>
-                                    </div>
-
-                                    {/* Blank Space Filler */}
-                                    <div className="hidden md:block"></div>
                                 </div>
                             </div>
 
-                            {/* BACK FACE - Referral Card */}
-                            <div className="absolute inset-0 backface-hidden bg-white rounded-3xl overflow-hidden shadow-xl flex flex-col rotate-y-180"
-                                style={{ transform: 'rotateY(180deg)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
-                                <ReferralCard user={user} stats={stats} isMobile={isMobile} onFlip={() => setIsBusinessFlipped(false)} />
+                            {/* Current Rank Card */}
+                            <div className="bg-purple-50/50 rounded-2xl p-4 md:p-6 border border-purple-100 shadow-sm hover:shadow-md transition-shadow">
+                                <div className="flex justify-between items-start mb-2 md:mb-4">
+                                    <span className="text-purple-600 font-bold uppercase tracking-wider text-[10px] md:text-sm">Current Rank</span>
+                                    <div className="bg-purple-500 text-white p-1.5 md:p-2 rounded-lg shadow-purple-200 shadow-lg hidden md:block">
+                                        <Crown size={20} />
+                                    </div>
+                                </div>
+                                <h4 className="text-lg md:text-3xl font-black text-gray-900 truncate uppercase tracking-tight">{stats.currentRank || 'Member'}</h4>
                             </div>
-                        </motion.div>
+
+                            {/* Closing Rank Card */}
+                            <div className="bg-orange-50/50 rounded-2xl p-4 md:p-6 border border-orange-100 shadow-sm hover:shadow-md transition-shadow">
+                                <div className="flex justify-between items-start mb-2 md:mb-4">
+                                    <span className="text-orange-600 font-bold uppercase tracking-wider text-[10px] md:text-sm">Closing Rank</span>
+                                    <div className="bg-orange-500 text-white p-1.5 md:p-2 rounded-lg shadow-orange-200 shadow-lg hidden md:block">
+                                        <Award size={20} />
+                                    </div>
+                                </div>
+                                <h4 className="text-lg md:text-3xl font-black text-gray-900 truncate uppercase tracking-tight">{stats.closingRank || 'None'}</h4>
+                            </div>
+                        </div>
                     </div>
                 )}
 
@@ -460,11 +452,7 @@ const Dashboard = () => {
                 )}
 
                 {/* Mobile View: Referral Tab */}
-                {isMobile && activeTab === 'referral' && (
-                    <div className="lg:col-span-2 min-h-[500px]">
-                        <ReferralCard user={user} stats={stats} isMobile={isMobile} />
-                    </div>
-                )}
+
 
                 {/* Rank Card */}
                 {(!isMobile || activeTab === 'rank') && (
@@ -524,8 +512,8 @@ const Dashboard = () => {
                 )}
             </div>
 
-            {/* Financial Overview */}
-            {
+            {/* Financial Overview - Moved to Withdrawals page */}
+            {/*
                 (!isMobile || activeTab === 'withdrawal') && (
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
                         {[
@@ -576,7 +564,9 @@ const Dashboard = () => {
                                             <div className={item.color}>{item.icon}</div>
                                         </div>
                                     </div>
-                                    <button className={`w-full py-3 rounded-xl font-medium text-sm transition-all duration-300 shadow-lg hover:shadow-black/40 shadow-black/20 ${item.label === "Available Balance"
+                                    <button 
+                                        onClick={() => navigate('/withdrawals')}
+                                        className={`w-full py-3 rounded-xl font-medium text-sm transition-all duration-300 shadow-lg hover:shadow-black/40 shadow-black/20 ${item.label === "Available Balance"
                                         ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-lg hover:shadow-green-500/25"
                                         : "bg-white border text-gray-700 hover:bg-gray-50 hover:border-gray-700"
                                         }`}>
@@ -587,7 +577,7 @@ const Dashboard = () => {
                         ))}
                     </div>
                 )
-            }
+            */}
 
             {/* Quick Actions */}
             {

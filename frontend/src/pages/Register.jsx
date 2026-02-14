@@ -127,6 +127,13 @@ const Register = () => {
                 }
             }
 
+            // Ensure Sponsor ID is present
+            if (!finalReferrerId) {
+                setError('Registration is not allowed without a valid Referral Link. Please use a referral link from your sponsor.');
+                setLoading(false);
+                return;
+            }
+
             // ============================================================
             // ATTACH TO PAYLOAD
             // ============================================================
@@ -206,18 +213,24 @@ const Register = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {/* Referral Link */}
                                     <div className="md:col-span-2 group">
-                                        <label htmlFor="referralLink" className="label ml-1">Referral Link (Optional)</label>
+                                        <label htmlFor="referralLink" className="label ml-1 font-bold text-gray-700">SPONSOR ID / REFERRAL LINK *</label>
                                         <div className="relative">
                                             <input
                                                 type="text"
                                                 id="referralLink"
                                                 name="referralLink"
                                                 value={formData.referralLink}
-                                                onChange={handleChange}
-                                                className="w-full pl-4 py-3.5 bg-gray-200 border border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
-                                                placeholder="Enter referral link or ID"
+                                                readOnly
+                                                className="w-full pl-4 py-3.5 bg-gray-100 border border-gray-300 rounded-xl focus:outline-none transition-all duration-300 text-gray-600 font-medium cursor-not-allowed"
+                                                placeholder="Referral ID will be auto-filled from link"
+                                                required
                                             />
                                         </div>
+                                        {!formData.referralLink && (
+                                            <p className="text-xs text-red-500 mt-2 ml-1 font-bold uppercase tracking-wider animate-pulse">
+                                                * Registration requires a referral link. Please use one to register.
+                                            </p>
+                                        )}
                                         {formData.referralLink && (
                                             <p className="text-xs text-golden-600 mt-2 ml-1 font-bold uppercase tracking-wider">
                                                 Detecting:
