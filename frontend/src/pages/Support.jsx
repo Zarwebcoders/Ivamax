@@ -17,9 +17,10 @@ const Support = () => {
     const [loadingTickets, setLoadingTickets] = useState(true);
 
     const typeOptions = [
-        { value: 'inquiry', label: 'Inquiry', email: 'inquiry@ivamax.com', color: 'blue' },
-        { value: 'complaint', label: 'Complaint', email: 'complaint@ivamax.com', color: 'red' },
-        { value: 'support', label: 'Support', email: 'support@ivamax.com', color: 'green' }
+        { value: 'inquiry', label: 'Inquiry', color: 'blue' },
+        { value: 'complaint', label: 'Complaint', color: 'red' },
+        { value: 'support', label: 'Support', color: 'green' },
+        { value: 'other', label: 'Other', color: 'yellow' }
     ];
 
     const subjectOptions = [
@@ -27,7 +28,8 @@ const Support = () => {
         { value: 'password', label: 'Password Reset' },
         { value: 'account_change', label: 'Account Changes' },
         { value: 'technical', label: 'Technical Support' },
-        { value: 'general', label: 'General Inquiry' }
+        { value: 'general', label: 'General Inquiry' },
+        { value: 'other', label: 'Other' }
     ];
 
     const priorityOptions = [
@@ -139,9 +141,80 @@ const Support = () => {
 
                     <div className="hidden md:flex items-center gap-2 text-xs bg-white/10 rounded-lg px-3 py-1.5 backdrop-blur-sm">
                         <Clock size={14} />
-                        <span>Response: 2 hours</span>
+                        <span>Response: 48-72 hours</span>
                     </div>
                 </div>
+            </motion.div>
+
+            {/* Quick Contact Buttons */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 }}
+                className="grid grid-cols-1 md:grid-cols-3 gap-3"
+            >
+                {/* Inquiry Button */}
+                <motion.a
+                    href="mailto:inquiry@ivamax.com"
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white shadow-md hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 border border-blue-400"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm flex-shrink-0">
+                            <HelpCircle size={20} />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-sm font-bold mb-0.5">Inquiry</h3>
+                            <p className="text-xs text-blue-100 flex items-center gap-1">
+                                <Mail size={12} />
+                                inquiry@ivamax.com
+                            </p>
+                        </div>
+                    </div>
+                </motion.a>
+
+                {/* Support Button */}
+                <motion.a
+                    href="mailto:support@ivamax.com"
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white shadow-md hover:shadow-xl hover:shadow-green-500/40 transition-all duration-300 border border-green-400"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm flex-shrink-0">
+                            <Headphones size={20} />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-sm font-bold mb-0.5">Support</h3>
+                            <p className="text-xs text-green-100 flex items-center gap-1">
+                                <Mail size={12} />
+                                support@ivamax.com
+                            </p>
+                        </div>
+                    </div>
+                </motion.a>
+
+                {/* Complaint Button */}
+                <motion.a
+                    href="mailto:complaint@ivamax.com"
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="bg-gradient-to-br from-red-500 to-red-600 rounded-lg p-4 text-white shadow-md hover:shadow-xl hover:shadow-red-500/40 transition-all duration-300 border border-red-400"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm flex-shrink-0">
+                            <AlertCircle size={20} />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-sm font-bold mb-0.5">Complaint</h3>
+                            <p className="text-xs text-red-100 flex items-center gap-1">
+                                <Mail size={12} />
+                                complaint@ivamax.com
+                            </p>
+                        </div>
+                    </div>
+                </motion.a>
             </motion.div>
 
             {/* Ticket Form */}
@@ -165,7 +238,7 @@ const Support = () => {
                             <Mail size={16} className="text-blue-600" />
                             Ticket Type <span className="text-red-500">*</span>
                         </label>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                             {typeOptions.map(option => (
                                 <div
                                     key={option.value}
@@ -213,7 +286,7 @@ const Support = () => {
                             <HelpCircle size={16} className="text-purple-600" />
                             Subject <span className="text-red-500">*</span>
                         </label>
-                        <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
                             {subjectOptions.map(option => (
                                 <div
                                     key={option.value}
