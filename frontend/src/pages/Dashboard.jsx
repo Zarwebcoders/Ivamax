@@ -2,10 +2,11 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Users, Crown, DollarSign, Clock, Landmark, PieChart, ArrowRightLeft, Trophy, Target, TreeDeciduous, BarChart3, CircleDollarSign, Briefcase, Copy, Check, MessageCircle, Send, Award } from 'lucide-react';
+import { TrendingUp, Users, Crown, DollarSign, Clock, Landmark, PieChart, ArrowRightLeft, Trophy, Target, TreeDeciduous, BarChart3, CircleDollarSign, Briefcase, Copy, Check, MessageCircle, Send, Award, ExternalLink, UserPlus } from 'lucide-react';
 import { announcementService } from '../services/announcement.service';
 import { dashboardService } from '../services/dashboard.service';
 import NewsTicker from '../components/NewsTicker';
+import ReferralCard from '../components/ReferralCard';
 
 const Dashboard = () => {
     const { user } = useAuth();
@@ -21,6 +22,7 @@ const Dashboard = () => {
     const [activeTab, setActiveTab] = useState('income');
     const [activeRefTab, setActiveRefTab] = useState('left');
     const [isMobile, setIsMobile] = useState(false);
+    const [isBusinessFlipped, setIsBusinessFlipped] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -114,6 +116,7 @@ const Dashboard = () => {
                         { id: 'overview', label: 'Overview', icon: <Users size={18} /> },
                         { id: 'income', label: 'Income', icon: <DollarSign size={18} /> },
                         { id: 'business', label: 'Business', icon: <Briefcase size={18} /> },
+                        { id: 'referral', label: 'Referral', icon: <UserPlus size={18} /> },
                         { id: 'rank', label: 'Rank', icon: <Trophy size={18} /> },
                         { id: 'withdrawal', label: 'Withdrawal', icon: <Landmark size={18} /> },
                         { id: 'actions', label: 'Actions', icon: <PieChart size={18} /> },
@@ -155,99 +158,101 @@ const Dashboard = () => {
 
                     {/* Banner / Graphic Area */}
 
-                    <div className="relative w-full h-64 md:h-80 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20 mb-8 group">
-                        {/* Announcement Badge */}
-                        {/* <div className="absolute top-4 left-4 z-20">
-                            <div className="bg-white/90 backdrop-blur-md rounded-full pl-2 pr-4 py-2 flex items-center gap-3 shadow-lg border border-purple-100">
-                                <div className="bg-purple-600 p-2 rounded-full">t
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" clipRule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p className="text-xs font-bold text-purple-900 uppercase tracking-wider">ANNOUNCEMENT <span className="text-purple-500 ml-1">1/2</span></p>
-                                </div>
-                                <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div> */}
-
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Main Banner Image */}
-                        <motion.img
-                            key={currentBannerIndex}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.5 }}
-                            src={(() => {
-                                if (banners.length > 0 && banners[currentBannerIndex]?.image) {
-                                    const path = banners[currentBannerIndex].image;
-                                    if (path.startsWith('http')) return path;
-                                    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-                                    const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
-                                    return `${baseUrl}/${cleanPath.replace(/\\/g, '/')}`;
-                                }
-                                return "https://wallpapers.com/images/hd/mafia-3-lincoln-clay-poster-9k7y7y7y7y7y7y7y.jpg";
-                            })()}
-                            alt={banners[currentBannerIndex]?.title || 'Banner'}
-                            className="absolute inset-0 w-full h-full object-cover z-0"
-                            onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src = 'https://wallpapers.com/images/hd/mafia-3-lincoln-clay-poster-9k7y7y7y7y7y7y7y.jpg'
-                            }}
-                        />
+                        <div className="lg:col-span-2 relative w-full h-64 md:h-80 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20 group">
+                            {/* Banner Image */}
+                            <motion.img
+                                key={currentBannerIndex}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.5 }}
+                                src={(() => {
+                                    if (banners.length > 0 && banners[currentBannerIndex]?.image) {
+                                        const path = banners[currentBannerIndex].image;
+                                        if (path.startsWith('http')) return path;
+                                        const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+                                        const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+                                        return `${baseUrl}/${cleanPath.replace(/\\/g, '/')}`;
+                                    }
+                                    return "https://wallpapers.com/images/hd/mafia-3-lincoln-clay-poster-9k7y7y7y7y7y7y7y.jpg";
+                                })()}
+                                alt={banners[currentBannerIndex]?.title || 'Banner'}
+                                className="absolute inset-0 w-full h-full object-cover z-0"
+                                onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = 'https://wallpapers.com/images/hd/mafia-3-lincoln-clay-poster-9k7y7y7y7y7y7y7y.jpg'
+                                }}
+                            />
 
-                        {/* Banner Overlay Content (Text) */}
-                        {banners.length > 0 && (
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10 flex flex-col justify-end p-6">
-                                {banners[currentBannerIndex].title && (
-                                    <motion.h2
-                                        initial={{ y: 20, opacity: 0 }}
-                                        animate={{ y: 0, opacity: 1 }}
-                                        className="text-white text-2xl md:text-3xl font-bold mb-2 shadow-sm"
-                                    >
-                                        {banners[currentBannerIndex].title}
-                                    </motion.h2>
-                                )}
-                                {banners[currentBannerIndex].message && (
-                                    <p className="text-gray-200 text-sm md:text-base line-clamp-2 max-w-2xl">
-                                        {banners[currentBannerIndex].message}
-                                    </p>
-                                )}
-                            </div>
-                        )}
+                            {/* Banner Overlay Content (Text) */}
+                            {banners.length > 0 && (
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10 flex flex-col justify-end p-6">
+                                    {banners[currentBannerIndex].title && (
+                                        <motion.h2
+                                            initial={{ y: 20, opacity: 0 }}
+                                            animate={{ y: 0, opacity: 1 }}
+                                            className="text-white text-2xl md:text-3xl font-bold mb-2 shadow-sm"
+                                        >
+                                            {banners[currentBannerIndex].title}
+                                        </motion.h2>
+                                    )}
+                                    {banners[currentBannerIndex].message && (
+                                        <p className="text-gray-200 text-sm md:text-base line-clamp-2 max-w-2xl">
+                                            {banners[currentBannerIndex].message}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
 
-                        {/* Indicators */}
-                        {banners.length > 1 && (
-                            <div className="absolute bottom-4 right-4 flex gap-2 z-20">
-                                {banners.map((_, idx) => (
-                                    <button
-                                        key={idx}
-                                        onClick={() => setCurrentBannerIndex(idx)}
-                                        className={`w-2 h-2 rounded-full transition-all ${idx === currentBannerIndex ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/80'
-                                            }`}
-                                    />
-                                ))}
+                            {/* Indicators */}
+                            {banners.length > 1 && (
+                                <div className="absolute bottom-4 right-4 flex gap-2 z-20">
+                                    {banners.map((_, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => setCurrentBannerIndex(idx)}
+                                            className={`w-2 h-2 rounded-full transition-all ${idx === currentBannerIndex ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/80'
+                                                }`}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                            {/* Gradient Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                        </div>
+
+                        {/* Referral / Stats Card */}
+                        <div className="lg:col-span-1 bg-[#C5A02E]/40 backdrop-blur-sm rounded-2xl p-6 border-4 border-white/20 shadow-2xl h-64 md:h-80 flex flex-col justify-center gap-6 relative overflow-hidden">
+                            {/* Decorative Icon Background */}
+                            <div className="absolute -right-4 -bottom-4 opacity-10">
+                                <Users size={120} className="text-[#5A4610]" />
                             </div>
-                        )}
-                        {/* Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+
+                            <div className="relative z-10">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="p-2 bg-[#5A4610]/10 rounded-lg">
+                                        <Clock className="text-[#5A4610]" size={20} />
+                                    </div>
+                                    <span className="text-sm font-bold uppercase tracking-wider text-[#5A4610]">Member Since</span>
+                                </div>
+                                <span className="text-3xl font-black text-gray-900 block">{stats.memberSince ? formatDate(stats.memberSince) : 'Recent'}</span>
+                            </div>
+
+                            <div className="w-full h-px bg-[#8B701D]/20 relative z-10"></div>
+
+                            <div className="relative z-10">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="p-2 bg-[#5A4610]/10 rounded-lg">
+                                        <Users className="text-[#5A4610]" size={20} />
+                                    </div>
+                                    <span className="text-sm font-bold uppercase tracking-wider text-[#5A4610]">Network Size</span>
+                                </div>
+                                <span className="text-3xl font-black text-gray-900 block">{stats.networkSize || 0} <span className="text-lg font-bold text-[#5A4610]/80">Members</span></span>
+                            </div>
+                        </div>
                     </div>
-
-                    {/* Stats Footer in Hero */}
-                    {/* <div className="flex gap-4">
-                        <div className="bg-[#C5A02E]/40 backdrop-blur-sm rounded-xl px-6 py-3 border border-[#8B701D]/20">
-                            <span className="text-xs font-bold uppercase tracking-wider text-[#5A4610] block mb-1">Member Since</span>
-                            <span className="text-lg font-black text-gray-900">{formatDate(stats.memberSince)}</span>
-                        </div>
-                        <div className="bg-[#C5A02E]/40 backdrop-blur-sm rounded-xl px-6 py-3 border border-[#8B701D]/20">
-                            <span className="text-xs font-bold uppercase tracking-wider text-[#5A4610] block mb-1">Network Size</span>
-                            <span className="text-lg font-black text-gray-900">{stats.networkSize} Members</span>
-                        </div>
-                    </div> */}
                 </div>
             )}
 
@@ -283,178 +288,181 @@ const Dashboard = () => {
             )}
 
             {/* Referral / Network Section */}
-            {(!isMobile || activeTab === 'overview') && (
-                <div className="rounded-3xl bg-gradient-to-br from-[#E6C65C] to-[#D4AF37] p-8 shadow-xl relative overflow-hidden">
-                    {/* Header */}
-                    <div className="absolute top-0 right-0 p-8 opacity-10">
-                        <TreeDeciduous size={120} />
-                    </div>
-
-                    <div className="flex flex-col items-center justify-center relative z-10">
-                        {/* Tree Visual */}
-                        <div className="flex flex-col items-center mb-8 w-full max-w-lg">
-                            {/* Top Node */}
-                            <div className="mb-4">
-                                <span className="text-yellow-100 font-bold text-4xl opacity-50 block text-center mb-2">{user?.userId}</span>
-                            </div>
-
-                            {/* Control Nodes */}
-                            <div className="flex items-center gap-8 md:gap-16">
-                                {/* Left Side */}
-                                <div className="flex flex-col items-center gap-2">
-                                    <button
-                                        disabled
-                                        className="relative bg-gray-600/40 backdrop-blur text-white px-6 py-2 rounded-full text-sm font-bold border border-white/20"
-                                    >
-                                        Left Link
-                                        {/* Badge */}
-                                        <div className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm uppercase tracking-wider">Filled</div>
-                                    </button>
-
-                                    <button
-                                        onClick={() => setActiveRefTab('placing-left')}
-                                        className={`px-8 py-3 rounded-2xl font-black text-sm uppercase tracking-wide transition-all shadow-lg ${activeRefTab === 'placing-left'
-                                            ? 'bg-[#E86C3F] text-white ring-4 ring-[#E86C3F]/30 transform scale-105'
-                                            : 'bg-[#CCA34A] text-[#5A4610] hover:bg-[#E86C3F] hover:text-white'
-                                            }`}
-                                    >
-                                        Placing Left
-                                    </button>
-                                </div>
-
-                                {/* Right Side */}
-                                <div className="flex flex-col items-center gap-2">
-                                    <button
-                                        disabled
-                                        className="relative bg-gray-600/40 backdrop-blur text-white px-6 py-2 rounded-full text-sm font-bold border border-white/20"
-                                    >
-                                        Right Link
-                                        {/* Badge */}
-                                        <div className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm uppercase tracking-wider">Filled</div>
-                                    </button>
-
-                                    <button
-                                        onClick={() => setActiveRefTab('placing-right')}
-                                        className={`px-8 py-3 rounded-2xl font-black text-sm uppercase tracking-wide transition-all shadow-lg ${activeRefTab === 'placing-right'
-                                            ? 'bg-[#E86C3F] text-white ring-4 ring-[#E86C3F]/30 transform scale-105'
-                                            : 'bg-[#CCA34A] text-[#5A4610] hover:bg-[#E86C3F] hover:text-white'
-                                            }`}
-                                    >
-                                        Placing Right
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Copy Link Input */}
-                        <div className="w-full max-w-3xl bg-[#C5A02E]/60 backdrop-blur-md rounded-xl p-3 flex items-center border border-[#8B701D]/30 shadow-inner mb-4">
-                            <input
-                                type="text"
-                                readOnly
-                                value={`${window.location.origin}/register?ref=${user?.userId}&position=${activeRefTab === 'placing-left' || activeRefTab === 'placing-right' ? (activeRefTab === 'placing-left' ? 'placing-left' : 'placing-right') : activeRefTab}`}
-                                className="flex-1 bg-transparent px-4 text-sm font-bold text-black outline-none w-full"
-                            />
-                            <button
-                                onClick={() => navigator.clipboard.writeText(`${window.location.origin}/register?ref=${user?.userId}&position=${activeRefTab === 'placing-left' || activeRefTab === 'placing-right' ? (activeRefTab === 'placing-left' ? 'placing-left' : 'placing-right') : activeRefTab}`)}
-                                className="bg-black hover:bg-gray-900 text-white px-6 py-2 rounded-lg text-xs font-bold uppercase flex items-center gap-2 transition-colors"
-                            >
-                                <Copy size={14} /> Copy
-                            </button>
-                        </div>
-
-                        {/* Social Buttons */}
-                        <div className="w-full max-w-3xl grid grid-cols-3 gap-3">
-                            <button className="bg-[#25D366] hover:bg-[#20bd5a] text-white py-3 rounded-xl font-bold uppercase text-sm shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95">
-                                <MessageCircle size={18} /> WhatsApp
-                            </button>
-                            <button className="bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] hover:opacity-90 text-white py-3 rounded-xl font-bold uppercase text-sm shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95">
-                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-                                Instagram
-                            </button>
-                            <button className="bg-[#0088cc] hover:bg-[#0077b5] text-white py-3 rounded-xl font-bold uppercase text-sm shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95">
-                                <Send size={18} /> Telegram
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/*       */}
 
             {/* Business Overview Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {((!isMobile || activeTab === 'business')) && (
-                    <div className="lg:col-span-2 bg-white rounded-3xl p-8 border border-gray-100 shadow-xl">
-                        <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-2xl font-black text-gray-900">Business Overview</h3>
-                            <button className="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-100 transition-colors">
-                                <ArrowRightLeft size={20} />
-                            </button>
-                        </div>
+                {/* Desktop and Tablet: Flip Card */}
+                {!isMobile && (
+                    <div className="lg:col-span-2 perspective-1000 min-h-[500px]">
+                        <motion.div
+                            initial={false}
+                            animate={{ rotateY: isBusinessFlipped ? 180 : 0 }}
+                            transition={{ duration: 0.6, animationDirection: "normal" }}
+                            className="relative w-full h-full preserve-3d"
+                            style={{ transformStyle: 'preserve-3d' }}
+                        >
+                            {/* FRONT FACE - Business Overview */}
+                            <div className="absolute inset-0 backface-hidden bg-white rounded-3xl p-8 border border-gray-100 shadow-xl overflow-hidden"
+                                style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
+                                <div className="flex items-center justify-between mb-8">
+                                    <h3 className="text-2xl font-black text-gray-900">Business Overview</h3>
+                                    <button
+                                        onClick={() => setIsBusinessFlipped(true)}
+                                        className="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
+                                    >
+                                        <span className="text-xs font-bold uppercase hidden md:inline">Referral Center</span>
+                                        <ArrowRightLeft size={20} />
+                                    </button>
+                                </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            {/* Left Pairs Card */}
-                            <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100">
-                                <div className="flex justify-between items-start mb-4">
-                                    <span className="text-blue-600 font-bold uppercase tracking-wider text-sm">Left Pairs</span>
-                                    <div className="bg-blue-500 text-white p-1 rounded">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6">
+                                    {/* Left Pairs Card */}
+                                    <div className="bg-blue-50/50 rounded-2xl p-4 md:p-6 border border-blue-100 flex flex-col justify-between">
+                                        <div className="flex justify-between items-start mb-2 md:mb-4">
+                                            <span className="text-blue-600 font-bold uppercase tracking-wider text-[10px] md:text-sm">Left Pairs</span>
+                                            <div className="bg-blue-500 text-white p-1 rounded hidden md:block">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                                            </div>
+                                        </div>
+                                        <h4 className="text-2xl md:text-4xl font-black text-gray-900">{stats.leftPairs || 0}</h4>
+                                    </div>
+
+                                    {/* Right Pairs Card */}
+                                    <div className="bg-emerald-50/50 rounded-2xl p-4 md:p-6 border border-emerald-100 flex flex-col justify-between">
+                                        <div className="flex justify-between items-start mb-2 md:mb-4">
+                                            <span className="text-emerald-600 font-bold uppercase tracking-wider text-[10px] md:text-sm">Right Pairs</span>
+                                            <div className="bg-emerald-500 text-white p-1 rounded hidden md:block">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                            </div>
+                                        </div>
+                                        <h4 className="text-2xl md:text-4xl font-black text-gray-900">{stats.rightPairs || 0}</h4>
+                                    </div>
+
+                                    {/* Matching Progress */}
+                                    <div className="col-span-2 md:col-span-1 bg-amber-50 rounded-2xl p-4 md:p-6 border border-amber-100 flex flex-col justify-between">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-amber-600 font-bold uppercase tracking-wider text-xs md:text-sm">Matching</span>
+                                            <Target className="text-amber-500" size={20} />
+                                        </div>
+                                        <div>
+                                            <div className="flex items-end gap-2 mb-2">
+                                                <h4 className="text-3xl md:text-4xl font-black text-gray-900">{Math.min(stats.leftPairs || 0, stats.rightPairs || 0)}</h4>
+                                            </div>
+                                            <div className="h-2 w-full bg-amber-200 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-amber-500"
+                                                    style={{ width: `${stats.rightPairs > 0 && stats.leftPairs > 0 ? (Math.min(stats.leftPairs, stats.rightPairs) / Math.max(stats.leftPairs, stats.rightPairs)) * 100 : 0}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Current Rank Card */}
+                                    <div className="bg-purple-50/50 rounded-2xl p-4 md:p-6 border border-purple-100 shadow-sm hover:shadow-md transition-shadow">
+                                        <div className="flex justify-between items-start mb-2 md:mb-4">
+                                            <span className="text-purple-600 font-bold uppercase tracking-wider text-[10px] md:text-sm">Current Rank</span>
+                                            <div className="bg-purple-500 text-white p-1.5 md:p-2 rounded-lg shadow-purple-200 shadow-lg hidden md:block">
+                                                <Crown size={20} />
+                                            </div>
+                                        </div>
+                                        <h4 className="text-lg md:text-3xl font-black text-gray-900 truncate uppercase tracking-tight">{stats.currentRank || 'Member'}</h4>
+                                    </div>
+
+                                    {/* Closing Rank Card */}
+                                    <div className="bg-orange-50/50 rounded-2xl p-4 md:p-6 border border-orange-100 shadow-sm hover:shadow-md transition-shadow">
+                                        <div className="flex justify-between items-start mb-2 md:mb-4">
+                                            <span className="text-orange-600 font-bold uppercase tracking-wider text-[10px] md:text-sm">Closing Rank</span>
+                                            <div className="bg-orange-500 text-white p-1.5 md:p-2 rounded-lg shadow-orange-200 shadow-lg hidden md:block">
+                                                <Award size={20} />
+                                            </div>
+                                        </div>
+                                        <h4 className="text-lg md:text-3xl font-black text-gray-900 truncate uppercase tracking-tight">{stats.closingRank || 'None'}</h4>
+                                    </div>
+
+                                    {/* Blank Space Filler */}
+                                    <div className="hidden md:block"></div>
+                                </div>
+                            </div>
+
+                            {/* BACK FACE - Referral Card */}
+                            <div className="absolute inset-0 backface-hidden bg-white rounded-3xl overflow-hidden shadow-xl flex flex-col rotate-y-180"
+                                style={{ transform: 'rotateY(180deg)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
+                                <ReferralCard user={user} stats={stats} isMobile={isMobile} onFlip={() => setIsBusinessFlipped(false)} />
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+
+                {/* Mobile View: Business Tab */}
+                {isMobile && activeTab === 'business' && (
+                    <div className="lg:col-span-2 min-h-[500px]">
+                        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-xl overflow-hidden h-full">
+                            <div className="flex items-center justify-between mb-8">
+                                <h3 className="text-xl font-black text-gray-900">Business Overview</h3>
+                                {/* No Flip Button on Mobile */}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 mb-6">
+                                {/* Left Pairs Card */}
+                                <div className="bg-blue-50/50 rounded-2xl p-4 border border-blue-100 flex flex-col justify-between">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <span className="text-blue-600 font-bold uppercase tracking-wider text-[10px]">Left Pairs</span>
+                                    </div>
+                                    <h4 className="text-2xl font-black text-gray-900">{stats.leftPairs || 0}</h4>
+                                </div>
+
+                                {/* Right Pairs Card */}
+                                <div className="bg-emerald-50/50 rounded-2xl p-4 border border-emerald-100 flex flex-col justify-between">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <span className="text-emerald-600 font-bold uppercase tracking-wider text-[10px]">Right Pairs</span>
+                                    </div>
+                                    <h4 className="text-2xl font-black text-gray-900">{stats.rightPairs || 0}</h4>
+                                </div>
+
+                                {/* Matching Progress - Full Width */}
+                                <div className="col-span-2 bg-amber-50 rounded-2xl p-4 border border-amber-100 flex flex-col justify-between">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-amber-600 font-bold uppercase tracking-wider text-xs">Matching</span>
+                                        <Target className="text-amber-500" size={20} />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-end gap-2 mb-2">
+                                            <h4 className="text-3xl font-black text-gray-900">{Math.min(stats.leftPairs || 0, stats.rightPairs || 0)}</h4>
+                                        </div>
+                                        <div className="h-2 w-full bg-amber-200 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-amber-500"
+                                                style={{ width: `${stats.rightPairs > 0 && stats.leftPairs > 0 ? (Math.min(stats.leftPairs, stats.rightPairs) / Math.max(stats.leftPairs, stats.rightPairs)) * 100 : 0}%` }}
+                                            ></div>
+                                        </div>
                                     </div>
                                 </div>
-                                <h4 className="text-4xl font-black text-gray-900">{stats.leftPairs || 0}</h4>
-                            </div>
 
-                            {/* Right Pairs Card */}
-                            <div className="bg-emerald-50/50 rounded-2xl p-6 border border-emerald-100">
-                                <div className="flex justify-between items-start mb-4">
-                                    <span className="text-emerald-600 font-bold uppercase tracking-wider text-sm">Right Pairs</span>
-                                    <div className="bg-emerald-500 text-white p-1 rounded">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                {/* Current Rank Card */}
+                                <div className="bg-purple-50/50 rounded-2xl p-4 border border-purple-100 shadow-sm">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <span className="text-purple-600 font-bold uppercase tracking-wider text-[10px]">Current Rank</span>
                                     </div>
+                                    <h4 className="text-lg font-black text-gray-900 truncate uppercase tracking-tight">{stats.currentRank || 'Member'}</h4>
                                 </div>
-                                <h4 className="text-4xl font-black text-gray-900">{stats.rightPairs || 0}</h4>
+
+                                {/* Closing Rank Card */}
+                                <div className="bg-orange-50/50 rounded-2xl p-4 border border-orange-100 shadow-sm">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <span className="text-orange-600 font-bold uppercase tracking-wider text-[10px]">Closing Rank</span>
+                                    </div>
+                                    <h4 className="text-lg font-black text-gray-900 truncate uppercase tracking-tight">{stats.closingRank || 'None'}</h4>
+                                </div>
                             </div>
                         </div>
+                    </div>
+                )}
 
-                        {/* Ranks Row (Current Rank & Closing Rank) */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            {/* Current Rank Card */}
-                            <div className="bg-purple-50/50 rounded-2xl p-6 border border-purple-100 shadow-sm hover:shadow-md transition-shadow">
-                                <div className="flex justify-between items-start mb-4">
-                                    <span className="text-purple-600 font-bold uppercase tracking-wider text-sm">Current Rank</span>
-                                    <div className="bg-purple-500 text-white p-2 rounded-lg shadow-purple-200 shadow-lg">
-                                        <Crown size={20} />
-                                    </div>
-                                </div>
-                                <h4 className="text-3xl font-black text-gray-900 truncate uppercase tracking-tight">{stats.currentRank || 'Member'}</h4>
-                            </div>
-
-                            {/* Closing Rank Card */}
-                            <div className="bg-orange-50/50 rounded-2xl p-6 border border-orange-100 shadow-sm hover:shadow-md transition-shadow">
-                                <div className="flex justify-between items-start mb-4">
-                                    <span className="text-orange-600 font-bold uppercase tracking-wider text-sm">Closing Rank</span>
-                                    <div className="bg-orange-500 text-white p-2 rounded-lg shadow-orange-200 shadow-lg">
-                                        <Award size={20} />
-                                    </div>
-                                </div>
-                                <h4 className="text-3xl font-black text-gray-900 truncate uppercase tracking-tight">{stats.closingRank || 'None'}</h4>
-                            </div>
-                        </div>
-
-                        {/* Matching Progress */}
-                        <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100">
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="text-amber-600 font-bold uppercase tracking-wider text-sm">Matching Progress</span>
-                                <Target className="text-amber-500" size={20} />
-                            </div>
-                            <div className="flex items-end gap-2 mb-2">
-                                <h4 className="text-4xl font-black text-gray-900">{Math.min(stats.leftPairs || 0, stats.rightPairs || 0)}</h4>
-                            </div>
-                            <div className="h-2 w-full bg-amber-200 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-amber-500"
-                                    style={{ width: `${stats.rightPairs > 0 && stats.leftPairs > 0 ? (Math.min(stats.leftPairs, stats.rightPairs) / Math.max(stats.leftPairs, stats.rightPairs)) * 100 : 0}%` }}
-                                ></div>
-                            </div>
-                        </div>
+                {/* Mobile View: Referral Tab */}
+                {isMobile && activeTab === 'referral' && (
+                    <div className="lg:col-span-2 min-h-[500px]">
+                        <ReferralCard user={user} stats={stats} isMobile={isMobile} />
                     </div>
                 )}
 

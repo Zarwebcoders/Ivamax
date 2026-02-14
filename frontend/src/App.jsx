@@ -16,6 +16,7 @@ import Reports from './pages/Reports';
 import Withdrawals from './pages/Withdrawals';
 import Packages from './pages/Packages';
 import Support from './pages/Support';
+import ReferralCenter from './pages/ReferralCenter';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -60,6 +61,7 @@ function App() {
                             <Route path="withdrawals" element={<Withdrawals />} />
                             <Route path="packages" element={<Packages />} />
                             <Route path="support" element={<Support />} />
+                            <Route path="referral-center" element={<ReferralCenter />} />
                         </Route>
 
                         {/* Protected Admin Routes */}

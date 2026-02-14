@@ -14,7 +14,12 @@ const sendEmail = async (options) => {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASSWORD,
             },
+            tls: {
+                rejectUnauthorized: false
+            }
         });
+
+        console.log(`Attempting to send email via ${process.env.EMAIL_HOST}:${process.env.EMAIL_PORT}...`);
 
         const mailOptions = {
             from: `"${process.env.FROM_NAME || 'IVAMAX Support'}" <${process.env.EMAIL_USER}>`,
@@ -25,10 +30,10 @@ const sendEmail = async (options) => {
         };
 
         const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent: %s', info.messageId);
+        console.log('Email sent successfully: %s', info.messageId);
         return info;
     } catch (error) {
-        console.error('Error sending email:', error);
+        console.error('FAILED to send email:', error);
         // We generally don't want to crash the request if email fails, 
         // but for registration we might want to know.
         return null;
