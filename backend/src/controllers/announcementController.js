@@ -59,12 +59,18 @@ const createAnnouncement = async (req, res) => {
     try {
         const { type, title, message, priority, image } = req.body;
 
+        let imagePath = image;
+        if (req.file) {
+            // Store relative path
+            imagePath = `/uploads/${req.file.filename}`;
+        }
+
         // Validation based on type
         if (type === 'banner') {
-            if (!image) {
+            if (!imagePath) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Image URL is required for banner'
+                    message: 'Image is required for banner'
                 });
             }
         } else {
@@ -80,7 +86,7 @@ const createAnnouncement = async (req, res) => {
             type: type || 'announcement',
             title,
             message,
-            image,
+            image: imagePath,
             priority: priority || 1,
             createdBy: req.user.userId
         });
@@ -116,10 +122,15 @@ const updateAnnouncement = async (req, res) => {
             });
         }
 
+        if (req.file) {
+            announcement.image = `/uploads/${req.file.filename}`;
+        } else if (image !== undefined) {
+            announcement.image = image;
+        }
+
         if (type) announcement.type = type;
         if (title !== undefined) announcement.title = title;
         if (message !== undefined) announcement.message = message;
-        if (image !== undefined) announcement.image = image;
         if (priority !== undefined) announcement.priority = priority;
         if (isActive !== undefined) announcement.isActive = isActive;
 

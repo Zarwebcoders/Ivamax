@@ -38,17 +38,34 @@ const AnnouncementManagement = () => {
         e.preventDefault();
 
         try {
+            const data = new FormData();
+            data.append('type', formData.type);
+            data.append('priority', formData.priority);
+
+            if (formData.type === 'banner') {
+                if (formData.file) {
+                    data.append('image', formData.file);
+                } else if (!editingId) {
+                    toast.error('Please select an image for the banner');
+                    return;
+                }
+            } else {
+                data.append('title', formData.title);
+                data.append('message', formData.message);
+            }
+
             if (editingId) {
-                await announcementService.updateAnnouncement(editingId, formData);
+                await announcementService.updateAnnouncement(editingId, data);
                 toast.success('Announcement updated successfully');
             } else {
-                await announcementService.createAnnouncement(formData);
+                await announcementService.createAnnouncement(data);
                 toast.success('Announcement created successfully');
             }
 
             resetForm();
             fetchAnnouncements();
         } catch (error) {
+            console.error(error);
             toast.error(error.message || 'Failed to save announcement');
         }
     };
@@ -159,20 +176,32 @@ const AnnouncementManagement = () => {
 
                         {formData.type === 'banner' ? (
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Image URL</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Banner Image</label>
                                 <input
-                                    type="text"
-                                    value={formData.image}
-                                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                                    placeholder="Enter image URL"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => setFormData({ ...formData, file: e.target.files[0] })}
                                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
-                                    required
                                 />
-                                {formData.image && (
+                                <p className="text-xs text-gray-500 mt-1">Supported formats: JPG, PNG, GIF</p>
+
+                                {/* Preview Existing or New Image */}
+                                {formData.file ? (
                                     <div className="mt-2">
-                                        <img src={formData.image} alt="Preview" className="h-24 w-auto rounded-lg border border-gray-200" />
+                                        <p className="text-xs text-gray-500 mb-1">New Image Preview:</p>
+                                        <img src={URL.createObjectURL(formData.file)} alt="Preview" className="h-32 w-auto rounded-lg border border-gray-200" />
                                     </div>
-                                )}
+                                ) : formData.image ? (
+                                    <div className="mt-2">
+                                        <p className="text-xs text-gray-500 mb-1">Current Image:</p>
+                                        {/* Ensure we handle both absolute URLs (if any legacy) and relative uploads */}
+                                        <img
+                                            src={formData.image.startsWith('http') ? formData.image : `http://localhost:5000${formData.image}`}
+                                            alt="Current"
+                                            className="h-32 w-auto rounded-lg border border-gray-200"
+                                        />
+                                    </div>
+                                ) : null}
                             </div>
                         ) : (
                             <>
@@ -276,15 +305,19 @@ const AnnouncementManagement = () => {
                                                     Priority: {announcement.priority}
                                                 </span>
                                                 <span className={`px-2 py-1 rounded-full text-xs font-bold ${announcement.isActive
-                                                        ? 'bg-green-100 text-green-700'
-                                                        : 'bg-gray-100 text-gray-700'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : 'bg-gray-100 text-gray-700'
                                                     }`}>
                                                     {announcement.isActive ? 'Active' : 'Inactive'}
                                                 </span>
                                             </div>
                                             {announcement.type === 'banner' ? (
                                                 <div className="mt-2">
-                                                    <img src={announcement.image} alt="Banner" className="h-32 w-auto object-cover rounded-lg border border-gray-200" />
+                                                    <img
+                                                        src={announcement.image?.startsWith('http') ? announcement.image : `http://localhost:5000${announcement.image}`}
+                                                        alt="Banner"
+                                                        className="h-32 w-auto object-cover rounded-lg border border-gray-200"
+                                                    />
                                                 </div>
                                             ) : (
                                                 <>

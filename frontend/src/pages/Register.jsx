@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -27,6 +28,8 @@ const Register = () => {
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     useEffect(() => {
         const { ref, position } = getUrlParams();
@@ -167,49 +170,8 @@ const Register = () => {
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label htmlFor="fullName" className="label">Full Name *</label>
-                                <input
-                                    type="text"
-                                    id="fullName"
-                                    name="fullName"
-                                    value={formData.fullName}
-                                    onChange={handleChange}
-                                    className="w-full pl-4 py-3.5 bg-gray-200 border border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
-                                    placeholder="Enter your full name"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label htmlFor="mobile" className="label">Mobile Number *</label>
-                                <input
-                                    type="tel"
-                                    id="mobile"
-                                    name="mobile"
-                                    value={formData.mobile}
-                                    onChange={handleChange}
-                                    className="w-full pl-4 py-3.5 bg-gray-200 border border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
-                                    placeholder="Enter mobile number"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label htmlFor="email" className="label">Email Address *</label>
-                                <input
-                                    type="email"
-                                    id="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    className="w-full pl-4 py-3.5 bg-gray-200 border border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
-                                    placeholder="Enter email address"
-                                    required
-                                />
-                            </div>
-
-                            <div>
+                            {/* Referral Link (Top, Full Width) */}
+                            <div className="md:col-span-2">
                                 <label htmlFor="referralLink" className="label">Referral Link (Optional)</label>
                                 <input
                                     type="text"
@@ -229,32 +191,97 @@ const Register = () => {
                                 )}
                             </div>
 
+                            {/* Full Name */}
                             <div>
-                                <label htmlFor="password" className="label">Password *</label>
+                                <label htmlFor="fullName" className="label">Full Name *</label>
                                 <input
-                                    type="password"
-                                    id="password"
-                                    name="password"
-                                    value={formData.password}
+                                    type="text"
+                                    id="fullName"
+                                    name="fullName"
+                                    value={formData.fullName}
                                     onChange={handleChange}
                                     className="w-full pl-4 py-3.5 bg-gray-200 border border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
-                                    placeholder="Create password"
+                                    placeholder="Enter your full name"
                                     required
                                 />
                             </div>
 
+                            {/* Mobile Number */}
                             <div>
-                                <label htmlFor="confirmPassword" className="label">Confirm Password *</label>
+                                <label htmlFor="mobile" className="label">Mobile Number *</label>
                                 <input
-                                    type="password"
-                                    id="confirmPassword"
-                                    name="confirmPassword"
-                                    value={formData.confirmPassword}
+                                    type="tel"
+                                    id="mobile"
+                                    name="mobile"
+                                    value={formData.mobile}
                                     onChange={handleChange}
                                     className="w-full pl-4 py-3.5 bg-gray-200 border border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
-                                    placeholder="Confirm password"
+                                    placeholder="Enter mobile number"
                                     required
                                 />
+                            </div>
+
+                            {/* Email Address (Full Width below Name/Mobile) */}
+                            <div className="md:col-span-2">
+                                <label htmlFor="email" className="label">Email Address *</label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    className="w-full pl-4 py-3.5 bg-gray-200 border border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
+                                    placeholder="Enter email address"
+                                    required
+                                />
+                            </div>
+
+                            {/* Password */}
+                            <div>
+                                <label htmlFor="password" className="label">Password *</label>
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        id="password"
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        className="w-full pl-4 pr-10 py-3.5 bg-gray-200 border border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
+                                        placeholder="Create password"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-golden-600 focus:outline-none"
+                                    >
+                                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Confirm Password */}
+                            <div>
+                                <label htmlFor="confirmPassword" className="label">Confirm Password *</label>
+                                <div className="relative">
+                                    <input
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        id="confirmPassword"
+                                        name="confirmPassword"
+                                        value={formData.confirmPassword}
+                                        onChange={handleChange}
+                                        className="w-full pl-4 pr-10 py-3.5 bg-gray-200 border border-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-golden-400/50 focus:border-golden-400 focus:bg-white transition-all duration-300 text-gray-900 placeholder-gray-400 font-medium"
+                                        placeholder="Confirm password"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-golden-600 focus:outline-none"
+                                    >
+                                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
