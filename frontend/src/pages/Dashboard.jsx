@@ -2,18 +2,20 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Users, Crown, DollarSign, Clock, Landmark, PieChart, ArrowRightLeft, Trophy, Target, TreeDeciduous, BarChart3, CircleDollarSign, Briefcase, Copy, Check, MessageCircle, Send, Award, ExternalLink, UserPlus, Bell } from 'lucide-react';
+import {
+    TrendingUp, Users, Crown, DollarSign, Clock, Landmark, PieChart,
+    ArrowRightLeft, Trophy, Target, TreeDeciduous, BarChart3,
+    CircleDollarSign, Briefcase, Copy, Check, MessageCircle, Send,
+    Award, ExternalLink, UserPlus, ArrowLeftRight, ChevronRight, HelpCircle
+} from 'lucide-react';
 import { announcementService } from '../services/announcement.service';
 import { dashboardService } from '../services/dashboard.service';
-import { getNotifications } from '../services/notification.service';
 import NewsTicker from '../components/NewsTicker';
-import ReferralCard from '../components/ReferralCard';
 
 const Dashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [stats, setStats] = useState({});
-    const [notifications, setNotifications] = useState([]);
 
     // Banner states
     const [banners, setBanners] = useState([]);
@@ -21,23 +23,19 @@ const Dashboard = () => {
 
     // UI states
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('income');
-
+    const [activeTab, setActiveTab] = useState('overview');
     const [isMobile, setIsMobile] = useState(false);
-    const [isBusinessFlipped, setIsBusinessFlipped] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Parallel fetch for stats, announcements, and notifications
-                const [statsResponse, announcementsResponse, notificationsResponse] = await Promise.all([
+                const [statsResponse, announcementsResponse] = await Promise.all([
                     dashboardService.getStats(),
-                    announcementService.getActiveAnnouncements(),
-                    getNotifications({ limit: 5 })
+                    announcementService.getActiveAnnouncements()
                 ]);
 
                 if (statsResponse.success) {
-                    setStats(prev => ({ ...prev, ...statsResponse.data }));
+                    setStats(statsResponse.data);
                 }
 
                 if (announcementsResponse.success) {
@@ -45,12 +43,8 @@ const Dashboard = () => {
                     setBanners(bannerItems);
                 }
 
-                if (notificationsResponse.success) {
-                    setNotifications(notificationsResponse.data.slice(0, 5));
-                }
-
             } catch (error) {
-                console.error("Failed to fetch data", error);
+                console.error("Failed to fetch dashboard data:", error);
             } finally {
                 setLoading(false);
             }
@@ -75,486 +69,328 @@ const Dashboard = () => {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    const cardVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: (i) => ({
-            opacity: 1,
-            y: 0,
-            transition: {
-                delay: i * 0.1,
-                duration: 0.5,
-            },
-        }),
-    };
-
     const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        if (!dateString) return 'Recent';
+        try {
+            return new Date(dateString).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        } catch (e) {
+            return 'Recent';
+        }
     };
 
-    if (loading) return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-golden-400"></div></div>;
+    if (loading) return (
+        <div className="flex justify-center items-center h-[80vh]">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-golden-500"></div>
+        </div>
+    );
+
+    const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '').replace(/\/$/, '');
+
+    // Business Overview Calculations
+    const leftPairs = stats.leftPairs || 0;
+    const rightPairs = stats.rightPairs || 0;
+    const maxPairs = Math.max(leftPairs, rightPairs, 1);
+    const matchingCount = Math.min(leftPairs, rightPairs);
+    const matchingPercent = Math.round((matchingCount / maxPairs) * 100);
 
     return (
-        <div className="space-y-6">
-            {/* News Ticker */}
+        <div className="space-y-6 pb-20 md:pb-10">
             <NewsTicker />
 
-            {/* Activation Notice */}
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-red-50 border-l-4 border-red-500 p-4 rounded-xl shadow-sm flex items-center gap-4"
-            >
-                <div className="bg-red-100 p-2 rounded-full">
-                    <Clock className="text-red-600" size={20} />
-                </div>
-                <div>
-                    <p className="text-red-800 font-black text-xs md:text-sm uppercase tracking-wider">
-                        Account Activation Required
-                    </p>
-                    <p className="text-red-600 text-[10px] md:text-xs font-bold">
-                        Please activate your ID within 24 hours to secure your position and start earning.
-                    </p>
-                </div>
-                <button
-                    onClick={() => navigate('/packages')}
-                    className="ml-auto bg-red-600 text-white px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-red-700 transition-colors shadow-lg shadow-red-200"
+            {/* Account Activation Notice */}
+            {stats.isActive === false && (
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-red-50 border-l-4 border-red-500 p-4 rounded-xl shadow-sm flex items-center gap-4"
                 >
-                    Activate Now
-                </button>
-            </motion.div>
+                    <div className="bg-red-100 p-2 rounded-full">
+                        <Clock className="text-red-600" size={20} />
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-red-800 font-black text-xs md:text-sm uppercase tracking-wider">Account Activation Required</p>
+                        <p className="text-red-600 text-[10px] md:text-xs font-bold">Activate your ID within 24h to secure your position.</p>
+                    </div>
+                    <button
+                        onClick={() => navigate('/packages')}
+                        className="bg-red-600 text-white px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-red-700 transition-colors shadow-lg shadow-red-200"
+                    >
+                        Activate
+                    </button>
+                </motion.div>
+            )}
 
-            {/* Banner Section */}
-
-
-
-
-
-
-
-
-
-            {/* Mobile Tab Navigation */}
+            {/* Mobile Navigation */}
             {isMobile && (
-                <div className="flex overflow-x-auto pb-4 gap-3 no-scrollbar -mx-4 px-4 sticky top-[72px] z-30 bg-gray-50/95 backdrop-blur-sm py-2">
+                <div className="flex overflow-x-auto pb-2 gap-3 no-scrollbar -mx-4 px-4 sticky top-[72px] z-30 bg-gray-50/95 backdrop-blur-sm py-2">
                     {[
                         { id: 'overview', label: 'Overview', icon: <Users size={18} /> },
                         { id: 'income', label: 'Income', icon: <DollarSign size={18} /> },
                         { id: 'business', label: 'Business', icon: <Briefcase size={18} /> },
-
                         { id: 'rank', label: 'Rank', icon: <Trophy size={18} /> },
-                        { id: 'withdrawal', label: 'Withdrawal', icon: <Landmark size={18} /> },
                         { id: 'actions', label: 'Actions', icon: <PieChart size={18} /> },
-
                     ].map(tab => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`
-                            flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-all
-                            ${activeTab === tab.id
-                                    ? 'bg-golden-500 text-white shadow-lg shadow-golden-500/30'
-                                    : 'bg-white text-gray-600 border border-gray-200 shadow-sm'
-                                }
-                        `}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-all ${activeTab === tab.id
+                                ? 'bg-golden-500 text-white shadow-lg shadow-golden-500/30'
+                                : 'bg-white text-gray-600 border border-gray-200 shadow-sm'
+                                }`}
                         >
-                            {tab.icon}
-                            {tab.label}
+                            {tab.icon} {tab.label}
                         </button>
                     ))}
                 </div>
             )}
 
-            {/* Header / Hero Section */}
+            {/* Hero Section / Welcome - MOVED TO TOP */}
             {(!isMobile || activeTab === 'overview') && (
-                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#E6C65C] to-[#D4AF37] p-8 shadow-xl text-black">
-                    {/* Welcome Text */}
-                    <div className="relative z-10 mb-8">
-                        <div className="flex items-center gap-3 mb-2">
-                            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-gray-900">
-                                Welcome back, Partner! <span className="text-4xl">👋</span>
+                <div className="space-y-6">
+                    <div className="relative overflow-hidden rounded-[40px] bg-gradient-to-br from-[#E6C65C] to-[#D4AF37] p-10 shadow-xl text-black">
+                        <div className="relative z-10 mb-8">
+                            <h1 className="text-4xl md:text-6xl font-black tracking-tight text-gray-900">
+                                Welcome back, {user?.fullName?.split(' ')[0] || 'Partner'}! 👋
                             </h1>
-                        </div>
-                        <p className="text-lg font-medium text-gray-800/80 max-w-2xl">
-                            Track your earnings, manage your network, and grow your business with IVAMAX
-                        </p>
-                    </div>
-
-
-                    {/* Banner / Graphic Area */}
-
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Main Banner Image */}
-                        <div className="lg:col-span-2 relative w-full h-64 md:h-80 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20 group">
-                            {/* Banner Image */}
-                            <motion.img
-                                key={currentBannerIndex}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.5 }}
-                                src={(() => {
-                                    if (banners.length > 0 && banners[currentBannerIndex]?.image) {
-                                        const path = banners[currentBannerIndex].image;
-                                        if (path.startsWith('http')) return path;
-                                        const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-                                        const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
-                                        return `${baseUrl}/${cleanPath.replace(/\\/g, '/')}`;
-                                    }
-                                    return "https://wallpapers.com/images/hd/mafia-3-lincoln-clay-poster-9k7y7y7y7y7y7y7y.jpg";
-                                })()}
-                                alt={banners[currentBannerIndex]?.title || 'Banner'}
-                                className="absolute inset-0 w-full h-full object-cover z-0"
-                                onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.src = 'https://wallpapers.com/images/hd/mafia-3-lincoln-clay-poster-9k7y7y7y7y7y7y7y.jpg'
-                                }}
-                            />
-
-                            {/* Banner Overlay Content (Text) */}
-                            {banners.length > 0 && (
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10 flex flex-col justify-end p-6">
-                                    {banners[currentBannerIndex].title && (
-                                        <motion.h2
-                                            initial={{ y: 20, opacity: 0 }}
-                                            animate={{ y: 0, opacity: 1 }}
-                                            className="text-white text-2xl md:text-3xl font-bold mb-2 shadow-sm"
-                                        >
-                                            {banners[currentBannerIndex].title}
-                                        </motion.h2>
-                                    )}
-                                    {banners[currentBannerIndex].message && (
-                                        <p className="text-gray-200 text-sm md:text-base line-clamp-2 max-w-2xl">
-                                            {banners[currentBannerIndex].message}
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Indicators */}
-                            {banners.length > 1 && (
-                                <div className="absolute bottom-4 right-4 flex gap-2 z-20">
-                                    {banners.map((_, idx) => (
-                                        <button
-                                            key={idx}
-                                            onClick={() => setCurrentBannerIndex(idx)}
-                                            className={`w-2 h-2 rounded-full transition-all ${idx === currentBannerIndex ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/80'
-                                                }`}
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                            {/* Gradient Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                            <p className="text-xl font-medium text-gray-800/80 mt-2">Scale your success with the most powerful IVAMAX network tools.</p>
                         </div>
 
-                        {/* Referral / Stats Card */}
-                        <div className="lg:col-span-1 bg-[#C5A02E]/40 backdrop-blur-sm rounded-2xl p-6 border-4 border-white/20 shadow-2xl h-64 md:h-80 flex flex-col justify-center gap-6 relative overflow-hidden">
-                            {/* Decorative Icon Background */}
-                            <div className="absolute -right-4 -bottom-4 opacity-10">
-                                <Users size={120} className="text-[#5A4610]" />
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className="lg:col-span-2 relative w-full h-64 md:h-80 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/30 group">
+                                <motion.img
+                                    key={currentBannerIndex}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.5 }}
+                                    src={(() => {
+                                        if (banners.length > 0 && banners[currentBannerIndex]?.image) {
+                                            const path = banners[currentBannerIndex].image;
+                                            if (path.startsWith('http')) return path;
+                                            const cleanPath = path.replace(/\\/g, '/').replace(/^\//, '');
+                                            return `${baseUrl}/${cleanPath}`;
+                                        }
+                                        return "https://wallpapers.com/images/hd/mafia-3-lincoln-clay-poster-9k7y7y7y7y7y7y7y.jpg";
+                                    })()}
+                                    className="absolute inset-0 w-full h-full object-cover z-0"
+                                />
+                                {banners.length > 0 && (
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10 flex flex-col justify-end p-6">
+                                        <h2 className="text-white text-3xl font-black mb-1">{banners[currentBannerIndex].title}</h2>
+                                        <p className="text-gray-200 text-base line-clamp-2">{banners[currentBannerIndex].message}</p>
+                                    </div>
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                             </div>
 
-                            <div className="relative z-10">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="p-2 bg-[#5A4610]/10 rounded-lg">
-                                        <Clock className="text-[#5A4610]" size={20} />
-                                    </div>
-                                    <span className="text-sm font-bold uppercase tracking-wider text-[#5A4610]">Member Since</span>
+                            <div className="lg:col-span-1 bg-black/5 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-xl h-64 md:h-80 flex flex-col justify-center gap-8 relative overflow-hidden">
+                                <div className="absolute -right-4 -bottom-4 opacity-10"><Users size={150} /></div>
+                                <div className="relative z-10">
+                                    <span className="text-xs font-black uppercase tracking-[3px] text-black/40 block mb-2">Member Since</span>
+                                    <span className="text-4xl font-black text-gray-900 block">{formatDate(stats.memberSince)}</span>
                                 </div>
-                                <span className="text-3xl font-black text-gray-900 block">{stats.memberSince ? formatDate(stats.memberSince) : 'Recent'}</span>
-                            </div>
-
-                            <div className="w-full h-px bg-[#8B701D]/20 relative z-10"></div>
-
-                            <div className="relative z-10">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="p-2 bg-[#5A4610]/10 rounded-lg">
-                                        <Users className="text-[#5A4610]" size={20} />
-                                    </div>
-                                    <span className="text-sm font-bold uppercase tracking-wider text-[#5A4610]">Network Size</span>
+                                <div className="w-full h-px bg-black/10 relative z-10"></div>
+                                <div className="relative z-10">
+                                    <span className="text-xs font-black uppercase tracking-[3px] text-black/40 block mb-2">Network Size</span>
+                                    <span className="text-4xl font-black text-gray-900 block">{stats.networkSize || 0} Members</span>
                                 </div>
-                                <span className="text-3xl font-black text-gray-900 block">{stats.networkSize || 0} <span className="text-lg font-bold text-[#5A4610]/80">Members</span></span>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Income Stats Cards */}
-            {(!isMobile || activeTab === 'income') && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    {[
-                        { label: "Total Income", value: stats.totalIncome || 0, color: "text-amber-500", bgIcon: "bg-amber-100", icon: <DollarSign size={24} className="text-amber-600" /> },
-                        { label: "PMR Income", value: stats.pmrIncome || 0, color: "text-blue-500", bgIcon: "bg-blue-100", icon: <TrendingUp size={24} className="text-blue-600" /> },
-                        { label: "DRR Income", value: stats.drrIncome || 0, color: "text-green-500", bgIcon: "bg-green-100", icon: <Users size={24} className="text-green-600" /> },
-                        { label: "FCR Income", value: stats.fcrIncome || 0, color: "text-purple-500", bgIcon: "bg-purple-100", icon: <Crown size={24} className="text-purple-600" /> }
-                    ].map((item, idx) => (
-                        <div key={idx} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between h-40 hover:shadow-lg transition-shadow">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <p className="text-sm font-bold text-gray-400 uppercase tracking-wide">{item.label}</p>
-                                    <h3 className={`text-4xl font-black mt-2 ${item.color}`}>${item.value}</h3>
-                                </div>
-                                <div className={`${item.bgIcon} p-3 rounded-2xl`}>
-                                    {item.icon}
+            {/* Business & Rank Section */}
+            {(!isMobile || activeTab === 'overview' || activeTab === 'business' || activeTab === 'rank') && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Business Overview - Left Section (2/3 width on desktop) */}
+                    {(!isMobile || activeTab === 'overview' || activeTab === 'business') && (
+                        <div className="lg:col-span-2 bg-white rounded-[40px] p-8 border border-gray-100 shadow-xl overflow-hidden min-h-[480px] flex flex-col">
+                            <div className="flex items-center justify-between mb-10 text-[#0f172a]">
+                                <h3 className="text-[28px] font-black tracking-tight">Business Overview</h3>
+                                <div className="p-2 bg-[#f1f5f9] rounded-xl text-blue-500 cursor-pointer hover:bg-blue-50 transition-colors">
+                                    <ArrowLeftRight size={22} />
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2 text-xs font-bold">
-                                <span className="text-green-500 flex items-center">
-                                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
-                                    +100.0%
-                                </span>
-                                <span className="text-gray-400 uppercase">vs Last Month</span>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-grow items-start">
+                                {/* Left Pairs Card */}
+                                <div className="bg-[#f0f7ff] rounded-3xl p-6 border border-[#e0f0ff] relative group">
+                                    <div className="absolute top-6 right-6 p-2 bg-white/80 rounded-lg text-[#3b82f6] shadow-sm">
+                                        <ArrowLeftRight size={18} className="rotate-180" />
+                                    </div>
+                                    <p className="text-[#3b82f6] font-bold text-sm tracking-tight mb-6">Left Pairs</p>
+                                    <h4 className="text-[52px] font-black text-[#0f172a] leading-none mb-6">{stats.leftPairs || 0}</h4>
+                                    <div className="w-full h-1.5 bg-[#dbeafe] rounded-full overflow-hidden">
+                                        <div className="h-full bg-[#3b82f6] w-[15%]" />
+                                    </div>
+                                </div>
+
+                                {/* Right Pairs Card */}
+                                <div className="bg-[#f0fdf4] rounded-3xl p-6 border border-[#dcfce7] relative group">
+                                    <div className="absolute top-6 right-6 p-2 bg-white/80 rounded-lg text-[#22c55e] shadow-sm">
+                                        <ArrowLeftRight size={18} />
+                                    </div>
+                                    <p className="text-[#22c55e] font-bold text-sm tracking-tight mb-6">Right Pairs</p>
+                                    <h4 className="text-[52px] font-black text-[#0f172a] leading-none mb-6">{stats.rightPairs || 0}</h4>
+                                    <div className="w-full h-1.5 bg-[#dcfce7] rounded-full overflow-hidden">
+                                        <div className="h-full bg-[#22c55e] w-[10%]" />
+                                    </div>
+                                </div>
+
+                                {/* Matching Progress Card */}
+                                <div className="bg-[#fffbeb] rounded-3xl p-6 border border-[#fef3c7] relative group shadow-sm">
+                                    <div className="absolute top-6 right-6 p-2 bg-white/80 rounded-lg text-[#f59e0b] shadow-sm">
+                                        <Target size={18} />
+                                    </div>
+                                    <p className="text-[#f59e0b] font-bold text-sm tracking-tight mb-6">Matching Progress</p>
+                                    <h4 className="text-[52px] font-black text-[#0f172a] leading-none mb-6">{matchingCount}</h4>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex-grow h-1.5 bg-[#fef3c7] rounded-full overflow-hidden mr-3">
+                                            <div className="h-full bg-[#f59e0b]" style={{ width: `${matchingPercent}%` }} />
+                                        </div>
+                                        <span className="text-[14px] font-black text-[#f59e0b] whitespace-nowrap">{matchingPercent}%</span>
+                                    </div>
+                                </div>
+
+                                {/* Row 2: Rank Details */}
+                                {/* Current Rank Card */}
+                                <div className="bg-[#faf5ff] rounded-3xl p-6 border border-[#f3e8ff] relative group">
+                                    <div className="absolute top-6 right-6 p-2 bg-white/80 rounded-lg text-[#a855f7] shadow-sm">
+                                        <Trophy size={18} />
+                                    </div>
+                                    <p className="text-[#a855f7] font-bold text-sm tracking-tight mb-6">Current Rank</p>
+                                    <h4 className="text-[36px] font-black text-[#0f172a] leading-none uppercase tracking-tight mb-6">
+                                        {stats.currentRank || 'MEMBER'}
+                                    </h4>
+                                    <div className="w-full h-1.5 bg-[#f3e8ff] rounded-full overflow-hidden">
+                                        <div className="h-full bg-[#a855f7] w-full" />
+                                    </div>
+                                </div>
+
+                                {/* Closing Rank / Next Milestone Card */}
+                                <div className="bg-golden-50 rounded-3xl p-6 border border-golden-100 relative group">
+                                    <div className="absolute top-6 right-6 p-2 bg-white/80 rounded-lg text-golden-600 shadow-sm">
+                                        <Award size={18} />
+                                    </div>
+                                    <p className="text-golden-600 font-bold text-sm tracking-tight mb-6">Closing Rank</p>
+                                    <h4 className="text-[36px] font-black text-gray-900 leading-none uppercase tracking-tight mb-6">
+                                        {stats.nextRankName || 'GOLD'}
+                                    </h4>
+                                    <div className="w-full h-1.5 bg-golden-200 rounded-full overflow-hidden">
+                                        <div className="h-full bg-golden-500" style={{ width: `${stats.rankProgress || 0}%` }} />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Rank Status - Right Section (Dark Design from image) */}
+                    {(!isMobile || activeTab === 'overview' || activeTab === 'rank') && (
+                        <div className="lg:col-span-1 bg-[#1a1f2e] rounded-[40px] p-10 border border-[#2d3748] shadow-2xl flex flex-col relative overflow-hidden h-full">
+                            {/* Accent border at top */}
+                            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-golden-400 to-golden-600 opacity-50" />
+
+                            {/* Trophy Icon Header */}
+                            <div className="flex justify-center mb-8">
+                                <div className="w-20 h-20 bg-[#2d2218] rounded-3xl flex items-center justify-center shadow-lg border border-[#4a3a2a]">
+                                    <Trophy className="text-golden-500" size={40} />
+                                </div>
+                            </div>
+
+                            {/* Rank Info */}
+                            <div className="text-center mb-10">
+                                <p className="text-[#94a3b8] font-bold text-[14px] uppercase tracking-[3px] mb-4">Your Current Rank</p>
+                                <h1 className="text-[64px] font-black text-white leading-none tracking-tight uppercase">
+                                    {stats.currentRank || 'Member'}
+                                </h1>
+                            </div>
+
+                            {/* Royalty Percentage Box */}
+                            <div className="bg-[#242c3d] rounded-[32px] p-8 border border-[#334155] mb-10 flex flex-col gap-2 group hover:border-golden-500/50 transition-all">
+                                <div className="flex items-center justify-between mb-2">
+                                    <p className="text-[#94a3b8] font-black text-sm">Royalty Percentage</p>
+                                    <Target className="text-golden-500" size={20} />
+                                </div>
+                                <div className="flex items-baseline gap-3">
+                                    <span className="text-[48px] font-black text-white leading-none">10%</span>
+                                    <span className="text-golden-400 font-bold text-sm">of network earnings</span>
+                                </div>
+                            </div>
+
+                            {/* Next Rank Progress at bottom */}
+                            <div className="mt-auto pt-6 space-y-4">
+                                <div className="flex items-center justify-between font-black uppercase tracking-wider text-[12px]">
+                                    <span className="text-[#94a3b8]">Next Rank</span>
+                                    <span className="text-golden-500">{stats.nextRankName || 'GOLD'}</span>
+                                </div>
+                                <div className="w-full h-2.5 bg-[#2d3748] rounded-full overflow-hidden shadow-inner flex">
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${stats.rankProgress || 65}%` }}
+                                        transition={{ duration: 1, ease: "easeOut" }}
+                                        className="h-full bg-gradient-to-r from-golden-600 to-golden-400 shadow-[0_0_10px_rgba(245,158,11,0.4)]"
+                                    />
+                                </div>
+                                <p className="text-center text-[#64748b] font-black text-[12px] uppercase">
+                                    {stats.rankProgress || 65}% progress to next rank
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Income Cards */}
+            {(!isMobile || activeTab === 'income' || activeTab === 'overview') && (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[
+                        { label: "Total Income", value: stats.totalIncome || 0, color: "text-amber-500", icon: <DollarSign size={24} />, bg: "bg-[#fffbeb]" },
+                        { label: "PMR Income", value: stats.pmrIncome || 0, color: "text-blue-500", icon: <TrendingUp size={24} />, bg: "bg-[#f0f7ff]" },
+                        { label: "DRR Income", value: stats.drrIncome || 0, color: "text-green-500", icon: <Users size={24} />, bg: "bg-[#f0fdf4]" },
+                        { label: "FCR Income", value: stats.fcrIncome || 0, color: "text-purple-500", icon: <Crown size={24} />, bg: "bg-[#faf5ff]" }
+                    ].map((item, idx) => (
+                        <div key={idx} className={`${item.bg} rounded-3xl p-6 shadow-sm border border-black/5 flex flex-col justify-between h-36 hover:shadow-xl hover:-translate-y-1 transition-all duration-300`}>
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <p className="text-xs font-black text-gray-500 uppercase tracking-widest">{item.label}</p>
+                                    <h3 className={`text-4xl font-black mt-2 ${item.color}`}>${item.value}</h3>
+                                </div>
+                                <div className="p-2 bg-white/80 rounded-xl text-gray-400 shadow-sm">{item.icon}</div>
                             </div>
                         </div>
                     ))}
                 </div>
             )}
 
-            {/* Referral / Network Section */}
-            {/*       */}
-
-            {/* Business Overview & Notifications Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Business Overview */}
-                <div className="lg:col-span-2 bg-white rounded-3xl p-8 border border-gray-400 shadow-xl overflow-hidden min-h-[400px]">
-                    <div className="flex items-center justify-between mb-8">
-                        <h3 className="text-2xl font-black text-gray-900">Business Overview</h3>
-                        <Briefcase className="text-gray-400" size={24} />
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                        <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100">
-                            <p className="text-blue-600 font-bold uppercase tracking-wider text-xs mb-1">Left Pairs</p>
-                            <h4 className="text-4xl font-black text-gray-900">{stats.leftPairs || 0}</h4>
-                        </div>
-                        <div className="bg-emerald-50/50 rounded-2xl p-6 border border-emerald-100">
-                            <p className="text-emerald-600 font-bold uppercase tracking-wider text-xs mb-1">Right Pairs</p>
-                            <h4 className="text-4xl font-black text-gray-900">{stats.rightPairs || 0}</h4>
-                        </div>
-                        <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100">
-                            <p className="text-amber-600 font-bold uppercase tracking-wider text-xs mb-1">Matching</p>
-                            <h4 className="text-4xl font-black text-gray-900">{Math.min(stats.leftPairs || 0, stats.rightPairs || 0)}</h4>
-                        </div>
-                    </div>
-
-                    <div className="mt-8 flex justify-between items-center bg-gray-50 rounded-2xl p-4 border border-gray-200">
-                        <div>
-                            <p className="text-gray-500 text-xs font-bold uppercase">Current Rank</p>
-                            <p className="text-xl font-black text-gray-900 uppercase">{stats.currentRank}</p>
-                        </div>
-                        <div className="w-12 h-12 bg-golden-100 rounded-xl flex items-center justify-center">
-                            <Trophy className="text-golden-600" size={24} />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Notifications Panel */}
-                <div className="lg:col-span-1 bg-white rounded-3xl p-8 border border-gray-400 shadow-xl flex flex-col">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-2xl font-black text-gray-900">Notifications</h3>
-                        <Bell className="text-gray-400" size={24} />
-                    </div>
-
-                    <div className="space-y-4 flex-1 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
-                        {notifications.length > 0 ? (
-                            notifications.map((notif, idx) => (
-                                <motion.div
-                                    key={notif._id}
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: idx * 0.1 }}
-                                    className="p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:border-golden-200 transition-colors"
-                                >
-                                    <div className="flex gap-3">
-                                        <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${notif.isRead ? 'bg-gray-300' : 'bg-golden-500 animate-pulse'}`}></div>
-                                        <div>
-                                            <p className="text-sm font-bold text-gray-900 line-clamp-1">{notif.title}</p>
-                                            <p className="text-xs text-gray-500 line-clamp-2 mt-1">{notif.message}</p>
-                                            <p className="text-[10px] text-gray-400 mt-2">{new Date(notif.createdAt).toLocaleDateString()}</p>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            ))
-                        ) : (
-                            <div className="flex flex-col items-center justify-center h-full text-center py-10">
-                                <MessageCircle className="text-gray-200 mb-3" size={48} />
-                                <p className="text-gray-400 text-sm font-medium">No new notifications</p>
-                            </div>
-                        )}
-                    </div>
-
-                    <button
-                        onClick={() => navigate('/notifications')}
-                        className="mt-6 w-full py-4 rounded-2xl bg-gray-900 text-white font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all"
-                    >
-                        View All Notifications
-                    </button>
-                </div>
-            </div>
-
-            {/* Financial Overview - Moved to Withdrawals page */}
-            {/*
-                (!isMobile || activeTab === 'withdrawal') && (
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
+            {/* Quick Actions */}
+            {(!isMobile || activeTab === 'actions' || activeTab === 'overview') && (
+                <div className="bg-white rounded-[40px] p-8 border border-gray-100 shadow-xl">
+                    <h3 className="text-2xl font-black text-[#0f172a] mb-10 flex items-center gap-3">
+                        <PieChart className="text-purple-500" /> Quick Actions
+                    </h3>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                         {[
-                            {
-                                label: "Available Balance",
-                                value: (stats.totalIncome || 0) - (stats.totalWithdrawn || 0),
-                                icon: <DollarSign size={24} />,
-                                color: "text-green-600",
-                                bgColor: "bg-gradient-to-br from-green-100 to-emerald-100",
-                                borderColor: "border-green-500",
-                                action: "Withdraw Now"
-                            },
-                            {
-                                label: "Total Withdrawn",
-                                value: stats.totalWithdrawn || 0,
-                                icon: <Landmark size={24} />,
-                                color: "text-blue-600",
-                                bgColor: "bg-gradient-to-br from-blue-100 to-cyan-100",
-                                borderColor: "border-blue-500",
-                                action: "View History"
-                            },
-                            {
-                                label: "Pending Requests",
-                                value: stats.pendingWithdrawals || 0,
-                                icon: <Clock size={24} />,
-                                color: "text-amber-600",
-                                bgColor: "bg-gradient-to-br from-amber-100 to-orange-100",
-                                borderColor: "border-amber-500",
-                                action: "Track Status"
-                            }
-                        ].map((item, index) => (
-                            <motion.div
-                                key={item.label}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.6 + index * 0.1 }}
-                                className="group"
+                            { label: "Network Tree", icon: <TreeDeciduous size={28} />, color: "bg-blue-500", path: "/tree" },
+                            { label: "Income Details", icon: <CircleDollarSign size={28} />, color: "bg-emerald-500", path: "/income" },
+                            { label: "Withdraw Funds", icon: <Landmark size={28} />, color: "bg-purple-500", path: "/withdrawals" },
+                            { label: "Analytics", icon: <BarChart3 size={28} />, color: "bg-orange-500", path: "/reports" }
+                        ].map((action, index) => (
+                            <button
+                                key={action.label}
+                                onClick={() => navigate(action.path)}
+                                className="group bg-[#f8fafc] rounded-[32px] p-8 text-left border border-[#f1f5f9] hover:bg-white hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
                             >
-                                <div className={`rounded-2xl p-6 border ${item.borderColor} ${item.bgColor} shadow-lg hover:shadow-xl hover:shadow-black/40 shadow-black/20 transition-all duration-300`}>
-                                    <div className="flex items-center justify-between mb-6">
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-600 mb-1">{item.label}</p>
-                                            <h3 className={`text-3xl font-bold ${item.color}`}>
-                                                ${item.value.toLocaleString()}
-                                            </h3>
-                                        </div>
-                                        <div className={`hidden md:block p-3 rounded-xl ${item.bgColor} border ${item.borderColor}`}>
-                                            <div className={item.color}>{item.icon}</div>
-                                        </div>
-                                    </div>
-                                    <button 
-                                        onClick={() => navigate('/withdrawals')}
-                                        className={`w-full py-3 rounded-xl font-medium text-sm transition-all duration-300 shadow-lg hover:shadow-black/40 shadow-black/20 ${item.label === "Available Balance"
-                                        ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-lg hover:shadow-green-500/25"
-                                        : "bg-white border text-gray-700 hover:bg-gray-50 hover:border-gray-700"
-                                        }`}>
-                                        {item.action}
-                                    </button>
+                                <div className={`w-16 h-16 rounded-[24px] ${action.color} flex items-center justify-center text-white mb-8 shadow-lg group-hover:scale-110 transition-transform`}>{action.icon}</div>
+                                <h4 className="text-[22px] font-black text-[#0f172a] mb-2 leading-none">{action.label}</h4>
+                                <div className="flex items-center gap-2 text-blue-600 font-bold text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                    Open <ChevronRight size={18} />
                                 </div>
-                            </motion.div>
+                            </button>
                         ))}
                     </div>
-                )
-            */}
-
-            {/* Quick Actions */}
-            {
-                (!isMobile || activeTab === 'actions') && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.9 }}
-                        className="bg-white rounded-[2rem] p-6 border border-gray-400 shadow-xl hover:shadow-black/40 shadow-black/20 transition-all duration-300"
-                    >
-                        <div className="flex items-center justify-between mb-8">
-                            <div>
-                                <h3 className="text-2xl font-bold text-gray-900">Quick Actions</h3>
-                                <p className="text-gray-500 mt-1">Manage your business with one click</p>
-                            </div>
-                            <div className="p-3 bg-purple-50 rounded-2xl">
-                                <PieChart className="text-purple-600" size={24} />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-                            {[
-                                {
-                                    label: "Network Tree",
-                                    desc: "View hierarchy",
-                                    icon: <TreeDeciduous size={24} />,
-                                    color: "bg-blue-500",
-                                    path: "/tree"
-                                },
-                                {
-                                    label: "Income Details",
-                                    desc: "Check earnings",
-                                    icon: <CircleDollarSign size={24} />,
-                                    color: "bg-emerald-500",
-                                    path: "/income"
-                                },
-                                {
-                                    label: "Withdraw Funds",
-                                    desc: "Request payout",
-                                    icon: <Landmark size={24} />,
-                                    color: "bg-purple-500",
-                                    path: "/withdrawals"
-                                },
-                                {
-                                    label: "Analytics",
-                                    desc: "Performance stats",
-                                    icon: <BarChart3 size={24} />,
-                                    color: "bg-orange-500",
-                                    path: "/reports"
-                                }
-                            ].map((action, index) => (
-                                <motion.button
-                                    key={action.label}
-                                    whileHover={{ y: -5 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={() => navigate(action.path)}
-                                    className="group bg-white rounded-3xl p-6 text-left border border-gray-400 shadow-lg shadow-gray-300 hover:shadow-lg hover:shadow-golden-300 transition-all duration-300"
-                                >
-                                    <div className={`hidden md:flex w-14 h-14 rounded-xl ${action.color} items-center justify-center text-white mb-6 shadow-md group-hover:scale-110 transition-transform duration-300`}>
-                                        {action.icon}
-                                    </div>
-
-                                    <h4 className="text-xl font-bold text-gray-900 mb-1">{action.label}</h4>
-                                    <p className="text-sm text-gray-500 mb-6">Click to access</p>
-
-                                    <div className="flex items-center gap-2 text-blue-600 font-semibold text-sm group-hover:gap-3 transition-all">
-                                        <span>Open</span>
-                                        <ArrowRightLeft size={16} className="text-blue-500" />
-                                    </div>
-                                </motion.button>
-                            ))}
-                        </div>
-                    </motion.div>
-                )
-            }
-        </div >
-    );
-};
-
-const CopyButton = ({ link }) => {
-    const [copied, setCopied] = useState(false);
-
-    const handleCopy = () => {
-        navigator.clipboard.writeText(link);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
-
-    return (
-        <button
-            onClick={handleCopy}
-            className="bg-black text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-800 transition-colors flex items-center gap-2"
-        >
-            {copied ? <Check size={14} /> : <Copy size={14} />}
-            {copied ? 'Copied' : 'Copy'}
-        </button>
+                </div>
+            )}
+        </div>
     );
 };
 

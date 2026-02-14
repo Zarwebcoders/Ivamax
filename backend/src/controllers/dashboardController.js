@@ -181,17 +181,18 @@ const getDashboardStats = async (req, res) => {
                 fcrIncomeChange: parseFloat(fcrIncomeChange.toFixed(1)),
                 pendingWithdrawals,
                 totalWithdrawn,
-                leftPairs,
-                rightPairs,
+                leftPairs: rankData.leftCount,
+                rightPairs: rankData.rightCount,
                 matchingCompleted,
-                currentRank: user.rank || 'Member',
+                currentRank: rankData.rankName || 'Member',
                 closingRank: user.closingRank || 'Member',
                 royaltyPercentage: rankData.income || 0, // Dynamic based on actual rank
                 nextRankName: nextRankName,
                 rankProgress: Math.round(rankProgress), // Rounded percentage
                 // Referral Link Constraints
                 isLeftDirectFilled: !!treeBase?.leftDirectId,
-                isRightDirectFilled: !!treeBase?.rightDirectId
+                isRightDirectFilled: !!treeBase?.rightDirectId,
+                isActive: user.isActive ?? true // Default to true if not specified
             }
         });
 

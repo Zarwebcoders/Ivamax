@@ -20,17 +20,17 @@ const Packages = () => {
         try {
             setLoading(true);
             const response = await depositService.getMyDeposits();
-            if (response.data && response.data.success) {
-                const history = response.data.data;
+            if (response.data) {
+                const history = response.data;
                 setDepositHistory(history);
 
                 // Check specifically for 'premium_starter' package status
                 const activeDeposit = history.find(d =>
-                    d.packageId === 'premium_starter' && d.status === 'approved'
+                    d.status === 'approved'
                 );
 
                 const pendingDeposit = history.find(d =>
-                    d.packageId === 'premium_starter' && d.status === 'pending'
+                    d.status === 'pending'
                 );
 
                 if (activeDeposit) {
@@ -118,14 +118,6 @@ const Packages = () => {
                     <div className="h-1 w-12 bg-golden-400 rounded-full"></div>
                 </div>
             </motion.div>
-            <PaymentModal
-                isOpen={modalOpen}
-                onClose={() => {
-                    setModalOpen(false);
-                    fetchHistory(); // Refresh status on close
-                }}
-                packageInfo={selectedPackage}
-            />
 
             <motion.div
                 variants={cardVariants}
@@ -136,9 +128,9 @@ const Packages = () => {
 
                 <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
                     {/* Card Header */}
-                    <div className="bg-gradient-to-br from-golden-500 to-golden-600 p-5 text-center relative overflow-hidden">
+                    <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 p-5 text-center relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-full bg-white/10 noise-bg opacity-20"></div>
-                        <div className="absolute -right-8 -top-8 text-white/20 rotate-12">
+                        <div className="absolute -right-8 -top-8 text-green-600/20 rotate-12">
                             <Star size={100} />
                         </div>
 
@@ -146,18 +138,18 @@ const Packages = () => {
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: 0.5, type: 'spring' }}
-                            className="inline-flex items-center justify-center bg-white/20 backdrop-blur-md rounded-full px-4 py-1.5 mb-4 border border-white/20"
+                            className="inline-flex items-center justify-center bg-green-600/20 backdrop-blur-md rounded-full px-4 py-1.5 mb-4 border border-green-600/30"
                         >
-                            <Shield size={14} className="text-white mr-2" />
-                            <span className="text-white text-xs font-bold tracking-wider uppercase">Most Popular</span>
+                            <Shield size={14} className="text-green-700 mr-2" />
+                            <span className="text-green-800 text-xs font-bold tracking-wider uppercase">Most Popular</span>
                         </motion.div>
 
-                        <h2 className="text-xl font-bold text-white mb-1">Elite Package</h2>
-                        <div className="flex items-center justify-center text-white">
+                        <h2 className="text-xl font-bold text-green-800 mb-1">Binary Pack</h2>
+                        <div className="flex items-center justify-center text-green-800">
                             <span className="text-lg font-medium opacity-80">$</span>
-                            <span className="text-4xl font-black tracking-tighter">1</span>
+                            <span className="text-4xl font-black tracking-tighter">250</span>
                         </div>
-                        <p className="text-golden-100 mt-1 text-xs font-medium">Limited Time Opportunity</p>
+                        <p className="text-green-700 mt-1 text-xs font-medium">Lifetime Access</p>
                     </div>
 
                     {/* Features Body */}
@@ -185,7 +177,7 @@ const Packages = () => {
 
                         {/* CTA Button */}
                         <button
-                            onClick={() => handleActivate({ id: 'premium_starter', name: 'Premium Starter', price: 1 })}
+                            onClick={() => handleActivate({ id: 'premium_starter', name: 'Premium Starter', price: 250 })}
                             disabled={!!packageStatus || loading}
                             className={`w-full font-bold py-3 rounded-xl shadow-lg flex items-center justify-center group overflow-hidden relative transition-all duration-300 ${packageStatus === 'active'
                                 ? 'bg-green-600 text-white cursor-default'
@@ -275,6 +267,15 @@ const Packages = () => {
                     </div>
                 </div>
             </motion.div>
+
+            <PaymentModal
+                isOpen={modalOpen}
+                onClose={() => {
+                    setModalOpen(false);
+                    fetchHistory(); // Refresh status on close
+                }}
+                packageInfo={selectedPackage}
+            />
         </motion.div>
     );
 };

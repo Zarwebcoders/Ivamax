@@ -209,9 +209,6 @@ const DashboardLayout = () => {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {/* Notification Bell */}
-                        <NotificationBell />
-
                         {/* Wallet Button */}
                         {!isConnected ? (
                             <button

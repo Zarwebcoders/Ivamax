@@ -20,8 +20,8 @@ const USDT_ABI = [
 ];
 
 const ADMIN_WALLETS = {
-    BEP20: "0x1234567890123456789012345678901234567890", // Replace with real admin address
-    TRC20: "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb" // Replace with real admin address
+    BEP20: "0xE39Fc24F26c60F0d56653606b5E0A25DEf3d98b0", // USDT BNB Smart Chain
+    TRC20: "TSTeVnFW5tDC2fdctPWbu6rkAgoqRnSJtU" // USDT Tron Chain
 };
 
 const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
