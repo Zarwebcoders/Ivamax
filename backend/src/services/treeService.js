@@ -90,6 +90,29 @@ const updateUplineCounts = async (startUserId) => {
     }
 };
 
+// Helper to recursively update levels for a subtree
+const updateSubtreeLevels = async (rootUserId, newLevel) => {
+    const queue = [{ userId: rootUserId, level: newLevel }];
+
+    while (queue.length > 0) {
+        const { userId, level } = queue.shift();
+
+        // Update current node
+        await Tree.updateOne({ userId }, { level });
+
+        // Find children
+        const node = await Tree.findOne({ userId });
+        if (node) {
+            if (node.leftDirectId) {
+                queue.push({ userId: node.leftDirectId, level: level + 1 });
+            }
+            if (node.rightDirectId) {
+                queue.push({ userId: node.rightDirectId, level: level + 1 });
+            }
+        }
+    }
+};
+
 // Move User Node (Admin Function)
 const moveUserNode = async (userId, newSponsorId, side) => {
     // 1. Validation: Prevent moving to self
@@ -143,9 +166,22 @@ const moveUserNode = async (userId, newSponsorId, side) => {
     }
     await newSponsorTree.save();
 
-    // 7. Update User's Parent
+    // 7. Update User's Parent in Tree
     userTree.parentId = newSponsorId;
+
+    // 8. Calculate New Level
+    const newLevel = newSponsorTree.level + 1;
+    userTree.level = newLevel;
     await userTree.save();
+
+    // 9. Update Levels for entire subtree
+    // We already updated userTree, but we need to update children
+    if (userTree.leftDirectId || userTree.rightDirectId) {
+        await updateSubtreeLevels(userTree.userId, newLevel);
+        // Note: updateSubtreeLevels updates the root passed to it too, so it's redundant for userTree 
+        // but safe. To be efficient, we could pass children. 
+        // Actually, let's just run it for userId and it will handle everything including userTree again (which is fine)
+    }
 
     return { success: true };
 };

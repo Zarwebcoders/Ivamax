@@ -337,14 +337,50 @@ const updateUser = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
+        const { moveUserNode, findPlacement } = require('../services/treeService');
+
         user.fullName = req.body.fullName || user.fullName;
         user.mobile = req.body.mobile || user.mobile;
         user.email = req.body.email || user.email;
-        if (req.body.defaultPlacement) user.defaultPlacement = req.body.defaultPlacement;
         if (req.body.rank) user.rank = req.body.rank;
-        if (req.body.placementSide) user.placementSide = req.body.placementSide;
 
-        // Password update
+        // Move User Logic
+        const newSponsorId = req.body.newSponsorId;
+        const newPlacementSide = req.body.placementSide;
+
+        // Check if movement is required
+        // 1. Sponsor changed?
+        const isSponsorChanged = newSponsorId && newSponsorId !== user.referralId;
+        // 2. Side changed? (Only if specific side is requested)
+        const isSideChanged = newPlacementSide && newPlacementSide !== user.placementSide;
+
+        if (isSponsorChanged || isSideChanged) {
+            console.log(`[ADMIN] Moving user ${user.userId}...`);
+            const targetSponsorId = isSponsorChanged ? newSponsorId : user.referralId;
+            const requestedSide = newPlacementSide || user.placementSide;
+
+            let actualParentId = targetSponsorId;
+            let actualSide = requestedSide;
+
+            // Resolve 'placing-left' / 'placing-right' to actual parent/side
+            if (requestedSide === 'placing-left' || requestedSide === 'placing-right') {
+                console.log(`[ADMIN] Resolving placement for strategy: ${requestedSide}`);
+                const placementInfo = await findPlacement(targetSponsorId, requestedSide);
+                actualParentId = placementInfo.parentId;
+                actualSide = placementInfo.side; // 'Left' or 'Right'
+                console.log(`[ADMIN] Resolved to Parent: ${actualParentId}, Side: ${actualSide}`);
+            }
+
+            // Perform Move
+            await moveUserNode(user.userId, actualParentId, actualSide);
+
+            // Update User Record if move successful
+            user.referralId = targetSponsorId; // Keep the sponsor as the referrer
+            user.placementSide = actualSide;   // Store the actual side (Left/Right)
+            console.log(`[ADMIN] User ${user.userId} moved. Sponsor: ${targetSponsorId}, Located under: ${actualParentId} (${actualSide})`);
+        }
+
+        // Apply Password update
         if (req.body.password && req.body.password.trim() !== '') {
             user.password = req.body.password;
             user.plainPassword = req.body.password;
@@ -359,7 +395,7 @@ const updateUser = async (req, res) => {
         });
     } catch (error) {
         console.error('Update User Error:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(400).json({ message: error.message || 'Server error' });
     }
 };
 

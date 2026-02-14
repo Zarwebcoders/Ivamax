@@ -57,11 +57,6 @@ const userSchema = new mongoose.Schema({
         enum: ['Left', 'Right', null],
         default: null,
     },
-    defaultPlacement: {
-        type: String,
-        enum: ['left', 'right', 'placing-left', 'placing-right'],
-        default: 'placing-left',
-    },
     rank: {
         type: String,
         default: 'Member',

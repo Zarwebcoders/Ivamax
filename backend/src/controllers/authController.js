@@ -65,9 +65,9 @@ const register = async (req, res) => {
             return res.status(400).json({ message: 'Invalid Referral ID' });
         }
 
-        // If strategy not explicitly provided, use Referrer's Default Preference
+        // If strategy not explicitly provided, default to 'placing-left' (Spillover Left)
         if (!placementStrategy) {
-            placementStrategy = referrerUser.defaultPlacement || 'placing-left';
+            placementStrategy = 'placing-left';
         }
 
         // =========================================================

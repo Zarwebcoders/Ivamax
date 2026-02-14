@@ -125,16 +125,6 @@ const UserManagement = () => {
         setModalMode('edit');
         setSelectedUser(user);
 
-        // Determine initial placement selection based on user's actual position (placementSide)
-        // detailed logic: if user is on Left, default to 'left' or 'placing-left' (preferred?).
-        // User asked to select the option that is the user's position.
-        // So if user.placementSide is 'Left', select 'left'. If 'Right', select 'right'.
-        // We fallback to user.defaultPlacement if placementSide is missing.
-        let initialPlacement = user.defaultPlacement || 'placing-left';
-        if (user.placementSide) {
-            initialPlacement = user.placementSide.toLowerCase(); // 'left' or 'right'
-        }
-
         setFormData({
             fullName: user.fullName,
             email: user.email,
@@ -144,7 +134,6 @@ const UserManagement = () => {
             referralLink: '', // Not editable
             placementSide: user.placementSide || 'Left',
             rank: user.rank || 'Member',
-            defaultPlacement: initialPlacement,
             newSponsorId: user.referralId || ''
         });
         setSponsorSearch(user.referralId || '');
@@ -200,19 +189,16 @@ const UserManagement = () => {
                     throw new Error("Passwords do not match");
                 }
 
-                // Derive placementSide from defaultPlacement for the move operation
-                const placementSideDerived = (formData.defaultPlacement === 'right' || formData.defaultPlacement === 'placing-right') ? 'Right' : 'Left';
-
                 const updateData = {
                     fullName: formData.fullName,
                     email: formData.email,
                     mobile: formData.mobile,
                     ...(formData.password && { password: formData.password }),
-                    defaultPlacement: formData.defaultPlacement,
                     rank: formData.rank,
                     // Send newSponsorId Only if changed
                     newSponsorId: formData.newSponsorId !== selectedUser.referralId ? formData.newSponsorId : undefined,
-                    placementSide: placementSideDerived
+                    // Send placementSide default to current if not changed, ensuring backend receives it if we want to confirm
+                    placementSide: formData.placementSide
                 };
 
                 const response = await adminService.updateUser(selectedUser._id, updateData);
@@ -596,18 +582,18 @@ const UserManagement = () => {
 
 
                                                 <div className="mb-4">
-                                                    <label className="block text-sm font-medium text-gray-700">Placement</label>
-                                                    <p className="text-xs text-gray-500 mb-1">Select placement preference and position.</p>
+                                                    <label className="block text-sm font-medium text-gray-700">Placement Side (Move User)</label>
+                                                    <p className="text-xs text-red-500 mb-1">Warning: Changing this moves the user in the tree!</p>
                                                     <select
-                                                        name="defaultPlacement"
-                                                        value={formData.defaultPlacement || 'placing-left'}
+                                                        name="placementSide"
+                                                        value={formData.placementSide || 'Left'}
                                                         onChange={handleInputChange}
                                                         className="input w-full mt-1"
                                                     >
-                                                        <option value="placing-left">Placing Left</option>
-                                                        <option value="placing-right">Placing Right</option>
-                                                        <option value="left">Left</option>
-                                                        <option value="right">Right</option>
+                                                        <option value="placing-left">Extreme Left</option>
+                                                        <option value="placing-right">Extreme Right</option>
+                                                        <option value="Left">Left</option>
+                                                        <option value="Right">Right</option>
                                                     </select>
                                                 </div>
                                             </div>
