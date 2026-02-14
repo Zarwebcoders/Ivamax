@@ -186,49 +186,16 @@ const getDeposits = async (req, res) => {
 // @access  Private/Admin
 const approveDeposit = async (req, res) => {
     try {
-        const deposit = await Deposit.findById(req.params.id);
-        if (!deposit) return res.status(404).json({ message: 'Deposit not found' });
-
-        if (deposit.status !== 'pending') {
-            return res.status(400).json({ message: 'Deposit already processed' });
-        }
-
-        const user = await User.findOne({ userId: deposit.userId });
-        if (!user) return res.status(404).json({ message: 'User not found' });
-
-        // Activations Logic
-        deposit.status = 'approved';
-        deposit.processedBy = req.user.userId;
-        deposit.processedDate = Date.now();
-        await deposit.save();
-
-        // Update User Investment
-        user.investmentAmount += deposit.amount;
-        user.investmentDate = Date.now();
-        user.packageType = deposit.packageName;
-        await user.save();
-
-        // Auto-process first income for current month
-        try {
-            const { processUserMonthlyIncome } = require('./incomeController');
-            const now = new Date();
-            const currentMonth = now.getMonth() + 1; // 1-12
-            const currentYear = now.getFullYear();
-
-            await processUserMonthlyIncome(deposit.userId, currentMonth, currentYear);
-            console.log(`✅ Auto-processed first income for ${deposit.userId} (${currentMonth}/${currentYear})`);
-        } catch (incomeError) {
-            console.error('Error auto-processing income:', incomeError);
-            // Don't fail the deposit approval if income processing fails
-        }
+        const activatePackage = require('../utils/activatePackage');
+        const result = await activatePackage(req.params.id, req.user.userId);
 
         res.json({
             success: true,
-            message: 'Deposit approved, package activated, and first income processed'
+            message: 'Deposit approved and package activated successfully'
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error authorizing deposit' });
+        res.status(500).json({ message: error.message || 'Server error authorizing deposit' });
     }
 };
 

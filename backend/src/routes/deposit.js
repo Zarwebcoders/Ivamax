@@ -26,6 +26,27 @@ router.post('/', protect, async (req, res) => {
             type: req.body.type || 'manual'
         });
 
+        // 🟢 AUTOMATIC ACTIVATION: If type is 'auto', approve and activate immediately
+        if (type === 'auto') {
+            try {
+                const activatePackage = require('../utils/activatePackage');
+                await activatePackage(deposit._id, 'SYSTEM');
+                return res.status(201).json({
+                    success: true,
+                    message: 'Payment verified and package activated automatically!',
+                    data: deposit
+                });
+            } catch (actError) {
+                console.error('Auto Activation Failed, but deposit saved:', actError);
+                // We don't fail the response because the deposit is already saved
+                return res.status(201).json({
+                    success: true,
+                    message: 'Deposit received. Auto-activation failed, admin will review.',
+                    data: deposit
+                });
+            }
+        }
+
         res.status(201).json({
             success: true,
             message: 'Deposit request submitted successfully',

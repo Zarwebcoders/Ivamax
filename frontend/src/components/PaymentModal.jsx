@@ -187,9 +187,15 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                 return;
             }
 
-            await depositService.submitDeposit(data);
-            toast.success('Deposit submitted! Waiting for approval.');
+            const response = await depositService.submitDeposit(data);
+            if (paymentMethod === 'auto') {
+                toast.success('Payment verified & Package activated!');
+            } else {
+                toast.success('Deposit submitted! Waiting for admin approval.');
+            }
             handleClose();
+            // Refresh page or stats if needed
+            window.location.reload();
         } catch (error) {
             console.error(error);
             toast.error(error.response?.data?.message || 'Submission failed');
