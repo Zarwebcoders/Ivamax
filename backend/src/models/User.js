@@ -118,15 +118,24 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Generate auto User ID (static method)
+// Generate Random Unique User ID (static method)
 userSchema.statics.generateUserId = async function () {
-    const lastUser = await this.findOne().sort({ createdAt: -1 });
-    if (!lastUser) {
-        return 'IVA1001';
+    let isUnique = false;
+    let newUserId = '';
+
+    // Loop until we find a unique ID
+    while (!isUnique) {
+        // Generate random number between 1000 and 9999
+        const randomNum = Math.floor(1000 + Math.random() * 9000);
+        newUserId = `IVA${randomNum}`;
+
+        // Check if this ID already exists
+        const existingUser = await this.findOne({ userId: newUserId });
+        if (!existingUser) {
+            isUnique = true;
+        }
     }
-    const lastId = parseInt(lastUser.userId.replace('IVA', ''));
-    const newId = lastId + 1;
-    return `IVA${newId}`;
+    return newUserId;
 };
 
 module.exports = mongoose.model('User', userSchema);

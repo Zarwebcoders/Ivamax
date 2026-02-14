@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import { FiUser, FiLock, FiEye, FiEyeOff, FiAlertCircle } from 'react-icons/fi';
 
 const Login = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { login } = useAuth();
     const [formData, setFormData] = useState({
         userId: '',
@@ -99,6 +100,20 @@ const Login = () => {
                         </h1>
                         <p className="text-gray-500 mt-2 text-sm">Welcome back! Access your dashboard.</p>
                     </div>
+
+                    {/* Success Message from Redirect */}
+                    {location.state?.message && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="bg-green-50/80 border border-green-400 text-green-700 px-4 py-3 rounded-xl mb-6 flex items-start gap-3"
+                        >
+                            <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span className="text-sm font-medium">{location.state.message}</span>
+                        </motion.div>
+                    )}
 
                     {/* Error Message */}
                     {error && (
