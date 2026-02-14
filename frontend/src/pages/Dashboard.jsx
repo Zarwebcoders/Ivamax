@@ -98,423 +98,355 @@ const Dashboard = () => {
             <NewsTicker />
 
             {/* Banner Section */}
-            {banners.length > 0 && (
-                <div className="relative w-full h-48 md:h-64 rounded-2xl overflow-hidden shadow-2xl mb-6 group">
-                    <div className="absolute inset-0 bg-gray-900 animate-pulse"></div>
 
-                    <motion.img
-                        key={currentBannerIndex}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.5 }}
-                        src={`http://localhost:5000/${banners[currentBannerIndex].image.replace(/\\/g, '/')}`}
-                        alt={banners[currentBannerIndex].title}
-                        className="w-full h-full object-cover relative z-10"
-                        onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = 'https://via.placeholder.com/800x400?text=Banner+Error'
-                        }}
-                    />
 
-                    {/* Banner Overlay Content */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-20 flex flex-col justify-end p-6">
-                        <motion.h2
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            className="text-white text-2xl md:text-3xl font-bold mb-2 shadow-sm"
-                        >
-                            {banners[currentBannerIndex].title}
-                        </motion.h2>
-                        <p className="text-gray-200 text-sm md:text-base line-clamp-2 max-w-2xl">
-                            {banners[currentBannerIndex].message}
-                        </p>
-                    </div>
 
-                    {/* Indicators */}
-                    <div className="absolute bottom-4 right-4 flex gap-2 z-30">
-                        {banners.map((_, idx) => (
-                            <button
-                                key={idx}
-                                onClick={() => setCurrentBannerIndex(idx)}
-                                className={`w-2 h-2 rounded-full transition-all ${idx === currentBannerIndex ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/80'
-                                    }`}
-                            />
-                        ))}
-                    </div>
-                </div>
-            )}
 
-            {/* Header */}
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-golden-300/80 to-golden-400/80 p-4 text-black shadow-2xl shadow-black/40"
-            >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-black/30 blur-sm rounded-full -translate-y-32 translate-x-32"></div>
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/30 blur-sm rounded-full translate-y-24 -translate-x-24"></div>
-
-                <div className="relative z-10">
-                    <h1 className="text-4xl font-bold mb-3">Welcome back, {user?.name || 'Partner'}! 👋</h1>
-                    <p className="text-lg opacity-90 mb-6 max-w-2xl">
-                        Track your earnings, manage your network, and grow your business with IVAMAX
-                    </p>
-                    <div className="flex flex-col lg:flex-row lg:items-end gap-6 w-full">
-                        {/* Stats */}
-                        <div className="flex items-center gap-4 shrink-0">
-                            <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                                <span className="text-sm opacity-90">Member Since</span>
-                                <p className="font-semibold">{formatDate(stats.memberSince)}</p>
-                            </div>
-                            <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                                <span className="text-sm opacity-90">Network Size</span>
-                                <p className="font-semibold">{stats.networkSize} Members</p>
-                            </div>
-                        </div>
-
-                        {/* Referral Links Tabs */}
-                        <div className="flex-1 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 w-full lg:w-auto">
-                            {/* User ID Badge */}
-                            <div className="flex justify-center mb-2">
-                                <div className="bg-white/20 font-bold text-white px-8 py-2 rounded-xl text-lg shadow-sm border border-white/10 tracking-wider">
-                                    {user?.userId}
-                                </div>
-                            </div>
-
-                            {/* Pyramid Layout Buttons */}
-                            <div className="flex flex-col items-center gap-2 mb-4">
-                                {/* Row 1: Left & Right Links */}
-                                <div className="flex gap-4">
-                                    <button
-                                        onClick={() => !stats.isLeftDirectFilled && setActiveRefTab('left')}
-                                        disabled={stats.isLeftDirectFilled}
-                                        className={`px-6 py-2 rounded-xl text-sm font-bold transition-all relative ${activeRefTab === 'left'
-                                            ? 'bg-yellow-400 text-black shadow-lg scale-105'
-                                            : stats.isLeftDirectFilled
-                                                ? 'bg-gray-400/50 text-gray-300 cursor-not-allowed border border-gray-500/30'
-                                                : 'bg-yellow-400/20 text-yellow-100 hover:bg-yellow-400/30 border border-yellow-400/30'
-                                            }`}
-                                    >
-                                        Left Link
-                                        {stats.isLeftDirectFilled && <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full shadow-md">Filled</span>}
-                                    </button>
-                                    <button
-                                        onClick={() => !stats.isRightDirectFilled && setActiveRefTab('right')}
-                                        disabled={stats.isRightDirectFilled}
-                                        className={`px-6 py-2 rounded-xl text-sm font-bold transition-all relative ${activeRefTab === 'right'
-                                            ? 'bg-green-500 text-white shadow-lg scale-105'
-                                            : stats.isRightDirectFilled
-                                                ? 'bg-gray-400/50 text-gray-300 cursor-not-allowed border border-gray-500/30'
-                                                : 'bg-green-500/20 text-green-100 hover:bg-green-500/30 border border-green-500/30'
-                                            }`}
-                                    >
-                                        Right Link
-                                        {stats.isRightDirectFilled && <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full shadow-md">Filled</span>}
-                                    </button>
-                                </div>
-
-                                {/* Row 2: Placing Left & Right */}
-                                <div className="flex gap-16">
-                                    <button
-                                        onClick={() => setActiveRefTab('placing-left')}
-                                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeRefTab === 'placing-left'
-                                            ? 'bg-orange-400 text-white shadow-lg scale-105'
-                                            : 'bg-orange-400/20 text-orange-100 hover:bg-orange-400/30 border border-orange-400/30'
-                                            }`}
-                                    >
-                                        Placing Left
-                                    </button>
-                                    <button
-                                        onClick={() => setActiveRefTab('placing-right')}
-                                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeRefTab === 'placing-right'
-                                            ? 'bg-blue-500 text-white shadow-lg scale-105'
-                                            : 'bg-blue-500/20 text-blue-100 hover:bg-blue-500/30 border border-blue-500/30'
-                                            }`}
-                                    >
-                                        Placing Right
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Dynamic Link Display */}
-                            <div className="bg-gray-300/60 backdrop-blur-md rounded-xl p-2 flex items-center gap-2 border border-black shadow-inner mb-3">
-                                <input
-                                    type="text"
-                                    readOnly
-                                    value={`${window.location.origin}/register?ref=${user?.userId}&position=${activeRefTab === 'placing-left' || activeRefTab === 'placing-right' ? (activeRefTab === 'placing-left' ? 'placing-left' : 'placing-right') : activeRefTab}`}
-                                    className="flex-1 bg-transparent px-3 py-1.5 text-sm font-medium text-gray-800 outline-none truncate"
-                                />
-                                <CopyButton link={`${window.location.origin}/register?ref=${user?.userId}&position=${activeRefTab === 'placing-left' || activeRefTab === 'placing-right' ? (activeRefTab === 'placing-left' ? 'placing-left' : 'placing-right') : activeRefTab}`} />
-                            </div>
-
-                            {/* Social Share Buttons */}
-                            <div className="grid grid-cols-3 gap-2">
-                                <button
-                                    onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`${window.location.origin}/register?ref=${user?.userId}&position=${activeRefTab}`)}`, '_blank')}
-                                    className="bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-lg"
-                                >
-                                    <MessageCircle size={18} />
-                                    <span className="text-xs font-bold hidden sm:inline">WhatsApp</span>
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(`${window.location.origin}/register?ref=${user?.userId}&position=${activeRefTab}`);
-                                        window.open('https://instagram.com', '_blank');
-                                    }}
-                                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 transition-all shadow-lg"
-                                >
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px]"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-                                    <span className="text-xs font-bold hidden sm:inline">Instagram</span>
-                                </button>
-                                <button
-                                    onClick={() => window.open(`https://t.me/share/url?url=${encodeURIComponent(`${window.location.origin}/register?ref=${user?.userId}&position=${activeRefTab}`)}&text=Join me on IVAMAX!`, '_blank')}
-                                    className="bg-sky-500 hover:bg-sky-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-lg"
-                                >
-                                    <Send size={18} />
-                                    <span className="text-xs font-bold hidden sm:inline">Telegram</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </motion.div>
 
 
 
 
 
             {/* Mobile Tab Navigation */}
-            {
-                isMobile && (
-                    <div className="flex overflow-x-auto pb-4 gap-3 no-scrollbar -mx-4 px-4 sticky top-[72px] z-30 bg-gray-50/95 backdrop-blur-sm py-2">
-                        {[
-                            { id: 'income', label: 'Income', icon: <DollarSign size={18} /> },
-                            { id: 'business', label: 'Business', icon: <Briefcase size={18} /> },
-                            { id: 'rank', label: 'Rank', icon: <Trophy size={18} /> },
-                            { id: 'withdrawal', label: 'Withdrawal', icon: <Landmark size={18} /> },
-                            { id: 'actions', label: 'Actions', icon: <PieChart size={18} /> }
-                        ].map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`
-                                flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-all
-                                ${activeTab === tab.id
-                                        ? 'bg-golden-500 text-white shadow-lg shadow-golden-500/30'
-                                        : 'bg-white text-gray-600 border border-gray-200 shadow-sm'
-                                    }
-                            `}
-                            >
-                                {tab.icon}
-                                {tab.label}
-                            </button>
-                        ))}
+            {isMobile && (
+                <div className="flex overflow-x-auto pb-4 gap-3 no-scrollbar -mx-4 px-4 sticky top-[72px] z-30 bg-gray-50/95 backdrop-blur-sm py-2">
+                    {[
+                        { id: 'overview', label: 'Overview', icon: <Users size={18} /> },
+                        { id: 'income', label: 'Income', icon: <DollarSign size={18} /> },
+                        { id: 'business', label: 'Business', icon: <Briefcase size={18} /> },
+                        { id: 'rank', label: 'Rank', icon: <Trophy size={18} /> },
+                        { id: 'withdrawal', label: 'Withdrawal', icon: <Landmark size={18} /> },
+                        { id: 'actions', label: 'Actions', icon: <PieChart size={18} /> },
+
+                    ].map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`
+                            flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-all
+                            ${activeTab === tab.id
+                                    ? 'bg-golden-500 text-white shadow-lg shadow-golden-500/30'
+                                    : 'bg-white text-gray-600 border border-gray-200 shadow-sm'
+                                }
+                        `}
+                        >
+                            {tab.icon}
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {/* Header / Hero Section */}
+            {(!isMobile || activeTab === 'overview') && (
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#E6C65C] to-[#D4AF37] p-8 shadow-xl text-black">
+                    {/* Welcome Text */}
+                    <div className="relative z-10 mb-8">
+                        <div className="flex items-center gap-3 mb-2">
+                            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-gray-900">
+                                Welcome back, Partner! <span className="text-4xl">👋</span>
+                            </h1>
+                        </div>
+                        <p className="text-lg font-medium text-gray-800/80 max-w-2xl">
+                            Track your earnings, manage your network, and grow your business with IVAMAX
+                        </p>
                     </div>
-                )
-            }
+
+                    {/* Banner / Graphic Area */}
+                    <div className="relative w-full h-64 md:h-80 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20 mb-8 group">
+                        {/* Announcement Badge */}
+                        <div className="absolute top-4 left-4 z-20">
+                            <div className="bg-white/90 backdrop-blur-md rounded-full pl-2 pr-4 py-2 flex items-center gap-3 shadow-lg border border-purple-100">
+                                <div className="bg-purple-600 p-2 rounded-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-purple-900 uppercase tracking-wider">ANNOUNCEMENT <span className="text-purple-500 ml-1">1/2</span></p>
+                                </div>
+                                <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Main Banner Image */}
+                        <motion.img
+                            key={currentBannerIndex}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.5 }}
+                            src={(() => {
+                                if (banners.length > 0 && banners[currentBannerIndex]?.image) {
+                                    const path = banners[currentBannerIndex].image;
+                                    if (path.startsWith('http')) return path;
+                                    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+                                    const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+                                    return `${baseUrl}/${cleanPath.replace(/\\/g, '/')}`;
+                                }
+                                return "https://wallpapers.com/images/hd/mafia-3-lincoln-clay-poster-9k7y7y7y7y7y7y7y.jpg";
+                            })()}
+                            alt={banners[currentBannerIndex]?.title || 'Banner'}
+                            className="absolute inset-0 w-full h-full object-cover z-0"
+                            onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = 'https://wallpapers.com/images/hd/mafia-3-lincoln-clay-poster-9k7y7y7y7y7y7y7y.jpg'
+                            }}
+                        />
+
+                        {/* Banner Overlay Content (Text) */}
+                        {banners.length > 0 && (
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10 flex flex-col justify-end p-6">
+                                {banners[currentBannerIndex].title && (
+                                    <motion.h2
+                                        initial={{ y: 20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        className="text-white text-2xl md:text-3xl font-bold mb-2 shadow-sm"
+                                    >
+                                        {banners[currentBannerIndex].title}
+                                    </motion.h2>
+                                )}
+                                {banners[currentBannerIndex].message && (
+                                    <p className="text-gray-200 text-sm md:text-base line-clamp-2 max-w-2xl">
+                                        {banners[currentBannerIndex].message}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Indicators */}
+                        {banners.length > 1 && (
+                            <div className="absolute bottom-4 right-4 flex gap-2 z-20">
+                                {banners.map((_, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => setCurrentBannerIndex(idx)}
+                                        className={`w-2 h-2 rounded-full transition-all ${idx === currentBannerIndex ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/80'
+                                            }`}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                        {/* Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    </div>
+
+                    {/* Stats Footer in Hero */}
+                    <div className="flex gap-4">
+                        <div className="bg-[#C5A02E]/40 backdrop-blur-sm rounded-xl px-6 py-3 border border-[#8B701D]/20">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[#5A4610] block mb-1">Member Since</span>
+                            <span className="text-lg font-black text-gray-900">{formatDate(stats.memberSince)}</span>
+                        </div>
+                        <div className="bg-[#C5A02E]/40 backdrop-blur-sm rounded-xl px-6 py-3 border border-[#8B701D]/20">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[#5A4610] block mb-1">Network Size</span>
+                            <span className="text-lg font-black text-gray-900">{stats.networkSize} Members</span>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Income Stats Cards */}
-            {
-                (!isMobile || activeTab === 'income') && (
-                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-                        {[
-                            {
-                                label: "Total Income",
-                                value: stats.totalIncome,
-                                icon: <DollarSign size={28} />,
-                                color: "from-amber-500 to-orange-500",
-                                trend: stats.totalIncomeChange || 0
-                            },
-                            {
-                                label: "PMR Income",
-                                value: stats.pmrIncome,
-                                icon: <TrendingUp size={28} />,
-                                color: "from-blue-500 to-cyan-500",
-                                trend: stats.pmrIncomeChange || 0
-                            },
-                            {
-                                label: "DRR Income",
-                                value: stats.drrIncome,
-                                icon: <Users size={28} />,
-                                color: "from-emerald-500 to-green-500",
-                                trend: stats.drrIncomeChange || 0
-                            },
-                            {
-                                label: "FCR Income",
-                                value: stats.fcrIncome,
-                                icon: <Crown size={28} />,
-                                color: "from-purple-500 to-pink-500",
-                                trend: stats.fcrIncomeChange || 0
-                            }
-                        ].map((stat, index) => (
-                            <motion.div
-                                key={stat.label}
-                                custom={index}
-                                initial="hidden"
-                                animate="visible"
-                                variants={cardVariants}
-                                className="group relative"
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-r from-white to-gray-50 rounded-2xl shadow-lg transform group-hover:scale-[1.02] transition-all duration-300"></div>
-                                <div className="relative bg-white rounded-2xl p-6 border border-gray-100 shadow-xl hover:shadow-golden hover:border-golden-400 transition-all duration-300">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-500 mb-1">{stat.label}</p>
-                                            <h3 className={`text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent ${stat.color}`}>
-                                                ${stat.value.toLocaleString()}
-                                            </h3>
-                                        </div>
-                                        <div className={`hidden md:block p-3 rounded-xl bg-gradient-to-br ${stat.color} shadow-lg`}>
-                                            <div className="text-white">{stat.icon}</div>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col items-start md:flex-row md:items-center md:justify-between gap-1 md:gap-0">
-                                        <span className={`text-sm font-medium flex items-center gap-1 ${stat.trend >= 0 ? 'text-green-600' : 'text-red-600'
-                                            }`}>
-                                            <TrendingUp size={16} className={stat.trend < 0 ? 'rotate-180' : ''} />
-                                            {stat.trend >= 0 ? '+' : ''}{stat.trend.toFixed(1)}%
-                                        </span>
-                                        <span className="text-xs text-gray-500">vs Last Month</span>
-                                    </div>
+            {(!isMobile || activeTab === 'income') && (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[
+                        { label: "Total Income", value: stats.totalIncome, color: "text-amber-500", bgIcon: "bg-amber-100", icon: <DollarSign size={24} className="text-amber-600" /> },
+                        { label: "PMR Income", value: stats.pmrIncome, color: "text-blue-500", bgIcon: "bg-blue-100", icon: <TrendingUp size={24} className="text-blue-600" /> },
+                        { label: "DRR Income", value: stats.drrIncome, color: "text-green-500", bgIcon: "bg-green-100", icon: <Users size={24} className="text-green-600" /> },
+                        { label: "FCR Income", value: stats.fcrIncome, color: "text-purple-500", bgIcon: "bg-purple-100", icon: <Crown size={24} className="text-purple-600" /> }
+                    ].map((item, idx) => (
+                        <div key={idx} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between h-40 hover:shadow-lg transition-shadow">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <p className="text-sm font-bold text-gray-400 uppercase tracking-wide">{item.label}</p>
+                                    <h3 className={`text-4xl font-black mt-2 ${item.color}`}>${item.value}</h3>
                                 </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                )
-            }
-
-            {/* Business Overview & Rank */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Business Stats */}
-                {(!isMobile || activeTab === 'business') && (
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.4 }}
-                        className="lg:col-span-2"
-                    >
-                        <div className="bg-white rounded-2xl p-3 border border-gray-400 shadow-xl shadow-black/20 hover:shadow-golden hover:border-golden-400 transition-all duration-300">
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-xl font-bold text-gray-800">Business Overview</h3>
-                                <div className="p-2 bg-blue-50 rounded-lg">
-                                    <ArrowRightLeft className="text-blue-600" size={20} />
+                                <div className={`${item.bgIcon} p-3 rounded-2xl`}>
+                                    {item.icon}
                                 </div>
                             </div>
+                            <div className="flex items-center gap-2 text-xs font-bold">
+                                <span className="text-green-500 flex items-center">
+                                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                                    +100.0%
+                                </span>
+                                <span className="text-gray-400 uppercase">vs Last Month</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
 
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-                                <div className="group bg-gradient-to-br from-blue-100 to-cyan-100 rounded-xl p-3 border border-blue-300 hover:border-blue-700 shadow-lg hover:shadow-blue-300 transition-all duration-300">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-medium text-blue-700">Left Pairs</span>
-                                        <div className="hidden md:block p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                                            <div className="text-blue-600 text-xl">⬅️</div>
-                                        </div>
-                                    </div>
-                                    <p className="text-3xl font-bold text-gray-800">{stats.leftPairs}</p>
-                                    <div className="mt-2 h-2 bg-blue-100 rounded-full overflow-hidden">
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${(stats.leftPairs / 150) * 100}%` }}
-                                            className="h-full bg-gradient-to-r from-blue-500 to-cyan-500"
-                                        />
-                                    </div>
+            {/* Referral / Network Section */}
+            {(!isMobile || activeTab === 'overview') && (
+                <div className="rounded-3xl bg-gradient-to-br from-[#E6C65C] to-[#D4AF37] p-8 shadow-xl relative overflow-hidden">
+                    {/* Header */}
+                    <div className="absolute top-0 right-0 p-8 opacity-10">
+                        <TreeDeciduous size={120} />
+                    </div>
+
+                    <div className="flex flex-col items-center justify-center relative z-10">
+                        {/* Tree Visual */}
+                        <div className="flex flex-col items-center mb-8 w-full max-w-lg">
+                            {/* Top Node */}
+                            <div className="mb-4">
+                                <span className="text-yellow-100 font-bold text-4xl opacity-50 block text-center mb-2">{user?.userId}</span>
+                            </div>
+
+                            {/* Control Nodes */}
+                            <div className="flex items-center gap-8 md:gap-16">
+                                {/* Left Side */}
+                                <div className="flex flex-col items-center gap-2">
+                                    <button
+                                        disabled
+                                        className="relative bg-gray-600/40 backdrop-blur text-white px-6 py-2 rounded-full text-sm font-bold border border-white/20"
+                                    >
+                                        Left Link
+                                        {/* Badge */}
+                                        <div className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm uppercase tracking-wider">Filled</div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => setActiveRefTab('placing-left')}
+                                        className={`px-8 py-3 rounded-2xl font-black text-sm uppercase tracking-wide transition-all shadow-lg ${activeRefTab === 'placing-left'
+                                            ? 'bg-[#E86C3F] text-white ring-4 ring-[#E86C3F]/30 transform scale-105'
+                                            : 'bg-[#CCA34A] text-[#5A4610] hover:bg-[#E86C3F] hover:text-white'
+                                            }`}
+                                    >
+                                        Placing Left
+                                    </button>
                                 </div>
 
-                                <div className="group bg-gradient-to-br from-emerald-100 to-green-100 rounded-xl p-3 border border-emerald-300 hover:border-emerald-700 shadow-lg hover:shadow-emerald-300 transition-all duration-300">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-medium text-emerald-700">Right Pairs</span>
-                                        <div className="hidden md:block p-2 bg-emerald-100 rounded-lg group-hover:bg-emerald-200 transition-colors">
-                                            <div className="text-emerald-600 text-xl">➡️</div>
-                                        </div>
-                                    </div>
-                                    <p className="text-3xl font-bold text-gray-800">{stats.rightPairs}</p>
-                                    <div className="mt-2 h-2 bg-emerald-100 rounded-full overflow-hidden">
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${(stats.rightPairs / 150) * 100}%` }}
-                                            className="h-full bg-gradient-to-r from-emerald-500 to-green-500"
-                                        />
-                                    </div>
-                                </div>
+                                {/* Right Side */}
+                                <div className="flex flex-col items-center gap-2">
+                                    <button
+                                        disabled
+                                        className="relative bg-gray-600/40 backdrop-blur text-white px-6 py-2 rounded-full text-sm font-bold border border-white/20"
+                                    >
+                                        Right Link
+                                        {/* Badge */}
+                                        <div className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm uppercase tracking-wider">Filled</div>
+                                    </button>
 
-                                <div className="group bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl p-3 border border-amber-300 hover:border-amber-700 shadow-lg hover:shadow-amber-300 transition-all duration-300">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-medium text-amber-700">Matching Progress</span>
-                                        <div className="hidden md:block p-2 bg-amber-100 rounded-lg group-hover:bg-amber-200 transition-colors">
-                                            <div className="text-amber-600 text-xl">🎯</div>
-                                        </div>
-                                    </div>
-                                    {/* <p className="text-3xl font-bold text-gray-800">{stats.matchingCompleted}</p> */}
-                                    <div className="mt-2 flex items-center gap-2">
-                                        <div className="flex-1">
-                                            <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                                                {Math.min(stats.leftPairs || 0, stats.rightPairs || 0)}
-                                            </h2>
-                                            <div className="h-1.5 bg-amber-100 rounded-full overflow-hidden mb-2">
-                                                <motion.div
-                                                    initial={{ width: 0 }}
-                                                    animate={{ width: `${stats.rightPairs > 0 && stats.leftPairs > 0 ? (Math.min(stats.leftPairs, stats.rightPairs) / Math.max(stats.leftPairs, stats.rightPairs)) * 100 : 0}%` }}
-                                                    className="h-full bg-gradient-to-r from-amber-500 to-orange-500"
-                                                />
-                                            </div>
-                                            <span className="text-sm font-medium text-amber-600">
-                                                {stats.rightPairs > 0 && stats.leftPairs > 0 ? Math.round((Math.min(stats.leftPairs, stats.rightPairs) / Math.max(stats.leftPairs, stats.rightPairs)) * 100) : 0}% Balanced
-                                            </span>
-                                        </div>
-                                    </div>
+                                    <button
+                                        onClick={() => setActiveRefTab('placing-right')}
+                                        className={`px-8 py-3 rounded-2xl font-black text-sm uppercase tracking-wide transition-all shadow-lg ${activeRefTab === 'placing-right'
+                                            ? 'bg-[#E86C3F] text-white ring-4 ring-[#E86C3F]/30 transform scale-105'
+                                            : 'bg-[#CCA34A] text-[#5A4610] hover:bg-[#E86C3F] hover:text-white'
+                                            }`}
+                                    >
+                                        Placing Right
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                    </motion.div>
+
+                        {/* Copy Link Input */}
+                        <div className="w-full max-w-3xl bg-[#C5A02E]/60 backdrop-blur-md rounded-xl p-3 flex items-center border border-[#8B701D]/30 shadow-inner mb-4">
+                            <input
+                                type="text"
+                                readOnly
+                                value={`${window.location.origin}/register?ref=${user?.userId}&position=${activeRefTab === 'placing-left' || activeRefTab === 'placing-right' ? (activeRefTab === 'placing-left' ? 'placing-left' : 'placing-right') : activeRefTab}`}
+                                className="flex-1 bg-transparent px-4 text-sm font-bold text-black outline-none w-full"
+                            />
+                            <button
+                                onClick={() => navigator.clipboard.writeText(`${window.location.origin}/register?ref=${user?.userId}&position=${activeRefTab === 'placing-left' || activeRefTab === 'placing-right' ? (activeRefTab === 'placing-left' ? 'placing-left' : 'placing-right') : activeRefTab}`)}
+                                className="bg-black hover:bg-gray-900 text-white px-6 py-2 rounded-lg text-xs font-bold uppercase flex items-center gap-2 transition-colors"
+                            >
+                                <Copy size={14} /> Copy
+                            </button>
+                        </div>
+
+                        {/* Social Buttons */}
+                        <div className="w-full max-w-3xl grid grid-cols-3 gap-3">
+                            <button className="bg-[#25D366] hover:bg-[#20bd5a] text-white py-3 rounded-xl font-bold uppercase text-sm shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95">
+                                <MessageCircle size={18} /> WhatsApp
+                            </button>
+                            <button className="bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] hover:opacity-90 text-white py-3 rounded-xl font-bold uppercase text-sm shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95">
+                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                                Instagram
+                            </button>
+                            <button className="bg-[#0088cc] hover:bg-[#0077b5] text-white py-3 rounded-xl font-bold uppercase text-sm shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95">
+                                <Send size={18} /> Telegram
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Business Overview Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {((!isMobile || activeTab === 'business')) && (
+                    <div className="lg:col-span-2 bg-white rounded-3xl p-8 border border-gray-100 shadow-xl">
+                        <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-2xl font-black text-gray-900">Business Overview</h3>
+                            <button className="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-100 transition-colors">
+                                <ArrowRightLeft size={20} />
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            {/* Left Pairs Card */}
+                            <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100">
+                                <div className="flex justify-between items-start mb-4">
+                                    <span className="text-blue-600 font-bold uppercase tracking-wider text-sm">Left Pairs</span>
+                                    <div className="bg-blue-500 text-white p-1 rounded">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                                    </div>
+                                </div>
+                                <h4 className="text-4xl font-black text-gray-900">{stats.leftPairs || 0}</h4>
+                            </div>
+
+                            {/* Right Pairs Card */}
+                            <div className="bg-emerald-50/50 rounded-2xl p-6 border border-emerald-100">
+                                <div className="flex justify-between items-start mb-4">
+                                    <span className="text-emerald-600 font-bold uppercase tracking-wider text-sm">Right Pairs</span>
+                                    <div className="bg-emerald-500 text-white p-1 rounded">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                    </div>
+                                </div>
+                                <h4 className="text-4xl font-black text-gray-900">{stats.rightPairs || 0}</h4>
+                            </div>
+                        </div>
+
+                        {/* Matching Progress */}
+                        <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-amber-600 font-bold uppercase tracking-wider text-sm">Matching Progress</span>
+                                <Target className="text-amber-500" size={20} />
+                            </div>
+                            <div className="flex items-end gap-2 mb-2">
+                                <h4 className="text-4xl font-black text-gray-900">{Math.min(stats.leftPairs || 0, stats.rightPairs || 0)}</h4>
+                            </div>
+                            <div className="h-2 w-full bg-amber-200 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-amber-500"
+                                    style={{ width: `${stats.rightPairs > 0 && stats.leftPairs > 0 ? (Math.min(stats.leftPairs, stats.rightPairs) / Math.max(stats.leftPairs, stats.rightPairs)) * 100 : 0}%` }}
+                                ></div>
+                            </div>
+                        </div>
+                    </div>
                 )}
 
                 {/* Rank Card */}
                 {(!isMobile || activeTab === 'rank') && (
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.5 }}
-                    >
-                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 via-yellow-500 to-orange-500 shadow-lg shadow-black/40 p-1 h-full">
-                            <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"></div>
-                            <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 h-full">
-                                <div className="text-center">
-                                    <div className="hidden md:inline-flex p-4 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-2xl mb-4">
-                                        <Trophy className="text-amber-300" size={40} />
-                                    </div>
-                                    <h4 className="text-sm font-medium text-amber-200 mb-2">Your Current Rank</h4>
-                                    <h2 className="text-3xl font-bold text-white mb-4">{stats.currentRank}</h2>
-
-                                    <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl p-4 mb-6 border border-gray-700">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <span className="text-sm text-gray-300">Royalty Percentage</span>
-                                            <Target className="text-amber-400" size={18} />
-                                        </div>
-                                        <div className="flex items-end gap-2">
-                                            <span className="text-4xl font-bold text-white">{stats.royaltyPercentage}%</span>
-                                            <span className="text-sm text-amber-300 mb-1">of network earnings</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-gray-400">Next Rank</span>
-                                            <span className="text-amber-300 font-medium">{stats.nextRankName || 'FOUNDER'}</span>
-                                        </div>
-                                        <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${stats.rankProgress || 0}%` }}
-                                                className="h-full bg-gradient-to-r from-amber-500 to-yellow-500"
-                                            />
-                                        </div>
-                                        <div className="text-xs text-gray-400">
-                                            {stats.rankProgress || 0}% progress to next rank
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                    <div className="bg-[#1a1a1a] rounded-3xl p-8 text-white flex flex-col items-center text-center justify-center border border-gray-800 shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-8 opacity-5">
+                            <Crown size={180} />
                         </div>
-                    </motion.div>
+
+                        <div className="relative z-10">
+                            <div className="w-20 h-20 bg-[#C5A02E]/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#C5A02E]/40">
+                                <Trophy className="text-[#FDD835]" size={40} />
+                            </div>
+
+                            <h3 className="text-amber-400 font-bold text-sm uppercase tracking-widest mb-2">Your Current Rank</h3>
+                            <h2 className="text-4xl font-black text-white mb-1">{stats.currentRank}</h2>
+                        </div>
+                    </div>
                 )}
             </div>
 
