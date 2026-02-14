@@ -212,8 +212,8 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                     {/* Header */}
                     <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-6 flex items-center justify-between">
                         <div>
-                            <h3 className="text-xl font-bold text-white">Activate Package</h3>
-                            <p className="text-golden-300 text-sm mt-1">{packageInfo?.name} - ${packageInfo?.price}</p>
+                            <h3 className="text-xl font-bold text-white">Activate Package (V2)</h3>
+                            <p className="text-golden-300 text-sm mt-1">{packageInfo?.name} - ${packageInfo?.price} - TEST</p>
                         </div>
                         <button onClick={handleClose} className="text-gray-400 hover:text-white transition-colors">
                             <X size={24} />
@@ -351,19 +351,41 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                                     ))}
                                 </div>
 
-                                {/* Address Display */}
-                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                    <p className="text-xs text-gray-500 mb-2 uppercase font-bold tracking-wider">Send ${packageInfo?.price} USDT To:</p>
-                                    <div className="flex items-center justify-between gap-2">
-                                        <code className="text-sm font-mono text-gray-800 break-all">
-                                            {ADMIN_WALLETS[manualNetwork]}
-                                        </code>
-                                        <button
-                                            onClick={() => handleCopy(ADMIN_WALLETS[manualNetwork])}
-                                            className="p-2 hover:bg-white rounded-lg transition-colors text-gray-500 hover:text-golden-600"
-                                        >
-                                            {copied ? <CheckCircle size={20} className="text-green-500" /> : <Copy size={20} />}
-                                        </button>
+                                {/* Address Display & QR Code */}
+                                <div className="space-y-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                                    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                                        <p className="text-[10px] text-gray-400 mb-1 uppercase font-bold tracking-wider">Deposit Address ({manualNetwork})</p>
+                                        <div className="flex items-center justify-between gap-2">
+                                            <code className="text-xs font-mono text-gray-800 break-all leading-relaxed">
+                                                {ADMIN_WALLETS[manualNetwork]}
+                                            </code>
+                                            <button
+                                                onClick={() => handleCopy(ADMIN_WALLETS[manualNetwork])}
+                                                className="p-2 bg-gray-50 hover:bg-golden-50 rounded-lg transition-colors text-gray-400 hover:text-golden-600 flex-shrink-0"
+                                            >
+                                                {copied ? <CheckCircle size={18} className="text-green-500" /> : <Copy size={18} />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* QR Code Section */}
+                                    <div className="flex flex-col items-center justify-center py-4 bg-white rounded-xl shadow-sm border border-gray-200">
+                                        <div className="p-2 bg-white rounded-lg border border-gray-100 mb-2">
+                                            <img
+                                                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${ADMIN_WALLETS[manualNetwork]}`}
+                                                alt="Payment QR Code"
+                                                className="w-36 h-36"
+                                                onLoad={() => console.log('QR Code Loaded')}
+                                                onError={(e) => {
+                                                    console.error('QR Code failed to load');
+                                                    e.target.src = 'https://via.placeholder.com/150?text=QR+Code+Error';
+                                                }}
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-gray-400">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                                            <p className="text-[10px] uppercase font-bold tracking-widest">Scan with Wallet</p>
+                                        </div>
                                     </div>
                                 </div>
 

@@ -6,6 +6,10 @@ const nodemailer = require('nodemailer');
  */
 const sendEmail = async (options) => {
     try {
+        console.log(`[DEBUG] EMAIL_USER: ${process.env.EMAIL_USER}`);
+        console.log(`[DEBUG] EMAIL_HOST: ${process.env.EMAIL_HOST}`);
+        console.log(`[DEBUG] EMAIL_PORT: ${process.env.EMAIL_PORT}`);
+
         const transporter = nodemailer.createTransport({
             host: process.env.EMAIL_HOST,
             port: process.env.EMAIL_PORT,
@@ -16,10 +20,12 @@ const sendEmail = async (options) => {
             },
             tls: {
                 rejectUnauthorized: false
-            }
+            },
+            debug: true, // Enable nodemailer debug logs
+            logger: true // Log to console
         });
 
-        console.log(`Attempting to send email via ${process.env.EMAIL_HOST}:${process.env.EMAIL_PORT}...`);
+        console.log(`[EMAIL] Attempting to send to ${options.email}...`);
 
         const mailOptions = {
             from: `"${process.env.FROM_NAME || 'IVAMAX Support'}" <${process.env.EMAIL_USER}>`,
@@ -30,12 +36,11 @@ const sendEmail = async (options) => {
         };
 
         const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent successfully: %s', info.messageId);
+        console.log('[EMAIL] SUCCESS:', info.messageId);
         return info;
     } catch (error) {
-        console.error('FAILED to send email:', error);
-        // We generally don't want to crash the request if email fails, 
-        // but for registration we might want to know.
+        console.error('[EMAIL] FAILED:', error.message);
+        console.error('[EMAIL] ERROR DETAILS:', error);
         return null;
     }
 };

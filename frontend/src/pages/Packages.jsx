@@ -98,8 +98,26 @@ const Packages = () => {
             initial="hidden"
             animate="visible"
             variants={containerVariants}
-            className="py-5 flex flex-col items-center justify-center relative overflow-hidden space-y-12"
+            className="py-10 flex flex-col items-center justify-center relative overflow-hidden space-y-16"
         >
+            {/* Hero Banner Section */}
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center space-y-4 px-4 relative z-10"
+            >
+                <h1 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight">
+                    Investment <span className="text-transparent bg-clip-text bg-gradient-to-r from-golden-500 to-golden-600">Packages</span>
+                </h1>
+                <p className="text-gray-500 max-w-lg mx-auto text-sm md:text-base font-medium">
+                    Choose the perfect plan to accelerate your financial growth. Our binary-enabled packages offer the best ROI and referral rewards in the market.
+                </p>
+                <div className="flex items-center justify-center gap-4 pt-2">
+                    <div className="h-1 w-12 bg-golden-400 rounded-full"></div>
+                    <div className="h-1 w-1 bg-golden-500 rounded-full"></div>
+                    <div className="h-1 w-12 bg-golden-400 rounded-full"></div>
+                </div>
+            </motion.div>
             <PaymentModal
                 isOpen={modalOpen}
                 onClose={() => {
@@ -134,12 +152,12 @@ const Packages = () => {
                             <span className="text-white text-xs font-bold tracking-wider uppercase">Most Popular</span>
                         </motion.div>
 
-                        <h2 className="text-xl font-bold text-white mb-1">Binary Pack</h2>
+                        <h2 className="text-xl font-bold text-white mb-1">Elite Package</h2>
                         <div className="flex items-center justify-center text-white">
                             <span className="text-lg font-medium opacity-80">$</span>
                             <span className="text-4xl font-black tracking-tighter">1</span>
                         </div>
-                        <p className="text-golden-100 mt-1 text-xs font-medium">Lifetime Access (Testing)</p>
+                        <p className="text-golden-100 mt-1 text-xs font-medium">Limited Time Opportunity</p>
                     </div>
 
                     {/* Features Body */}
@@ -170,10 +188,10 @@ const Packages = () => {
                             onClick={() => handleActivate({ id: 'premium_starter', name: 'Premium Starter', price: 1 })}
                             disabled={!!packageStatus || loading}
                             className={`w-full font-bold py-3 rounded-xl shadow-lg flex items-center justify-center group overflow-hidden relative transition-all duration-300 ${packageStatus === 'active'
-                                    ? 'bg-green-600 text-white cursor-default'
-                                    : packageStatus === 'pending'
-                                        ? 'bg-yellow-500 text-white cursor-default'
-                                        : 'bg-gradient-to-r from-gray-900 to-gray-800 text-white hover:shadow-xl hover:scale-[1.02]'
+                                ? 'bg-green-600 text-white cursor-default'
+                                : packageStatus === 'pending'
+                                    ? 'bg-yellow-500 text-white cursor-default'
+                                    : 'bg-gradient-to-r from-gray-900 to-gray-800 text-white hover:shadow-xl hover:scale-[1.02]'
                                 }`}
                         >
                             <span className="relative z-10 flex items-center gap-2">

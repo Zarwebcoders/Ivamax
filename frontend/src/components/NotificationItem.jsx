@@ -26,17 +26,17 @@ const ICON_MAP = {
 const COLOR_MAP = {
     green: 'bg-green-100 text-green-600',
     blue: 'bg-blue-100 text-blue-600',
-    golden: 'bg-yellow-100 text-yellow-600',
+    golden: 'bg-golden-50 text-golden-600',
     orange: 'bg-orange-100 text-orange-600',
     purple: 'bg-purple-100 text-purple-600',
-    red: 'bg-red-100 text-red-600',
-    gray: 'bg-gray-100 text-gray-600'
+    red: 'bg-red-50 text-red-500',
+    gray: 'bg-gray-100 text-gray-400'
 };
 
 const NotificationItem = ({ notification, onMarkAsRead, onDelete }) => {
     const navigate = useNavigate();
     const Icon = ICON_MAP[notification.type] || MessageCircle;
-    const colorClass = COLOR_MAP[notification.color] || COLOR_MAP.blue;
+    const colorClass = COLOR_MAP[notification.color] || COLOR_MAP.golden;
 
     const handleClick = () => {
         if (!notification.isRead) {
@@ -57,7 +57,7 @@ const NotificationItem = ({ notification, onMarkAsRead, onDelete }) => {
     return (
         <div
             onClick={handleClick}
-            className={`px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer ${!notification.isRead ? 'bg-blue-50/50' : ''
+            className={`px-5 py-4 hover:bg-gray-50 transition-all cursor-pointer border-b border-gray-50 last:border-0 ${!notification.isRead ? 'bg-golden-50/30' : ''
                 }`}
         >
             <div className="flex items-start gap-3">
@@ -93,7 +93,7 @@ const NotificationItem = ({ notification, onMarkAsRead, onDelete }) => {
 
                 {/* Unread Indicator */}
                 {!notification.isRead && (
-                    <div className="flex-shrink-0 w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
+                    <div className="flex-shrink-0 w-2.5 h-2.5 bg-golden-500 rounded-full mt-2 shadow-lg shadow-golden-200 animate-pulse"></div>
                 )}
             </div>
         </div>

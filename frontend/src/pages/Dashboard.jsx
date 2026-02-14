@@ -2,9 +2,10 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Users, Crown, DollarSign, Clock, Landmark, PieChart, ArrowRightLeft, Trophy, Target, TreeDeciduous, BarChart3, CircleDollarSign, Briefcase, Copy, Check, MessageCircle, Send, Award, ExternalLink, UserPlus } from 'lucide-react';
+import { TrendingUp, Users, Crown, DollarSign, Clock, Landmark, PieChart, ArrowRightLeft, Trophy, Target, TreeDeciduous, BarChart3, CircleDollarSign, Briefcase, Copy, Check, MessageCircle, Send, Award, ExternalLink, UserPlus, Bell } from 'lucide-react';
 import { announcementService } from '../services/announcement.service';
 import { dashboardService } from '../services/dashboard.service';
+import { getNotifications } from '../services/notification.service';
 import NewsTicker from '../components/NewsTicker';
 import ReferralCard from '../components/ReferralCard';
 
@@ -12,6 +13,7 @@ const Dashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [stats, setStats] = useState({});
+    const [notifications, setNotifications] = useState([]);
 
     // Banner states
     const [banners, setBanners] = useState([]);
@@ -27,22 +29,24 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Parallel fetch for stats and announcements
-                const [statsResponse, announcementsResponse] = await Promise.all([
+                // Parallel fetch for stats, announcements, and notifications
+                const [statsResponse, announcementsResponse, notificationsResponse] = await Promise.all([
                     dashboardService.getStats(),
-                    announcementService.getActiveAnnouncements()
+                    announcementService.getActiveAnnouncements(),
+                    getNotifications({ limit: 5 })
                 ]);
 
                 if (statsResponse.success) {
                     setStats(prev => ({ ...prev, ...statsResponse.data }));
-
-
                 }
 
                 if (announcementsResponse.success) {
-                    // Filter for banners
                     const bannerItems = announcementsResponse.data.filter(a => a.type === 'banner');
                     setBanners(bannerItems);
+                }
+
+                if (notificationsResponse.success) {
+                    setNotifications(notificationsResponse.data.slice(0, 5));
                 }
 
             } catch (error) {
@@ -310,206 +314,83 @@ const Dashboard = () => {
             {/* Referral / Network Section */}
             {/*       */}
 
-            {/* Business Overview Section */}
+            {/* Business Overview & Notifications Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Desktop and Tablet: Business Overview */}
-                {!isMobile && (
-                    <div className="lg:col-span-2 bg-white rounded-3xl p-8 border border-gray-100 shadow-xl overflow-hidden min-h-[500px]">
-                        <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-2xl font-black text-gray-900">Business Overview</h3>
+                {/* Business Overview */}
+                <div className="lg:col-span-2 bg-white rounded-3xl p-8 border border-gray-400 shadow-xl overflow-hidden min-h-[400px]">
+                    <div className="flex items-center justify-between mb-8">
+                        <h3 className="text-2xl font-black text-gray-900">Business Overview</h3>
+                        <Briefcase className="text-gray-400" size={24} />
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                        <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100">
+                            <p className="text-blue-600 font-bold uppercase tracking-wider text-xs mb-1">Left Pairs</p>
+                            <h4 className="text-4xl font-black text-gray-900">{stats.leftPairs || 0}</h4>
                         </div>
-
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6">
-                            {/* Left Pairs Card */}
-                            <div className="bg-blue-50/50 rounded-2xl p-4 md:p-6 border border-blue-100 flex flex-col justify-between">
-                                <div className="flex justify-between items-start mb-2 md:mb-4">
-                                    <span className="text-blue-600 font-bold uppercase tracking-wider text-[10px] md:text-sm">Left Pairs</span>
-                                    <div className="bg-blue-500 text-white p-1 rounded hidden md:block">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                                    </div>
-                                </div>
-                                <h4 className="text-2xl md:text-4xl font-black text-gray-900">{stats.leftPairs || 0}</h4>
-                            </div>
-
-                            {/* Right Pairs Card */}
-                            <div className="bg-emerald-50/50 rounded-2xl p-4 md:p-6 border border-emerald-100 flex flex-col justify-between">
-                                <div className="flex justify-between items-start mb-2 md:mb-4">
-                                    <span className="text-emerald-600 font-bold uppercase tracking-wider text-[10px] md:text-sm">Right Pairs</span>
-                                    <div className="bg-emerald-500 text-white p-1 rounded hidden md:block">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                                    </div>
-                                </div>
-                                <h4 className="text-2xl md:text-4xl font-black text-gray-900">{stats.rightPairs || 0}</h4>
-                            </div>
-
-                            {/* Matching Progress */}
-                            <div className="col-span-2 md:col-span-1 bg-amber-50 rounded-2xl p-4 md:p-6 border border-amber-100 flex flex-col justify-between">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-amber-600 font-bold uppercase tracking-wider text-xs md:text-sm">Matching</span>
-                                    <Target className="text-amber-500" size={20} />
-                                </div>
-                                <div>
-                                    <div className="flex items-end gap-2 mb-2">
-                                        <h4 className="text-3xl md:text-4xl font-black text-gray-900">{Math.min(stats.leftPairs || 0, stats.rightPairs || 0)}</h4>
-                                    </div>
-                                    <div className="h-2 w-full bg-amber-200 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-amber-500"
-                                            style={{ width: `${stats.rightPairs > 0 && stats.leftPairs > 0 ? (Math.min(stats.leftPairs, stats.rightPairs) / Math.max(stats.leftPairs, stats.rightPairs)) * 100 : 0}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Current Rank Card */}
-                            <div className="bg-purple-50/50 rounded-2xl p-4 md:p-6 border border-purple-100 shadow-sm hover:shadow-md transition-shadow">
-                                <div className="flex justify-between items-start mb-2 md:mb-4">
-                                    <span className="text-purple-600 font-bold uppercase tracking-wider text-[10px] md:text-sm">Current Rank</span>
-                                    <div className="bg-purple-500 text-white p-1.5 md:p-2 rounded-lg shadow-purple-200 shadow-lg hidden md:block">
-                                        <Crown size={20} />
-                                    </div>
-                                </div>
-                                <h4 className="text-lg md:text-3xl font-black text-gray-900 truncate uppercase tracking-tight">{stats.currentRank || 'Member'}</h4>
-                            </div>
-
-                            {/* Closing Rank Card */}
-                            <div className="bg-orange-50/50 rounded-2xl p-4 md:p-6 border border-orange-100 shadow-sm hover:shadow-md transition-shadow">
-                                <div className="flex justify-between items-start mb-2 md:mb-4">
-                                    <span className="text-orange-600 font-bold uppercase tracking-wider text-[10px] md:text-sm">Closing Rank</span>
-                                    <div className="bg-orange-500 text-white p-1.5 md:p-2 rounded-lg shadow-orange-200 shadow-lg hidden md:block">
-                                        <Award size={20} />
-                                    </div>
-                                </div>
-                                <h4 className="text-lg md:text-3xl font-black text-gray-900 truncate uppercase tracking-tight">{stats.closingRank || 'None'}</h4>
-                            </div>
+                        <div className="bg-emerald-50/50 rounded-2xl p-6 border border-emerald-100">
+                            <p className="text-emerald-600 font-bold uppercase tracking-wider text-xs mb-1">Right Pairs</p>
+                            <h4 className="text-4xl font-black text-gray-900">{stats.rightPairs || 0}</h4>
+                        </div>
+                        <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100">
+                            <p className="text-amber-600 font-bold uppercase tracking-wider text-xs mb-1">Matching</p>
+                            <h4 className="text-4xl font-black text-gray-900">{Math.min(stats.leftPairs || 0, stats.rightPairs || 0)}</h4>
                         </div>
                     </div>
-                )}
 
-                {/* Mobile View: Business Tab */}
-                {isMobile && activeTab === 'business' && (
-                    <div className="lg:col-span-2 min-h-[500px]">
-                        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-xl overflow-hidden h-full">
-                            <div className="flex items-center justify-between mb-8">
-                                <h3 className="text-xl font-black text-gray-900">Business Overview</h3>
-                                {/* No Flip Button on Mobile */}
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3 mb-6">
-                                {/* Left Pairs Card */}
-                                <div className="bg-blue-50/50 rounded-2xl p-4 border border-blue-100 flex flex-col justify-between">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <span className="text-blue-600 font-bold uppercase tracking-wider text-[10px]">Left Pairs</span>
-                                    </div>
-                                    <h4 className="text-2xl font-black text-gray-900">{stats.leftPairs || 0}</h4>
-                                </div>
-
-                                {/* Right Pairs Card */}
-                                <div className="bg-emerald-50/50 rounded-2xl p-4 border border-emerald-100 flex flex-col justify-between">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <span className="text-emerald-600 font-bold uppercase tracking-wider text-[10px]">Right Pairs</span>
-                                    </div>
-                                    <h4 className="text-2xl font-black text-gray-900">{stats.rightPairs || 0}</h4>
-                                </div>
-
-                                {/* Matching Progress - Full Width */}
-                                <div className="col-span-2 bg-amber-50 rounded-2xl p-4 border border-amber-100 flex flex-col justify-between">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-amber-600 font-bold uppercase tracking-wider text-xs">Matching</span>
-                                        <Target className="text-amber-500" size={20} />
-                                    </div>
-                                    <div>
-                                        <div className="flex items-end gap-2 mb-2">
-                                            <h4 className="text-3xl font-black text-gray-900">{Math.min(stats.leftPairs || 0, stats.rightPairs || 0)}</h4>
-                                        </div>
-                                        <div className="h-2 w-full bg-amber-200 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-amber-500"
-                                                style={{ width: `${stats.rightPairs > 0 && stats.leftPairs > 0 ? (Math.min(stats.leftPairs, stats.rightPairs) / Math.max(stats.leftPairs, stats.rightPairs)) * 100 : 0}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Current Rank Card */}
-                                <div className="bg-purple-50/50 rounded-2xl p-4 border border-purple-100 shadow-sm">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <span className="text-purple-600 font-bold uppercase tracking-wider text-[10px]">Current Rank</span>
-                                    </div>
-                                    <h4 className="text-lg font-black text-gray-900 truncate uppercase tracking-tight">{stats.currentRank || 'Member'}</h4>
-                                </div>
-
-                                {/* Closing Rank Card */}
-                                <div className="bg-orange-50/50 rounded-2xl p-4 border border-orange-100 shadow-sm">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <span className="text-orange-600 font-bold uppercase tracking-wider text-[10px]">Closing Rank</span>
-                                    </div>
-                                    <h4 className="text-lg font-black text-gray-900 truncate uppercase tracking-tight">{stats.closingRank || 'None'}</h4>
-                                </div>
-                            </div>
+                    <div className="mt-8 flex justify-between items-center bg-gray-50 rounded-2xl p-4 border border-gray-200">
+                        <div>
+                            <p className="text-gray-500 text-xs font-bold uppercase">Current Rank</p>
+                            <p className="text-xl font-black text-gray-900 uppercase">{stats.currentRank}</p>
+                        </div>
+                        <div className="w-12 h-12 bg-golden-100 rounded-xl flex items-center justify-center">
+                            <Trophy className="text-golden-600" size={24} />
                         </div>
                     </div>
-                )}
+                </div>
 
-                {/* Mobile View: Referral Tab */}
+                {/* Notifications Panel */}
+                <div className="lg:col-span-1 bg-white rounded-3xl p-8 border border-gray-400 shadow-xl flex flex-col">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-2xl font-black text-gray-900">Notifications</h3>
+                        <Bell className="text-gray-400" size={24} />
+                    </div>
 
+                    <div className="space-y-4 flex-1 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
+                        {notifications.length > 0 ? (
+                            notifications.map((notif, idx) => (
+                                <motion.div
+                                    key={notif._id}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    className="p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:border-golden-200 transition-colors"
+                                >
+                                    <div className="flex gap-3">
+                                        <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${notif.isRead ? 'bg-gray-300' : 'bg-golden-500 animate-pulse'}`}></div>
+                                        <div>
+                                            <p className="text-sm font-bold text-gray-900 line-clamp-1">{notif.title}</p>
+                                            <p className="text-xs text-gray-500 line-clamp-2 mt-1">{notif.message}</p>
+                                            <p className="text-[10px] text-gray-400 mt-2">{new Date(notif.createdAt).toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-full text-center py-10">
+                                <MessageCircle className="text-gray-200 mb-3" size={48} />
+                                <p className="text-gray-400 text-sm font-medium">No new notifications</p>
+                            </div>
+                        )}
+                    </div>
 
-                {/* Rank Card */}
-                {(!isMobile || activeTab === 'rank') && (
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.5 }}
-                        className="bg-[#0F172A] rounded-3xl p-[2px] shadow-2xl relative group h-full"
+                    <button
+                        onClick={() => navigate('/notifications')}
+                        className="mt-6 w-full py-4 rounded-2xl bg-gray-900 text-white font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all"
                     >
-                        {/* Golden Gradient Border */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-500 rounded-3xl opacity-80 group-hover:opacity-100 transition-opacity"></div>
-
-                        <div className="relative bg-[#0F172A] rounded-[22px] p-6 h-full flex flex-col items-center text-center w-full">
-
-                            {/* Icon */}
-                            <div className="w-16 h-16 bg-[#3D2B1F]/80 rounded-2xl flex items-center justify-center mb-4 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
-                                <Trophy className="text-[#F59E0B] drop-shadow-md" size={32} />
-                            </div>
-
-                            <h4 className="text-[#F59E0B] font-medium text-sm mb-1 tracking-wider uppercase">Your Current Rank</h4>
-                            <h2 className="text-4xl font-black text-white mb-6 tracking-wide drop-shadow-lg uppercase">{stats.currentRank}</h2>
-
-                            {/* Royalty Detail Card */}
-                            <div className="w-full bg-[#1E293B] rounded-xl p-4 mb-6 border border-gray-700/50 text-left relative overflow-hidden group/royalty">
-                                {/* Glow */}
-                                <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 blur-2xl rounded-full -mr-8 -mt-8 pointer-events-none"></div>
-
-                                <div className="flex justify-between items-start mb-1 relative z-10">
-                                    <span className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Royalty Percentage</span>
-                                    <Target className="text-[#F59E0B]" size={16} />
-                                </div>
-                                <div className="flex items-baseline gap-2 relative z-10">
-                                    <span className="text-3xl font-bold text-white">{stats.royaltyPercentage || '0'}%</span>
-                                    <span className="text-[10px] text-[#F59E0B] font-medium leading-none self-center">of network<br />earnings</span>
-                                </div>
-                            </div>
-
-                            {/* Next Rank Progress */}
-                            <div className="w-full mt-auto">
-                                <div className="flex justify-between items-end mb-2">
-                                    <span className="text-gray-500 text-xs font-semibold">Next Rank</span>
-                                    <span className="text-[#F59E0B] text-xs font-extrabold uppercase tracking-wider">{stats.nextRankName || 'NEXT LEVEL'}</span>
-                                </div>
-                                <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden mb-2 shadow-inner">
-                                    <motion.div
-                                        initial={{ width: 0 }}
-                                        animate={{ width: `${stats.rankProgress || 0}%` }}
-                                        className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.6)]"
-                                    />
-                                </div>
-                                <p className="text-gray-500 text-[10px] text-center font-medium">
-                                    <span className="text-gray-300">{stats.rankProgress || 0}%</span> progress to next rank
-                                </p>
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
+                        View All Notifications
+                    </button>
+                </div>
             </div>
 
             {/* Financial Overview - Moved to Withdrawals page */}
