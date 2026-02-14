@@ -238,45 +238,24 @@ const Support = () => {
                             <Mail size={16} className="text-blue-600" />
                             Ticket Type <span className="text-red-500">*</span>
                         </label>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                            {typeOptions.map(option => (
-                                <div
-                                    key={option.value}
-                                    onClick={() => setFormData({ ...formData, type: option.value })}
-                                    className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.type === option.value
-                                        ? option.color === 'blue'
-                                            ? 'border-blue-500 bg-blue-50 shadow-md shadow-blue-200'
-                                            : option.color === 'red'
-                                                ? 'border-red-500 bg-red-50 shadow-md shadow-red-200'
-                                                : 'border-green-500 bg-green-50 shadow-md shadow-green-200'
-                                        : 'border-gray-300 bg-white hover:border-gray-400 hover:shadow-md'
-                                        }`}
-                                >
-                                    <div className="flex items-start gap-3">
-                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${formData.type === option.value
-                                            ? option.color === 'blue'
-                                                ? 'border-blue-500'
-                                                : option.color === 'red'
-                                                    ? 'border-red-500'
-                                                    : 'border-green-500'
-                                            : 'border-gray-300'
-                                            }`}>
-                                            {formData.type === option.value && (
-                                                <div className={`w-3 h-3 rounded-full ${option.color === 'blue'
-                                                    ? 'bg-blue-500'
-                                                    : option.color === 'red'
-                                                        ? 'bg-red-500'
-                                                        : 'bg-green-500'
-                                                    }`}></div>
-                                            )}
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="font-bold text-gray-800 mb-1">{option.label}</p>
-                                            <p className="text-xs text-gray-500">{option.email}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
+                        <div className="relative">
+                            <select
+                                name="type"
+                                value={formData.type}
+                                onChange={handleChange}
+                                className="w-full px-4 py-3.5 bg-white border-2 border-gray-300 rounded-xl appearance-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all cursor-pointer hover:border-blue-400 font-medium text-gray-700"
+                                required
+                            >
+                                <option value="" disabled>Select Ticket Type</option>
+                                {typeOptions.map(option => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                            </div>
                         </div>
                     </div>
 
@@ -286,29 +265,24 @@ const Support = () => {
                             <HelpCircle size={16} className="text-purple-600" />
                             Subject <span className="text-red-500">*</span>
                         </label>
-                        <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
-                            {subjectOptions.map(option => (
-                                <div
-                                    key={option.value}
-                                    onClick={() => setFormData({ ...formData, subject: option.value })}
-                                    className={`relative p-3 rounded-xl border-2 cursor-pointer transition-all ${formData.subject === option.value
-                                        ? 'border-purple-500 bg-purple-50 shadow-md shadow-purple-200'
-                                        : 'border-gray-300 bg-white hover:border-purple-300 hover:bg-purple-50/30'
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.subject === option.value ? 'border-purple-500' : 'border-gray-300'
-                                            }`}>
-                                            {formData.subject === option.value && (
-                                                <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                                            )}
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="font-semibold text-gray-800 text-sm">{option.label}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
+                        <div className="relative">
+                            <select
+                                name="subject"
+                                value={formData.subject}
+                                onChange={handleChange}
+                                className="w-full px-4 py-3.5 bg-white border-2 border-gray-300 rounded-xl appearance-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 focus:outline-none transition-all cursor-pointer hover:border-purple-400 font-medium text-gray-700"
+                                required
+                            >
+                                <option value="" disabled>Select Subject</option>
+                                {subjectOptions.map(option => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                            </div>
                         </div>
                     </div>
 

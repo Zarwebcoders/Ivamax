@@ -157,23 +157,7 @@ const Packages = () => {
                         {/* Decorative Line */}
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-golden-300 to-golden-500 rounded-b-full"></div>
 
-                        <ul className="space-y-4 mb-8 mt-4">
-                            {features.map((feature, idx) => (
-                                <motion.li
-                                    key={idx}
-                                    variants={{
-                                        hidden: { opacity: 0, x: -20 },
-                                        visible: { opacity: 1, x: 0 }
-                                    }}
-                                    className="flex items-center text-gray-700"
-                                >
-                                    <div className="mr-3 flex-shrink-0 w-5 h-5 rounded-full bg-golden-100 flex items-center justify-center text-golden-600">
-                                        <Check size={12} strokeWidth={3} />
-                                    </div>
-                                    <span className="font-medium text-xs md:text-sm">{feature}</span>
-                                </motion.li>
-                            ))}
-                        </ul>
+                        <div className="mb-8 mt-4"></div>
 
                         {/* CTA Button */}
                         <button

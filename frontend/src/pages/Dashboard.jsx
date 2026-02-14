@@ -260,19 +260,19 @@ const Dashboard = () => {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-grow items-start">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 flex-grow items-start">
                                 {/* Left Pairs Card */}
                                 <motion.div
                                     variants={cardVariants}
                                     whileHover={{ scale: 1.05, rotate: 1 }}
-                                    className="bg-[#f0f7ff] rounded-3xl p-6 border border-[#e0f0ff] relative group"
+                                    className="bg-[#f0f7ff] rounded-3xl p-4 md:p-6 border border-[#e0f0ff] relative group col-span-1"
                                 >
-                                    <div className="absolute top-6 right-6 p-2 bg-white/80 rounded-lg text-[#3b82f6] shadow-sm">
-                                        <ArrowLeftRight size={18} className="rotate-180" />
+                                    <div className="absolute top-4 right-4 md:top-6 md:right-6 p-1.5 md:p-2 bg-white/80 rounded-lg text-[#3b82f6] shadow-sm">
+                                        <ArrowLeftRight size={14} className="rotate-180 md:w-[18px] md:h-[18px]" />
                                     </div>
-                                    <p className="text-[#3b82f6] font-bold text-sm tracking-tight mb-6">Left Pairs</p>
-                                    <h4 className="text-[52px] font-black text-[#0f172a] leading-none mb-6">{stats.leftPairs || 0}</h4>
-                                    <div className="w-full h-1.5 bg-[#dbeafe] rounded-full overflow-hidden">
+                                    <p className="text-[#3b82f6] font-bold text-xs md:text-sm tracking-tight mb-3 md:mb-6">Left Pairs</p>
+                                    <h4 className="text-2xl md:text-[52px] font-black text-[#0f172a] leading-none mb-3 md:mb-6">{stats.leftPairs || 0}</h4>
+                                    <div className="w-full h-1 md:h-1.5 bg-[#dbeafe] rounded-full overflow-hidden">
                                         <div className="h-full bg-[#3b82f6] w-[15%]" />
                                     </div>
                                 </motion.div>
@@ -281,52 +281,52 @@ const Dashboard = () => {
                                 <motion.div
                                     variants={cardVariants}
                                     whileHover={{ scale: 1.05, rotate: -1 }}
-                                    className="bg-[#f0fdf4] rounded-3xl p-6 border border-[#dcfce7] relative group"
+                                    className="bg-[#f0fdf4] rounded-3xl p-4 md:p-6 border border-[#dcfce7] relative group col-span-1"
                                 >
-                                    <div className="absolute top-6 right-6 p-2 bg-white/80 rounded-lg text-[#22c55e] shadow-sm">
-                                        <ArrowLeftRight size={18} />
+                                    <div className="absolute top-4 right-4 md:top-6 md:right-6 p-1.5 md:p-2 bg-white/80 rounded-lg text-[#22c55e] shadow-sm">
+                                        <ArrowLeftRight size={14} className="md:w-[18px] md:h-[18px]" />
                                     </div>
-                                    <p className="text-[#22c55e] font-bold text-sm tracking-tight mb-6">Right Pairs</p>
-                                    <h4 className="text-[52px] font-black text-[#0f172a] leading-none mb-6">{stats.rightPairs || 0}</h4>
-                                    <div className="w-full h-1.5 bg-[#dcfce7] rounded-full overflow-hidden">
+                                    <p className="text-[#22c55e] font-bold text-xs md:text-sm tracking-tight mb-3 md:mb-6">Right Pairs</p>
+                                    <h4 className="text-2xl md:text-[52px] font-black text-[#0f172a] leading-none mb-3 md:mb-6">{stats.rightPairs || 0}</h4>
+                                    <div className="w-full h-1 md:h-1.5 bg-[#dcfce7] rounded-full overflow-hidden">
                                         <div className="h-full bg-[#22c55e] w-[10%]" />
                                     </div>
                                 </motion.div>
 
-                                {/* Matching Progress Card */}
+                                {/* Matching Progress Card - Full Width on Mobile */}
                                 <motion.div
                                     variants={cardVariants}
                                     whileHover={{ scale: 1.05, y: -5 }}
-                                    className="bg-[#fffbeb] rounded-3xl p-6 border border-[#fef3c7] relative group shadow-sm"
+                                    className="bg-[#fffbeb] rounded-3xl p-4 md:p-6 border border-[#fef3c7] relative group shadow-sm col-span-2 md:col-span-1"
                                 >
-                                    <div className="absolute top-6 right-6 p-2 bg-white/80 rounded-lg text-[#f59e0b] shadow-sm">
-                                        <Target size={18} />
+                                    <div className="absolute top-4 right-4 md:top-6 md:right-6 p-1.5 md:p-2 bg-white/80 rounded-lg text-[#f59e0b] shadow-sm">
+                                        <Target size={14} className="md:w-[18px] md:h-[18px]" />
                                     </div>
-                                    <p className="text-[#f59e0b] font-bold text-sm tracking-tight mb-6">Matching Progress</p>
-                                    <h4 className="text-[52px] font-black text-[#0f172a] leading-none mb-6">{matchingCount}</h4>
+                                    <p className="text-[#f59e0b] font-bold text-xs md:text-sm tracking-tight mb-3 md:mb-6">Matching Progress</p>
+                                    <h4 className="text-3xl md:text-[52px] font-black text-[#0f172a] leading-none mb-3 md:mb-6">{matchingCount}</h4>
                                     <div className="flex items-center justify-between mb-2">
                                         <div className="flex-grow h-1.5 bg-[#fef3c7] rounded-full overflow-hidden mr-3">
                                             <div className="h-full bg-[#f59e0b]" style={{ width: `${matchingPercent}%` }} />
                                         </div>
-                                        <span className="text-[14px] font-black text-[#f59e0b] whitespace-nowrap">{matchingPercent}%</span>
+                                        <span className="text-xs md:text-[14px] font-black text-[#f59e0b] whitespace-nowrap">{matchingPercent}%</span>
                                     </div>
                                 </motion.div>
 
-                                {/* Row 2: Rank Details */}
+                                {/* Row 2: Rank Details - Side by Side on Mobile */}
                                 {/* Current Rank Card */}
                                 <motion.div
                                     variants={cardVariants}
                                     whileHover={{ scale: 1.05 }}
-                                    className="bg-[#faf5ff] rounded-3xl p-6 border border-[#f3e8ff] relative group"
+                                    className="bg-[#faf5ff] rounded-3xl p-4 md:p-6 border border-[#f3e8ff] relative group col-span-1"
                                 >
-                                    <div className="absolute top-6 right-6 p-2 bg-white/80 rounded-lg text-[#a855f7] shadow-sm">
-                                        <Trophy size={18} />
+                                    <div className="absolute top-4 right-4 md:top-6 md:right-6 p-1.5 md:p-2 bg-white/80 rounded-lg text-[#a855f7] shadow-sm">
+                                        <Trophy size={14} className="md:w-[18px] md:h-[18px]" />
                                     </div>
-                                    <p className="text-[#a855f7] font-bold text-sm tracking-tight mb-6">Current Rank</p>
-                                    <h4 className="text-[36px] font-black text-[#0f172a] leading-none uppercase tracking-tight mb-6">
+                                    <p className="text-[#a855f7] font-bold text-xs md:text-sm tracking-tight mb-3 md:mb-6">Current Rank</p>
+                                    <h4 className="text-xl md:text-[36px] font-black text-[#0f172a] leading-none uppercase tracking-tight mb-3 md:mb-6 truncate">
                                         {stats.currentRank || 'MEMBER'}
                                     </h4>
-                                    <div className="w-full h-1.5 bg-[#f3e8ff] rounded-full overflow-hidden">
+                                    <div className="w-full h-1 md:h-1.5 bg-[#f3e8ff] rounded-full overflow-hidden">
                                         <div className="h-full bg-[#a855f7] w-full" />
                                     </div>
                                 </motion.div>
@@ -335,16 +335,16 @@ const Dashboard = () => {
                                 <motion.div
                                     variants={cardVariants}
                                     whileHover={{ scale: 1.05 }}
-                                    className="bg-golden-50 rounded-3xl p-6 border border-golden-100 relative group"
+                                    className="bg-golden-50 rounded-3xl p-4 md:p-6 border border-golden-100 relative group col-span-1"
                                 >
-                                    <div className="absolute top-6 right-6 p-2 bg-white/80 rounded-lg text-golden-600 shadow-sm">
-                                        <Award size={18} />
+                                    <div className="absolute top-4 right-4 md:top-6 md:right-6 p-1.5 md:p-2 bg-white/80 rounded-lg text-golden-600 shadow-sm">
+                                        <Award size={14} className="md:w-[18px] md:h-[18px]" />
                                     </div>
-                                    <p className="text-golden-600 font-bold text-sm tracking-tight mb-6">Closing Rank</p>
-                                    <h4 className="text-[36px] font-black text-gray-900 leading-none uppercase tracking-tight mb-6">
+                                    <p className="text-golden-600 font-bold text-xs md:text-sm tracking-tight mb-3 md:mb-6">Closing Rank</p>
+                                    <h4 className="text-xl md:text-[36px] font-black text-gray-900 leading-none uppercase tracking-tight mb-3 md:mb-6 truncate">
                                         {stats.nextRankName || 'GOLD'}
                                     </h4>
-                                    <div className="w-full h-1.5 bg-golden-200 rounded-full overflow-hidden">
+                                    <div className="w-full h-1 md:h-1.5 bg-golden-200 rounded-full overflow-hidden">
                                         <div className="h-full bg-golden-500" style={{ width: `${stats.rankProgress || 0}%` }} />
                                     </div>
                                 </motion.div>
@@ -353,7 +353,7 @@ const Dashboard = () => {
                     )}
 
                     {/* Rank Status - Right Section (Dark Design from image) */}
-                    {(!isMobile || activeTab === 'overview' || activeTab === 'rank') && (
+                    {(!isMobile || activeTab === 'rank') && (
                         <motion.div
                             variants={cardVariants}
                             whileHover={{ scale: 1.02 }}
@@ -413,7 +413,7 @@ const Dashboard = () => {
             )}
 
             {/* Income Cards */}
-            {(!isMobile || activeTab === 'income' || activeTab === 'overview') && (
+            {(!isMobile || activeTab === 'income') && (
                 <motion.div
                     variants={containerVariants}
                     className="grid grid-cols-2 lg:grid-cols-4 gap-4"
@@ -443,7 +443,7 @@ const Dashboard = () => {
             )}
 
             {/* Quick Actions */}
-            {(!isMobile || activeTab === 'actions' || activeTab === 'overview') && (
+            {(!isMobile || activeTab === 'actions') && (
                 <motion.div
                     variants={cardVariants}
                     className="bg-white rounded-[40px] p-8 border border-gray-100 shadow-xl"
