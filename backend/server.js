@@ -21,6 +21,9 @@ initCronJobs();
 const allowedOrigins = [
     'http://localhost:5173',
     'https://ivamax-frontend.vercel.app',
+    'https://ivamax-live.vercel.app', // Added new domain
+    'https://ivamax.live', // Added custom domain
+    'https://www.ivamax.live', // Added www custom domain
     'http://192.168.1.3:5173',
     'https://ivamax.vercel.app'
 ];

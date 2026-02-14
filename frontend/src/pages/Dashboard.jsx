@@ -93,8 +93,43 @@ const Dashboard = () => {
     const matchingCount = Math.min(leftPairs, rightPairs);
     const matchingPercent = Math.round((matchingCount / maxPairs) * 100);
 
+    // Animation Variants
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1,
+                delayChildren: 0.2
+            }
+        }
+    };
+
+    const cardVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: {
+                type: "spring",
+                stiffness: 100,
+                damping: 15
+            }
+        }
+    };
+
+    const scaleOnHover = {
+        scale: 1.02,
+        transition: { type: "spring", stiffness: 300 }
+    };
+
     return (
-        <div className="space-y-6 pb-20 md:pb-10">
+        <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="space-y-6 pb-20 md:pb-10"
+        >
             <NewsTicker />
 
             {/* Account Activation Notice */}
@@ -146,8 +181,14 @@ const Dashboard = () => {
 
             {/* Hero Section / Welcome - MOVED TO TOP */}
             {(!isMobile || activeTab === 'overview') && (
-                <div className="space-y-6">
-                    <div className="relative overflow-hidden rounded-[40px] bg-gradient-to-br from-[#E6C65C] to-[#D4AF37] p-10 shadow-xl text-black">
+                <motion.div
+                    variants={cardVariants}
+                    className="space-y-6"
+                >
+                    <motion.div
+                        whileHover={{ scale: 1.01 }}
+                        className="relative overflow-hidden rounded-[40px] bg-gradient-to-br from-[#E6C65C] to-[#D4AF37] p-10 shadow-xl text-black"
+                    >
                         <div className="relative z-10 mb-8">
                             <h1 className="text-4xl md:text-6xl font-black tracking-tight text-gray-900">
                                 Welcome back, {user?.fullName?.split(' ')[0] || 'Partner'}! 👋
@@ -195,16 +236,23 @@ const Dashboard = () => {
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
             )}
 
             {/* Business & Rank Section */}
             {(!isMobile || activeTab === 'overview' || activeTab === 'business' || activeTab === 'rank') && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <motion.div
+                    variants={containerVariants}
+                    className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+                >
                     {/* Business Overview - Left Section (2/3 width on desktop) */}
                     {(!isMobile || activeTab === 'overview' || activeTab === 'business') && (
-                        <div className="lg:col-span-2 bg-white rounded-[40px] p-8 border border-gray-100 shadow-xl overflow-hidden min-h-[480px] flex flex-col">
+                        <motion.div
+                            variants={cardVariants}
+                            whileHover={scaleOnHover}
+                            className="lg:col-span-2 bg-white rounded-[40px] p-8 border border-gray-100 shadow-xl overflow-hidden min-h-[480px] flex flex-col"
+                        >
                             <div className="flex items-center justify-between mb-10 text-[#0f172a]">
                                 <h3 className="text-[28px] font-black tracking-tight">Business Overview</h3>
                                 <div className="p-2 bg-[#f1f5f9] rounded-xl text-blue-500 cursor-pointer hover:bg-blue-50 transition-colors">
@@ -214,7 +262,11 @@ const Dashboard = () => {
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-grow items-start">
                                 {/* Left Pairs Card */}
-                                <div className="bg-[#f0f7ff] rounded-3xl p-6 border border-[#e0f0ff] relative group">
+                                <motion.div
+                                    variants={cardVariants}
+                                    whileHover={{ scale: 1.05, rotate: 1 }}
+                                    className="bg-[#f0f7ff] rounded-3xl p-6 border border-[#e0f0ff] relative group"
+                                >
                                     <div className="absolute top-6 right-6 p-2 bg-white/80 rounded-lg text-[#3b82f6] shadow-sm">
                                         <ArrowLeftRight size={18} className="rotate-180" />
                                     </div>
@@ -223,10 +275,14 @@ const Dashboard = () => {
                                     <div className="w-full h-1.5 bg-[#dbeafe] rounded-full overflow-hidden">
                                         <div className="h-full bg-[#3b82f6] w-[15%]" />
                                     </div>
-                                </div>
+                                </motion.div>
 
                                 {/* Right Pairs Card */}
-                                <div className="bg-[#f0fdf4] rounded-3xl p-6 border border-[#dcfce7] relative group">
+                                <motion.div
+                                    variants={cardVariants}
+                                    whileHover={{ scale: 1.05, rotate: -1 }}
+                                    className="bg-[#f0fdf4] rounded-3xl p-6 border border-[#dcfce7] relative group"
+                                >
                                     <div className="absolute top-6 right-6 p-2 bg-white/80 rounded-lg text-[#22c55e] shadow-sm">
                                         <ArrowLeftRight size={18} />
                                     </div>
@@ -235,10 +291,14 @@ const Dashboard = () => {
                                     <div className="w-full h-1.5 bg-[#dcfce7] rounded-full overflow-hidden">
                                         <div className="h-full bg-[#22c55e] w-[10%]" />
                                     </div>
-                                </div>
+                                </motion.div>
 
                                 {/* Matching Progress Card */}
-                                <div className="bg-[#fffbeb] rounded-3xl p-6 border border-[#fef3c7] relative group shadow-sm">
+                                <motion.div
+                                    variants={cardVariants}
+                                    whileHover={{ scale: 1.05, y: -5 }}
+                                    className="bg-[#fffbeb] rounded-3xl p-6 border border-[#fef3c7] relative group shadow-sm"
+                                >
                                     <div className="absolute top-6 right-6 p-2 bg-white/80 rounded-lg text-[#f59e0b] shadow-sm">
                                         <Target size={18} />
                                     </div>
@@ -250,11 +310,15 @@ const Dashboard = () => {
                                         </div>
                                         <span className="text-[14px] font-black text-[#f59e0b] whitespace-nowrap">{matchingPercent}%</span>
                                     </div>
-                                </div>
+                                </motion.div>
 
                                 {/* Row 2: Rank Details */}
                                 {/* Current Rank Card */}
-                                <div className="bg-[#faf5ff] rounded-3xl p-6 border border-[#f3e8ff] relative group">
+                                <motion.div
+                                    variants={cardVariants}
+                                    whileHover={{ scale: 1.05 }}
+                                    className="bg-[#faf5ff] rounded-3xl p-6 border border-[#f3e8ff] relative group"
+                                >
                                     <div className="absolute top-6 right-6 p-2 bg-white/80 rounded-lg text-[#a855f7] shadow-sm">
                                         <Trophy size={18} />
                                     </div>
@@ -265,10 +329,14 @@ const Dashboard = () => {
                                     <div className="w-full h-1.5 bg-[#f3e8ff] rounded-full overflow-hidden">
                                         <div className="h-full bg-[#a855f7] w-full" />
                                     </div>
-                                </div>
+                                </motion.div>
 
                                 {/* Closing Rank / Next Milestone Card */}
-                                <div className="bg-golden-50 rounded-3xl p-6 border border-golden-100 relative group">
+                                <motion.div
+                                    variants={cardVariants}
+                                    whileHover={{ scale: 1.05 }}
+                                    className="bg-golden-50 rounded-3xl p-6 border border-golden-100 relative group"
+                                >
                                     <div className="absolute top-6 right-6 p-2 bg-white/80 rounded-lg text-golden-600 shadow-sm">
                                         <Award size={18} />
                                     </div>
@@ -279,14 +347,18 @@ const Dashboard = () => {
                                     <div className="w-full h-1.5 bg-golden-200 rounded-full overflow-hidden">
                                         <div className="h-full bg-golden-500" style={{ width: `${stats.rankProgress || 0}%` }} />
                                     </div>
-                                </div>
+                                </motion.div>
                             </div>
-                        </div>
+                        </motion.div>
                     )}
 
                     {/* Rank Status - Right Section (Dark Design from image) */}
                     {(!isMobile || activeTab === 'overview' || activeTab === 'rank') && (
-                        <div className="lg:col-span-1 bg-[#1a1f2e] rounded-[40px] p-10 border border-[#2d3748] shadow-2xl flex flex-col relative overflow-hidden h-full">
+                        <motion.div
+                            variants={cardVariants}
+                            whileHover={{ scale: 1.02 }}
+                            className="lg:col-span-1 bg-[#1a1f2e] rounded-[40px] p-10 border border-[#2d3748] shadow-2xl flex flex-col relative overflow-hidden h-full"
+                        >
                             {/* Accent border at top */}
                             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-golden-400 to-golden-600 opacity-50" />
 
@@ -335,21 +407,29 @@ const Dashboard = () => {
                                     {stats.rankProgress || 65}% progress to next rank
                                 </p>
                             </div>
-                        </div>
+                        </motion.div>
                     )}
-                </div>
+                </motion.div>
             )}
 
             {/* Income Cards */}
             {(!isMobile || activeTab === 'income' || activeTab === 'overview') && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <motion.div
+                    variants={containerVariants}
+                    className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+                >
                     {[
                         { label: "Total Income", value: stats.totalIncome || 0, color: "text-amber-500", icon: <DollarSign size={24} />, bg: "bg-[#fffbeb]" },
                         { label: "PMR Income", value: stats.pmrIncome || 0, color: "text-blue-500", icon: <TrendingUp size={24} />, bg: "bg-[#f0f7ff]" },
                         { label: "DRR Income", value: stats.drrIncome || 0, color: "text-green-500", icon: <Users size={24} />, bg: "bg-[#f0fdf4]" },
                         { label: "FCR Income", value: stats.fcrIncome || 0, color: "text-purple-500", icon: <Crown size={24} />, bg: "bg-[#faf5ff]" }
                     ].map((item, idx) => (
-                        <div key={idx} className={`${item.bg} rounded-3xl p-6 shadow-sm border border-black/5 flex flex-col justify-between h-36 hover:shadow-xl hover:-translate-y-1 transition-all duration-300`}>
+                        <motion.div
+                            key={idx}
+                            variants={cardVariants}
+                            whileHover={{ scale: 1.05, y: -5 }}
+                            className={`${item.bg} rounded-3xl p-6 shadow-sm border border-black/5 flex flex-col justify-between h-36`}
+                        >
                             <div className="flex justify-between items-start">
                                 <div>
                                     <p className="text-xs font-black text-gray-500 uppercase tracking-widest">{item.label}</p>
@@ -357,40 +437,49 @@ const Dashboard = () => {
                                 </div>
                                 <div className="p-2 bg-white/80 rounded-xl text-gray-400 shadow-sm">{item.icon}</div>
                             </div>
-                        </div>
+                        </motion.div>
                     ))}
-                </div>
+                </motion.div>
             )}
 
             {/* Quick Actions */}
             {(!isMobile || activeTab === 'actions' || activeTab === 'overview') && (
-                <div className="bg-white rounded-[40px] p-8 border border-gray-100 shadow-xl">
+                <motion.div
+                    variants={cardVariants}
+                    className="bg-white rounded-[40px] p-8 border border-gray-100 shadow-xl"
+                >
                     <h3 className="text-2xl font-black text-[#0f172a] mb-10 flex items-center gap-3">
                         <PieChart className="text-purple-500" /> Quick Actions
                     </h3>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                    <motion.div
+                        variants={containerVariants}
+                        className="grid grid-cols-2 lg:grid-cols-4 gap-6"
+                    >
                         {[
                             { label: "Network Tree", icon: <TreeDeciduous size={28} />, color: "bg-blue-500", path: "/tree" },
                             { label: "Income Details", icon: <CircleDollarSign size={28} />, color: "bg-emerald-500", path: "/income" },
                             { label: "Withdraw Funds", icon: <Landmark size={28} />, color: "bg-purple-500", path: "/withdrawals" },
                             { label: "Analytics", icon: <BarChart3 size={28} />, color: "bg-orange-500", path: "/reports" }
                         ].map((action, index) => (
-                            <button
+                            <motion.button
                                 key={action.label}
+                                variants={cardVariants}
+                                whileHover={{ scale: 1.05, y: -5 }}
+                                whileTap={{ scale: 0.95 }}
                                 onClick={() => navigate(action.path)}
-                                className="group bg-[#f8fafc] rounded-[32px] p-8 text-left border border-[#f1f5f9] hover:bg-white hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+                                className="group bg-[#f8fafc] rounded-[32px] p-8 text-left border border-[#f1f5f9] hover:bg-white hover:shadow-2xl transition-all duration-300"
                             >
                                 <div className={`w-16 h-16 rounded-[24px] ${action.color} flex items-center justify-center text-white mb-8 shadow-lg group-hover:scale-110 transition-transform`}>{action.icon}</div>
                                 <h4 className="text-[22px] font-black text-[#0f172a] mb-2 leading-none">{action.label}</h4>
                                 <div className="flex items-center gap-2 text-blue-600 font-bold text-sm opacity-0 group-hover:opacity-100 transition-opacity">
                                     Open <ChevronRight size={18} />
                                 </div>
-                            </button>
+                            </motion.button>
                         ))}
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
             )}
-        </div>
+        </motion.div>
     );
 };
 
