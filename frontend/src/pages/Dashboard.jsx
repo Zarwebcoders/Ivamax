@@ -253,12 +253,7 @@ const Dashboard = () => {
                             whileHover={scaleOnHover}
                             className="lg:col-span-2 bg-white rounded-[40px] p-8 border border-gray-100 shadow-xl overflow-hidden min-h-[480px] flex flex-col"
                         >
-                            <div className="flex items-center justify-between mb-10 text-[#0f172a]">
-                                <h3 className="text-[28px] font-black tracking-tight">Business Overview</h3>
-                                <div className="p-2 bg-[#f1f5f9] rounded-xl text-blue-500 cursor-pointer hover:bg-blue-50 transition-colors">
-                                    <ArrowLeftRight size={22} />
-                                </div>
-                            </div>
+
 
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 flex-grow items-start">
                                 {/* Left Pairs Card */}
