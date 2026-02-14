@@ -4,6 +4,7 @@ import { DollarSign, AlertCircle, Clock, CheckCircle, XCircle, ArrowRight, Walle
 import { useAuth } from '../context/AuthContext';
 import { withdrawalService } from '../services/withdrawal.service';
 import toast from 'react-hot-toast';
+import WalletAddress from '../components/WalletAddress';
 
 const Withdrawals = () => {
     const { user } = useAuth();
@@ -302,7 +303,7 @@ const Withdrawals = () => {
                                             <tr key={record._id} className="hover:bg-gray-50 transition-colors">
                                                 <td className="px-6 py-4 text-sm text-gray-600">{formatDate(record.requestDate)}</td>
                                                 <td className="px-6 py-4 text-sm text-gray-800 font-mono">
-                                                    {record.walletAddress.substring(0, 10)}...
+                                                    <WalletAddress address={record.walletAddress} />
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <span className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1 w-fit ${getStatusColor(record.status)}`}>

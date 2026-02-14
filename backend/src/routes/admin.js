@@ -8,6 +8,7 @@ const {
     getWalletRequests,
     getDeposits,
     approveDeposit,
+    rejectDeposit,
     createUser,
     updateUser,
     toggleUserStatus
@@ -28,5 +29,6 @@ router.put('/wallet/approve/:requestId', approveWalletChange);
 
 router.get('/deposits', getDeposits);
 router.put('/deposit/approve/:id', approveDeposit);
+router.put('/deposit/reject/:id', rejectDeposit);
 
 module.exports = router;

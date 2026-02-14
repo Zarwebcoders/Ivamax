@@ -35,6 +35,11 @@ const depositSchema = new mongoose.Schema({
         default: 'pending',
         index: true,
     },
+    type: {
+        type: String,
+        enum: ['manual', 'auto'],
+        default: 'manual',
+    },
     adminNotes: {
         type: String,
         default: '',

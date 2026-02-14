@@ -32,13 +32,7 @@ const requestWithdrawal = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Check if user has verified wallet
-        const wallet = await Wallet.findOne({ userId, status: 'approved' });
-        if (!wallet) {
-            return res.status(400).json({
-                message: 'Please verify your wallet address first'
-            });
-        }
+
 
         // Check for pending withdrawals
         const pendingWithdrawal = await Withdrawal.findOne({
@@ -68,7 +62,7 @@ const requestWithdrawal = async (req, res) => {
         const withdrawal = new Withdrawal({
             userId,
             amount: withdrawalAmount,
-            walletAddress: walletAddress || wallet.walletAddress,
+            walletAddress: walletAddress,
             status: 'pending',
         });
 

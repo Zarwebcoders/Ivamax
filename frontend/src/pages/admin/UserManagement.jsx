@@ -71,11 +71,7 @@ const UserManagement = () => {
         }
     };
 
-    const selectSponsor = (user) => {
-        setFormData({ ...formData, newSponsorId: user.userId });
-        setSponsorSearch(`${user.fullName} (${user.userId})`);
-        setShowSponsorDropdown(false);
-    };
+
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -117,6 +113,7 @@ const UserManagement = () => {
             referralLink: '',
             placementSide: 'Left'
         });
+        setSponsorSearch(''); // Reset sponsor search
         setFormError('');
         setIsModalOpen(true);
     };
@@ -163,6 +160,16 @@ const UserManagement = () => {
         });
     };
 
+    const selectSponsor = (user) => {
+        if (modalMode === 'create') {
+            setFormData(prev => ({ ...prev, referralLink: user.userId }));
+        } else {
+            setFormData(prev => ({ ...prev, newSponsorId: user.userId }));
+        }
+        setSponsorSearch(user.userId); // Set to ID only
+        setShowSponsorDropdown(false);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setFormError('');
@@ -196,7 +203,7 @@ const UserManagement = () => {
                     ...(formData.password && { password: formData.password }),
                     rank: formData.rank,
                     // Send newSponsorId Only if changed
-                    newSponsorId: formData.newSponsorId !== selectedUser.referralId ? formData.newSponsorId : undefined,
+                    newSponsorId: (formData.newSponsorId && formData.newSponsorId !== selectedUser.referralId) ? formData.newSponsorId : undefined,
                     // Send placementSide default to current if not changed, ensuring backend receives it if we want to confirm
                     placementSide: formData.placementSide
                 };
@@ -474,18 +481,39 @@ const UserManagement = () => {
                                         </div>
 
                                         {modalMode === 'create' && (
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Referral ID (Optional)</label>
+                                            <div className="space-y-4"> {/* Changed grid to space-y for full width like edit */}
+
+                                                {/* Replaced Simple Input with Sponsor Search */}
+                                                <div className="relative">
+                                                    <label className="block text-sm font-medium text-gray-700">Sponsor (Referral ID) {modalMode === 'create' && '(Optional)'}</label>
+                                                    <p className="text-xs text-gray-500 mb-1">Search to select sponsor.</p>
                                                     <input
                                                         type="text"
-                                                        name="referralLink"
-                                                        value={formData.referralLink}
-                                                        onChange={handleInputChange}
+                                                        value={sponsorSearch}
+                                                        onChange={(e) => {
+                                                            setSponsorSearch(e.target.value);
+                                                            handleSponsorSearch(e.target.value);
+                                                            if (modalMode === 'create') setFormData({ ...formData, referralLink: e.target.value }); // Allow manual typing too
+                                                        }}
                                                         className="input w-full mt-1"
-                                                        placeholder="Sponsor ID (e.g. IVA...)"
+                                                        placeholder="Search by Name or ID..."
+                                                        onFocus={() => sponsorSearch.length > 1 && setShowSponsorDropdown(true)}
                                                     />
+                                                    {showSponsorDropdown && sponsorOptions.length > 0 && (
+                                                        <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto mt-1">
+                                                            {sponsorOptions.map(option => (
+                                                                <div
+                                                                    key={option._id}
+                                                                    className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
+                                                                    onClick={() => selectSponsor(option)}
+                                                                >
+                                                                    <span className="font-semibold">{option.userId}</span> - {option.fullName}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
+
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700">Placement</label>
                                                     <select
@@ -534,72 +562,74 @@ const UserManagement = () => {
                                             </div>
                                         </div>
 
-                                        {modalMode === 'edit' && (
-                                            <div className="mt-4 border-t pt-4">
-                                                <h4 className="text-sm font-semibold text-gray-900 mb-2">Settings & Status</h4>
+                                        {
+                                            modalMode === 'edit' && (
+                                                <div className="mt-4 border-t pt-4">
+                                                    <h4 className="text-sm font-semibold text-gray-900 mb-2">Settings & Status</h4>
 
-                                                {/* Sponsor Change Section */}
-                                                <div className="mb-4 relative">
-                                                    <label className="block text-sm font-medium text-gray-700">Sponsor (Referral ID)</label>
-                                                    <p className="text-xs text-gray-500 mb-1">Search to change sponsor & move user.</p>
-                                                    <input
-                                                        type="text"
-                                                        value={sponsorSearch}
-                                                        onChange={(e) => handleSponsorSearch(e.target.value)}
-                                                        className="input w-full mt-1"
-                                                        placeholder="Search by Name or ID..."
-                                                        onFocus={() => sponsorSearch.length > 1 && setShowSponsorDropdown(true)}
-                                                    />
-                                                    {showSponsorDropdown && sponsorOptions.length > 0 && (
-                                                        <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto mt-1">
-                                                            {sponsorOptions.map(option => (
-                                                                <div
-                                                                    key={option._id}
-                                                                    className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
-                                                                    onClick={() => selectSponsor(option)}
-                                                                >
-                                                                    <span className="font-semibold">{option.userId}</span> - {option.fullName}
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                <div className="grid grid-cols-1 gap-4 mb-4">
-                                                    <div>
-                                                        <label className="block text-sm font-medium text-gray-700">Rank</label>
+                                                    {/* Sponsor Change Section */}
+                                                    <div className="mb-4 relative">
+                                                        <label className="block text-sm font-medium text-gray-700">Sponsor (Referral ID)</label>
+                                                        <p className="text-xs text-gray-500 mb-1">Search to change sponsor & move user.</p>
                                                         <input
                                                             type="text"
-                                                            name="rank"
-                                                            value={formData.rank}
+                                                            value={sponsorSearch}
+                                                            onChange={(e) => handleSponsorSearch(e.target.value)}
+                                                            className="input w-full mt-1"
+                                                            placeholder="Search by Name or ID..."
+                                                            onFocus={() => sponsorSearch.length > 1 && setShowSponsorDropdown(true)}
+                                                        />
+                                                        {showSponsorDropdown && sponsorOptions.length > 0 && (
+                                                            <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto mt-1">
+                                                                {sponsorOptions.map(option => (
+                                                                    <div
+                                                                        key={option._id}
+                                                                        className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
+                                                                        onClick={() => selectSponsor(option)}
+                                                                    >
+                                                                        <span className="font-semibold">{option.userId}</span> - {option.fullName}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 gap-4 mb-4">
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-gray-700">Rank</label>
+                                                            <input
+                                                                type="text"
+                                                                name="rank"
+                                                                value={formData.rank}
+                                                                onChange={handleInputChange}
+                                                                className="input w-full mt-1"
+                                                                placeholder="e.g. Member, Silver, Gold"
+                                                            />
+                                                        </div>
+                                                    </div>
+
+
+
+                                                    <div className="mb-4">
+                                                        <label className="block text-sm font-medium text-gray-700">Placement Side (Move User)</label>
+                                                        <p className="text-xs text-red-500 mb-1">Warning: Changing this moves the user in the tree!</p>
+                                                        <select
+                                                            name="placementSide"
+                                                            value={formData.placementSide || 'Left'}
                                                             onChange={handleInputChange}
                                                             className="input w-full mt-1"
-                                                            placeholder="e.g. Member, Silver, Gold"
-                                                        />
+                                                        >
+                                                            <option value="placing-left">Extreme Left</option>
+                                                            <option value="placing-right">Extreme Right</option>
+                                                            <option value="Left">Left</option>
+                                                            <option value="Right">Right</option>
+                                                        </select>
                                                     </div>
                                                 </div>
-
-
-
-                                                <div className="mb-4">
-                                                    <label className="block text-sm font-medium text-gray-700">Placement Side (Move User)</label>
-                                                    <p className="text-xs text-red-500 mb-1">Warning: Changing this moves the user in the tree!</p>
-                                                    <select
-                                                        name="placementSide"
-                                                        value={formData.placementSide || 'Left'}
-                                                        onChange={handleInputChange}
-                                                        className="input w-full mt-1"
-                                                    >
-                                                        <option value="placing-left">Extreme Left</option>
-                                                        <option value="placing-right">Extreme Right</option>
-                                                        <option value="Left">Left</option>
-                                                        <option value="Right">Right</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                                            )
+                                        }
+                                    </div >
+                                </div >
                                 <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                                     <button
                                         type="submit"
@@ -616,122 +646,124 @@ const UserManagement = () => {
                                         Cancel
                                     </button>
                                 </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+                            </form >
+                        </div >
+                    </div >
+                </div >
             )}
 
             {/* View Full Details Modal */}
-            {isViewModalOpen && viewUser && (
-                <div className="fixed inset-0 z-[200] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-                    <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={closeViewModal} aria-hidden="true"></div>
-                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            {
+                isViewModalOpen && viewUser && (
+                    <div className="fixed inset-0 z-[200] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                        <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={closeViewModal} aria-hidden="true"></div>
+                            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-                        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full">
-                            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="text-xl leading-6 font-bold text-gray-900" id="modal-title">
-                                            User Details
-                                        </h3>
-                                        <p className="text-sm text-gray-500">
-                                            Full database record for {viewUser.userId}
-                                        </p>
+                            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full">
+                                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h3 className="text-xl leading-6 font-bold text-gray-900" id="modal-title">
+                                                User Details
+                                            </h3>
+                                            <p className="text-sm text-gray-500">
+                                                Full database record for {viewUser.userId}
+                                            </p>
+                                        </div>
+                                        <button onClick={closeViewModal} className="text-gray-400 hover:text-gray-500">
+                                            <span className="text-2xl">&times;</span>
+                                        </button>
                                     </div>
-                                    <button onClick={closeViewModal} className="text-gray-400 hover:text-gray-500">
-                                        <span className="text-2xl">&times;</span>
-                                    </button>
-                                </div>
 
-                                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
-                                    {/* Personal Info */}
-                                    <div className="col-span-1 md:col-span-2">
-                                        <h4 className="font-semibold text-golden-600 border-b pb-1 mb-2">Personal Information</h4>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div className="col-span-2 text-xs text-gray-400">ObjectId: {viewUser._id}</div>
-                                            <div><span className="font-medium text-gray-500">Full Name:</span> {viewUser.fullName}</div>
-                                            <div><span className="font-medium text-gray-500">User ID:</span> {viewUser.userId}</div>
-                                            <div><span className="font-medium text-gray-500">Email:</span> {viewUser.email}</div>
-                                            <div><span className="font-medium text-gray-500">Mobile:</span> {viewUser.mobile}</div>
-                                            <div><span className="font-medium text-gray-500">Role:</span> {viewUser.role}</div>
-                                            <div>
-                                                <span className="font-medium text-gray-500">Status:</span>
-                                                <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${viewUser.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                                    {viewUser.isActive ? 'Active' : 'Inactive'}
-                                                </span>
+                                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                                        {/* Personal Info */}
+                                        <div className="col-span-1 md:col-span-2">
+                                            <h4 className="font-semibold text-golden-600 border-b pb-1 mb-2">Personal Information</h4>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div className="col-span-2 text-xs text-gray-400">ObjectId: {viewUser._id}</div>
+                                                <div><span className="font-medium text-gray-500">Full Name:</span> {viewUser.fullName}</div>
+                                                <div><span className="font-medium text-gray-500">User ID:</span> {viewUser.userId}</div>
+                                                <div><span className="font-medium text-gray-500">Email:</span> {viewUser.email}</div>
+                                                <div><span className="font-medium text-gray-500">Mobile:</span> {viewUser.mobile}</div>
+                                                <div><span className="font-medium text-gray-500">Role:</span> {viewUser.role}</div>
+                                                <div>
+                                                    <span className="font-medium text-gray-500">Status:</span>
+                                                    <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${viewUser.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                        {viewUser.isActive ? 'Active' : 'Inactive'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Security (Requested) */}
+                                        <div className="col-span-1 md:col-span-2">
+                                            <h4 className="font-semibold text-red-600 border-b pb-1 mb-2">Security & Access</h4>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div><span className="font-medium text-gray-500">Plain Password:</span> <span className="font-mono bg-gray-100 px-1 rounded">{viewUser.plainPassword || 'N/A'}</span></div>
+                                                <div><span className="font-medium text-gray-500">Email Verified:</span> {viewUser.isEmailVerified ? 'Yes' : 'No'}</div>
+                                                <div className="col-span-2"><span className="font-medium text-gray-500">Wallet Address:</span> <span className="text-xs">{viewUser.walletAddress || 'Not Set'}</span></div>
+                                            </div>
+                                        </div>
+
+                                        {/* Network & Placement */}
+                                        <div className="col-span-1 border-r pr-2">
+                                            <h4 className="font-semibold text-blue-600 border-b pb-1 mb-2">Network</h4>
+                                            <div className="space-y-1">
+                                                <div><span className="font-medium text-gray-500">Sponsor ID:</span> {viewUser.referralId || 'Root'}</div>
+                                                <div><span className="font-medium text-gray-500">Placement Side:</span> {viewUser.placementSide || 'N/A'}</div>
+                                                <div><span className="font-medium text-gray-500">Default Placement:</span> {viewUser.defaultPlacement || 'Default'}</div>
+                                                <div className="text-xs truncate"><span className="font-medium text-gray-500">Ref Link:</span> {viewUser.referralLink || 'N/A'}</div>
+                                            </div>
+                                        </div>
+
+                                        {/* Financials */}
+                                        <div className="col-span-1 pl-2">
+                                            <h4 className="font-semibold text-green-600 border-b pb-1 mb-2">Financials</h4>
+                                            <div className="space-y-1">
+                                                <div><span className="font-medium text-gray-500">Wallet Balance:</span> ${viewUser.walletBalance}</div>
+                                                <div><span className="font-medium text-gray-500">Total Earnings:</span> ${viewUser.totalEarnings}</div>
+                                                <div><span className="font-medium text-gray-500">Invested:</span> ${viewUser.investmentAmount}</div>
+                                                <div><span className="font-medium text-gray-500">Inv Date:</span> {viewUser.investmentDate ? new Date(viewUser.investmentDate).toLocaleDateString() : 'N/A'}</div>
+                                                <div><span className="font-medium text-gray-500">Package:</span> {viewUser.packageType || 'None'}</div>
+                                            </div>
+                                        </div>
+
+                                        {/* Ranks */}
+                                        <div className="col-span-1 md:col-span-2">
+                                            <h4 className="font-semibold text-purple-600 border-b pb-1 mb-2">Rank & Performance</h4>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                                <div><span className="font-medium text-gray-500">Current Rank:</span> {viewUser.rank}</div>
+                                                <div><span className="font-medium text-gray-500">Closing Rank:</span> {viewUser.closingRank}</div>
+                                                <div><span className="font-medium text-gray-500">Royalty %:</span> {viewUser.royaltyPercentage}%</div>
+                                                <div><span className="font-medium text-gray-500">Monthly Income:</span> ${viewUser.monthlyIncome}</div>
+                                            </div>
+                                        </div>
+
+                                        {/* Timestamps */}
+                                        <div className="col-span-1 md:col-span-2 text-xs text-gray-400 border-t pt-2 mt-2">
+                                            <div className="grid grid-cols-2">
+                                                <div>Reg Date: {new Date(viewUser.registrationDate || viewUser.createdAt).toLocaleString()}</div>
+                                                <div>Last Updated: {new Date(viewUser.updatedAt).toLocaleString()}</div>
                                             </div>
                                         </div>
                                     </div>
-
-                                    {/* Security (Requested) */}
-                                    <div className="col-span-1 md:col-span-2">
-                                        <h4 className="font-semibold text-red-600 border-b pb-1 mb-2">Security & Access</h4>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div><span className="font-medium text-gray-500">Plain Password:</span> <span className="font-mono bg-gray-100 px-1 rounded">{viewUser.plainPassword || 'N/A'}</span></div>
-                                            <div><span className="font-medium text-gray-500">Email Verified:</span> {viewUser.isEmailVerified ? 'Yes' : 'No'}</div>
-                                            <div className="col-span-2"><span className="font-medium text-gray-500">Wallet Address:</span> <span className="text-xs">{viewUser.walletAddress || 'Not Set'}</span></div>
-                                        </div>
-                                    </div>
-
-                                    {/* Network & Placement */}
-                                    <div className="col-span-1 border-r pr-2">
-                                        <h4 className="font-semibold text-blue-600 border-b pb-1 mb-2">Network</h4>
-                                        <div className="space-y-1">
-                                            <div><span className="font-medium text-gray-500">Sponsor ID:</span> {viewUser.referralId || 'Root'}</div>
-                                            <div><span className="font-medium text-gray-500">Placement Side:</span> {viewUser.placementSide || 'N/A'}</div>
-                                            <div><span className="font-medium text-gray-500">Default Placement:</span> {viewUser.defaultPlacement || 'Default'}</div>
-                                            <div className="text-xs truncate"><span className="font-medium text-gray-500">Ref Link:</span> {viewUser.referralLink || 'N/A'}</div>
-                                        </div>
-                                    </div>
-
-                                    {/* Financials */}
-                                    <div className="col-span-1 pl-2">
-                                        <h4 className="font-semibold text-green-600 border-b pb-1 mb-2">Financials</h4>
-                                        <div className="space-y-1">
-                                            <div><span className="font-medium text-gray-500">Wallet Balance:</span> ${viewUser.walletBalance}</div>
-                                            <div><span className="font-medium text-gray-500">Total Earnings:</span> ${viewUser.totalEarnings}</div>
-                                            <div><span className="font-medium text-gray-500">Invested:</span> ${viewUser.investmentAmount}</div>
-                                            <div><span className="font-medium text-gray-500">Inv Date:</span> {viewUser.investmentDate ? new Date(viewUser.investmentDate).toLocaleDateString() : 'N/A'}</div>
-                                            <div><span className="font-medium text-gray-500">Package:</span> {viewUser.packageType || 'None'}</div>
-                                        </div>
-                                    </div>
-
-                                    {/* Ranks */}
-                                    <div className="col-span-1 md:col-span-2">
-                                        <h4 className="font-semibold text-purple-600 border-b pb-1 mb-2">Rank & Performance</h4>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                            <div><span className="font-medium text-gray-500">Current Rank:</span> {viewUser.rank}</div>
-                                            <div><span className="font-medium text-gray-500">Closing Rank:</span> {viewUser.closingRank}</div>
-                                            <div><span className="font-medium text-gray-500">Royalty %:</span> {viewUser.royaltyPercentage}%</div>
-                                            <div><span className="font-medium text-gray-500">Monthly Income:</span> ${viewUser.monthlyIncome}</div>
-                                        </div>
-                                    </div>
-
-                                    {/* Timestamps */}
-                                    <div className="col-span-1 md:col-span-2 text-xs text-gray-400 border-t pt-2 mt-2">
-                                        <div className="grid grid-cols-2">
-                                            <div>Reg Date: {new Date(viewUser.registrationDate || viewUser.createdAt).toLocaleString()}</div>
-                                            <div>Last Updated: {new Date(viewUser.updatedAt).toLocaleString()}</div>
-                                        </div>
-                                    </div>
                                 </div>
-                            </div>
-                            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                                <button
-                                    type="button"
-                                    onClick={closeViewModal}
-                                    className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
-                                >
-                                    Close
-                                </button>
+                                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                    <button
+                                        type="button"
+                                        onClick={closeViewModal}
+                                        className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+                                    >
+                                        Close
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 

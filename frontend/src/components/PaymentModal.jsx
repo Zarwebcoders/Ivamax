@@ -175,8 +175,17 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                 currency: currency,
                 transactionHash: hash,
                 packageId: packageInfo.id,
-                packageName: packageInfo.name
+                packageName: packageInfo.name,
+                type: paymentMethod
             };
+
+            console.log("Submitting Deposit Data:", data);
+
+            if (!data.packageId) {
+                toast.error("Internal Error: Package ID is missing. Please refresh the page.");
+                setProcessing(false);
+                return;
+            }
 
             await depositService.submitDeposit(data);
             toast.success('Deposit submitted! Waiting for approval.');
@@ -296,8 +305,8 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                                         onClick={handleAutoPaymentSubmit}
                                         disabled={processing}
                                         className={`w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] ${autoNetwork === 'TRC20'
-                                                ? 'bg-gradient-to-r from-red-500 to-red-600 shadow-red-200 hover:shadow-red-300'
-                                                : 'bg-gradient-to-r from-golden-500 to-golden-600 shadow-golden-200 hover:shadow-golden-300'
+                                            ? 'bg-gradient-to-r from-red-500 to-red-600 shadow-red-200 hover:shadow-red-300'
+                                            : 'bg-gradient-to-r from-golden-500 to-golden-600 shadow-golden-200 hover:shadow-golden-300'
                                             }`}
                                     >
                                         {processing ? (

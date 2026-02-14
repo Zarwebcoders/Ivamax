@@ -8,7 +8,7 @@ const Deposit = require('../models/Deposit');
 // @access  Private
 router.post('/', protect, async (req, res) => {
     try {
-        const { amount, currency, transactionHash, packageId, packageName } = req.body;
+        const { amount, currency, transactionHash, packageId, packageName, type } = req.body;
 
         // Check for duplicate hash
         const existing = await Deposit.findOne({ transactionHash });
@@ -22,7 +22,8 @@ router.post('/', protect, async (req, res) => {
             currency,
             transactionHash,
             packageId,
-            packageName
+            packageName,
+            type: req.body.type || 'manual'
         });
 
         res.status(201).json({

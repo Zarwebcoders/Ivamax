@@ -358,11 +358,52 @@ const getMe = async (req, res) => {
             }
         }
 
+        // Financial Aggregations
+        const Withdrawal = require('../models/Withdrawal');
+        const Income = require('../models/Income');
+
+        // 1. Profit Wallet (Total Earnings)
+        // Check if User model has totalEarnings, if so use it, otherwise calculate
+        // For now, let's calculate from Income to be safe or use user.totalEarnings if available
+        let profitWallet = user.totalEarnings || 0;
+        if (!profitWallet) {
+            const totalIncome = await Income.aggregate([
+                { $match: { userId: user.userId } },
+                { $group: { _id: null, total: { $sum: "$netAmount" } } }
+            ]);
+            profitWallet = totalIncome[0]?.total || 0;
+        }
+
+        // 2. Capital Wallet (Investment)
+        const capitalWallet = user.investmentAmount || 0;
+
+        // 3. Available Profit (Wallet Balance)
+        const availableProfit = user.walletBalance || 0;
+
+        // 4. Withdrawal Released (Approved)
+        const approvedWithdrawals = await Withdrawal.aggregate([
+            { $match: { userId: user.userId, status: 'approved' } },
+            { $group: { _id: null, total: { $sum: "$amount" } } }
+        ]);
+        const withdrawalReleased = approvedWithdrawals[0]?.total || 0;
+
+        // 5. Withdrawal Pending
+        const pendingWithdrawals = await Withdrawal.aggregate([
+            { $match: { userId: user.userId, status: 'pending' } },
+            { $group: { _id: null, total: { $sum: "$amount" } } }
+        ]);
+        const withdrawalPending = pendingWithdrawals[0]?.total || 0;
+
         res.json({
             success: true,
             data: {
                 ...user.toObject(),
-                ...sponsherData
+                ...sponsherData,
+                profitWallet,
+                capitalWallet,
+                availableProfit,
+                withdrawalReleased,
+                withdrawalPending
             },
         });
     } catch (error) {

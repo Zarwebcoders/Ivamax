@@ -112,7 +112,7 @@ const Packages = () => {
 
                         {/* CTA Button */}
                         <button
-                            onClick={() => handleActivate({ name: 'Premium Starter', price: 1 })}
+                            onClick={() => handleActivate({ id: 'premium_starter', name: 'Premium Starter', price: 1 })}
                             className="w-full bg-gradient-to-r from-gray-900 to-gray-800 text-white font-bold py-3 rounded-xl shadow-lg shadow-gray-400 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 flex items-center justify-center group overflow-hidden relative"
                         >
                             <span className="relative z-10 flex items-center gap-2">

@@ -26,6 +26,21 @@ const adminService = {
         return response.data;
     },
 
+    getDeposits: async () => {
+        const response = await api.get('/admin/deposits');
+        return response;
+    },
+
+    approveDeposit: async (id) => {
+        const response = await api.put(`/admin/deposit/approve/${id}`);
+        return response.data;
+    },
+
+    rejectDeposit: async (id, reason) => {
+        const response = await api.put(`/admin/deposit/reject/${id}`, { reason });
+        return response.data;
+    },
+
     // Add more admin services as needed
 };
 

@@ -43,6 +43,22 @@ const DepositApprovals = () => {
         }
     };
 
+    const handleReject = async (id) => {
+        if (!window.confirm('Are you sure you want to REJECT this deposit? This action cannot be undone.')) return;
+
+        try {
+            toast.loading('Rejecting...');
+            await adminService.rejectDeposit(id);
+            toast.dismiss();
+            toast.success('Deposit Rejected');
+            fetchDeposits(); // Refresh
+        } catch (error) {
+            toast.dismiss();
+            console.error(error);
+            toast.error('Rejection failed');
+        }
+    };
+
     const filteredDeposits = deposits.filter(dep => {
         if (filter === 'all') return true;
         return dep.status === filter;
@@ -88,10 +104,15 @@ const DepositApprovals = () => {
                             <div className="space-y-2">
                                 <div className="flex items-center gap-3">
                                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${deposit.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                                            deposit.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                        deposit.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                                         }`}>
                                         {deposit.status}
                                     </span>
+                                    {deposit.type === 'auto' && (
+                                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-100 text-blue-700">
+                                            AUTO
+                                        </span>
+                                    )}
                                     <span className="text-xs text-gray-400">
                                         Action Date: {new Date(deposit.createdAt).toLocaleString()}
                                     </span>
@@ -124,11 +145,21 @@ const DepositApprovals = () => {
                             {deposit.status === 'pending' && (
                                 <div className="flex items-center gap-3 md:self-center">
                                     <button
-                                        onClick={() => handleApprove(deposit._id)}
-                                        className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center gap-2 shadow-lg shadow-green-500/20 transition-all hover:-translate-y-0.5"
+                                        onClick={() => handleReject(deposit._id)}
+                                        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center gap-2 shadow-lg shadow-red-500/20 transition-all hover:-translate-y-0.5"
                                     >
-                                        <Check size={18} /> Approve
+                                        <X size={18} /> Reject
                                     </button>
+
+                                    {/* Only show Approve button if NOT auto (or if manual) */}
+                                    {(deposit.type !== 'auto') && (
+                                        <button
+                                            onClick={() => handleApprove(deposit._id)}
+                                            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center gap-2 shadow-lg shadow-green-500/20 transition-all hover:-translate-y-0.5"
+                                        >
+                                            <Check size={18} /> Approve
+                                        </button>
+                                    )}
                                 </div>
                             )}
                         </motion.div>

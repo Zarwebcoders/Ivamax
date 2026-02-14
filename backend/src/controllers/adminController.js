@@ -3,6 +3,7 @@ const Wallet = require('../models/Wallet');
 const Withdrawal = require('../models/Withdrawal');
 const Income = require('../models/Income');
 const Deposit = require('../models/Deposit');
+const Tree = require('../models/Tree');
 
 // @desc    Get admin dashboard statistics
 // @route   GET /api/admin/stats
@@ -231,6 +232,39 @@ const approveDeposit = async (req, res) => {
     }
 };
 
+// @desc    Reject deposit request
+// @route   PUT /api/admin/deposit/reject/:id
+// @access  Private/Admin
+const rejectDeposit = async (req, res) => {
+    try {
+        const deposit = await Deposit.findById(req.params.id);
+        if (!deposit) return res.status(404).json({ message: 'Deposit not found' });
+
+        if (deposit.status !== 'pending') {
+            return res.status(400).json({ message: 'Deposit already processed' });
+        }
+
+        deposit.status = 'rejected';
+        deposit.processedBy = req.user.userId;
+        deposit.processedDate = Date.now();
+
+        // Optional: Add reason if provided
+        if (req.body.reason) {
+            deposit.adminNotes = req.body.reason;
+        }
+
+        await deposit.save();
+
+        res.json({
+            success: true,
+            message: 'Deposit rejected'
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error reject deposit' });
+    }
+};
+
 // @desc    Create new user (Admin)
 // @route   POST /api/admin/create-user
 // @access  Private/Admin
@@ -290,8 +324,14 @@ const createUser = async (req, res) => {
         });
 
         // 4. CREATE TREE NODE
+        console.log(`[ADMIN] Creating Tree Node for ${newUserId} under ${parentId}`);
         const parentTree = await Tree.findOne({ userId: parentId });
-        const newLevel = parentTree.level + 1;
+        if (!parentTree) {
+            console.error(`[ADMIN] Parent Tree Node ${parentId} NOT FOUND!`);
+            // This might be why tree data is missing if parent doesn't exist in Tree but findPlacement returned it (inconsistent DB?)
+        }
+
+        const newLevel = parentTree ? parentTree.level + 1 : 1; // Default to 1 if root (shouldn't happen here usually)
 
         const newTree = await Tree.create({
             userId: newUserId,
@@ -300,6 +340,7 @@ const createUser = async (req, res) => {
             leftDirectId: null,
             rightDirectId: null,
         });
+        console.log(`[ADMIN] Tree Node Created: ${newTree._id}`);
 
         // 5. UPDATE PARENT
         if (side === 'Left') {
@@ -307,6 +348,7 @@ const createUser = async (req, res) => {
         } else {
             await Tree.updateOne({ userId: parentId }, { rightDirectId: newUserId });
         }
+        console.log(`[ADMIN] Parent ${parentId} updated on ${side}`);
 
         // 6. UPDATE UPLINE
         await updateUplineCounts(newUserId);
@@ -435,6 +477,7 @@ module.exports = {
     getWalletRequests,
     getDeposits,
     approveDeposit,
+    rejectDeposit,
     createUser,
     updateUser,
     toggleUserStatus
