@@ -11,7 +11,7 @@ const getDashboardStats = async (req, res) => {
         const userId = req.user.userId;
 
         // 1. Fetch User Basics
-        const user = await User.findOne({ userId }).select('rank createdAt fullName');
+        const user = await User.findOne({ userId }).select('rank closingRank createdAt fullName');
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         // 2. Fetch Tree Stats (Network Size & Business Volume)
@@ -185,6 +185,7 @@ const getDashboardStats = async (req, res) => {
                 rightPairs,
                 matchingCompleted,
                 currentRank: user.rank || 'Member',
+                closingRank: user.closingRank || 'Member',
                 royaltyPercentage: rankData.income || 0, // Dynamic based on actual rank
                 nextRankName: nextRankName,
                 rankProgress: Math.round(rankProgress), // Rounded percentage

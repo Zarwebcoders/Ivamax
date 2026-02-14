@@ -11,13 +11,16 @@ const register = async (req, res) => {
     try {
         const { fullName, mobile, email, password } = req.body;
 
-        // Check if user already exists
-        /* TEMPORARY: Commented out to allow multiple reg
-        const userExists = await User.findOne({ email });
-        if (userExists) {
-            return res.status(400).json({ message: 'User already exists with this email' });
+        // Check if user already exists (Allow up to 5 accounts per email/mobile as per BRP DESHBOARD POINTS)
+        const emailCount = await User.countDocuments({ email });
+        if (emailCount >= 5) {
+            return res.status(400).json({ message: 'Maximum 5 accounts allowed per email address' });
         }
-        */
+
+        const mobileCount = await User.countDocuments({ mobile });
+        if (mobileCount >= 5) {
+            return res.status(400).json({ message: 'Maximum 5 accounts allowed per mobile number' });
+        }
 
         // =========================================================
         // 1. REFERRAL LINK PARSING
@@ -226,6 +229,45 @@ const register = async (req, res) => {
             }
         } catch (err) {
             console.error('[WARNING] Failed to create notifications:', err);
+        }
+
+        // =========================================================
+        // 8. SEND WELCOME EMAIL
+        // =========================================================
+        try {
+            const sendEmail = require('../utils/sendEmail');
+            const htmlContent = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+                    <div style="background-color: #FFD700; padding: 10px; text-align: center; border-radius: 5px 5px 0 0;">
+                        <h1 style="color: #000; margin: 0;">Welcome to IVAMAX</h1>
+                    </div>
+                    <div style="padding: 20px;">
+                        <p>Dear <strong>${fullName}</strong>,</p>
+                        <p>Thank you for registering with <strong>IVAMAX</strong>. Your account has been successfully created.</p>
+                        <div style="background-color: #f9f9f9; padding: 15px; border-left: 5px solid #FFD700; margin: 20px 0;">
+                            <p style="margin: 5px 0;"><strong>User ID:</strong> ${newUserId}</p>
+                            <p style="margin: 5px 0;"><strong>Password:</strong> ${password}</p>
+                        </div>
+                        <p>Now you can visit our website and login with these details.</p>
+                        <div style="text-align: center; margin-top: 30px;">
+                            <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/login" style="background-color: #000; color: #fff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login Now</a>
+                        </div>
+                    </div>
+                    <div style="margin-top: 30px; font-size: 12px; color: #777; text-align: center;">
+                        <p>&copy; 2026 IVAMAX. All rights reserved.</p>
+                    </div>
+                </div>
+            `;
+
+            await sendEmail({
+                email: newUser.email,
+                subject: 'Welcome to IVAMAX - Registration Successful',
+                html: htmlContent,
+                message: `Welcome to IVAMAX! Your User ID is ${newUserId} and password is ${password}. Login at: ${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`
+            });
+            console.log(`[SUCCESS] Welcome email sent to ${newUser.email}`);
+        } catch (err) {
+            console.error('[WARNING] Failed to send welcome email:', err);
         }
 
         console.log(`[SUCCESS] Registration Complete for ${newUserId}`);
