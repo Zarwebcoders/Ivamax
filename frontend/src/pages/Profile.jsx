@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/auth.service';
-import { User, Mail, Phone, Lock, CreditCard, Shield, Edit2, Save, X, Wallet, CheckCircle } from 'lucide-react';
+import { User, Mail, Phone, Lock, CreditCard, Shield, Edit2, Save, X, Wallet, CheckCircle, DollarSign, TrendingUp } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const Profile = () => {
@@ -18,9 +18,18 @@ const Profile = () => {
         userId: '',
         joinDate: '',
         walletAddress: '',
+        walletNetwork: 'TRC20', // Default network
+        walletAddressTRC20: '',
+        walletAddressBEP20: '',
         bankName: '',
         accountNumber: '',
         ifscCode: '',
+        // Income wallet fields
+        profitWallet: '0.00',
+        capitalWallet: '0.00',
+        availableProfit: '0.00',
+        withdrawalReleased: '0.00',
+        withdrawalPending: '0.00',
         // Password fields
         password: '',
         confirmPassword: ''
@@ -43,12 +52,20 @@ const Profile = () => {
                     userId: u.userId || '',
                     joinDate: u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A',
                     walletAddress: u.walletAddress || '',
+                    walletAddressTRC20: u.walletAddressTRC20 || '',
+                    walletAddressBEP20: u.walletAddressBEP20 || '',
                     bankName: u.bankName || '',
                     accountNumber: u.accountNumber || '',
                     ifscCode: u.ifscCode || '',
                     rank: u.rank || 'Member',
                     sponsherId: u.sponsherId || null,
-                    sponsherUsername: u.sponsherUsername || null
+                    sponsherUsername: u.sponsherUsername || null,
+                    // Income wallet fields
+                    profitWallet: u.profitWallet || '0.00',
+                    capitalWallet: u.capitalWallet || '0.00',
+                    availableProfit: u.availableProfit || '0.00',
+                    withdrawalReleased: u.withdrawalReleased || '0.00',
+                    withdrawalPending: u.withdrawalPending || '0.00'
                 }));
             }
         } catch (error) {
@@ -194,7 +211,8 @@ const Profile = () => {
             <div className="flex flex-wrap gap-4">
                 <TabButton id="personal" label="Personal Details" icon={User} />
                 <TabButton id="security" label="Security" icon={Shield} />
-                <TabButton id="banking" label="Banking & Wallet" icon={CreditCard} />
+                <TabButton id="banking" label="Wallet" icon={CreditCard} />
+                <TabButton id="income" label="Income" icon={DollarSign} />
             </div>
 
             {/* Content Area */}
@@ -220,7 +238,7 @@ const Profile = () => {
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-gray-700 ml-1">Full Name</label>
                                 <div className="relative group">
@@ -301,7 +319,7 @@ const Profile = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-700 ml-1">Sponsher ID</label>
+                                <label className="text-sm font-bold text-gray-700 ml-1">Sponsor ID</label>
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                         <User className="text-gray-400" size={20} />
@@ -314,9 +332,8 @@ const Profile = () => {
                                     />
                                 </div>
                             </div>
-
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-700 ml-1">Sponsher User Name</label>
+                                <label className="text-sm font-bold text-gray-700 ml-1">Sponsor User Name</label>
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                         <User className="text-gray-400" size={20} />
@@ -329,6 +346,7 @@ const Profile = () => {
                                     />
                                 </div>
                             </div>
+
                         </div>
 
                         {isEditing && (
@@ -384,33 +402,93 @@ const Profile = () => {
                         animate={{ opacity: 1, x: 0 }}
                         className="space-y-6"
                     >
-                        <h2 className="text-xl font-bold text-gray-800">Banking & Wallet Details</h2>
+                        <h2 className="text-xl font-bold text-gray-800">Wallet Details</h2>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Wallet Card */}
-                            <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
+                            <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden md:col-span-2">
                                 <div className="absolute top-0 right-0 p-4 opacity-10">
                                     <CreditCard size={120} />
                                 </div>
                                 <div className="relative z-10">
-                                    <p className="opacity-70 mb-1">USDT Wallet Address (TRC20)</p>
-                                    <p className="font-mono text-lg break-all mb-4 h-16 flex items-center">
-                                        {formData.walletAddress || 'Not Connected'}
-                                    </p>
+                                    <p className="opacity-70 mb-4 text-sm">USDT Wallet Addresses</p>
 
-                                    <div className="flex flex-col gap-4">
+                                    {/* Network Selection */}
+                                    <div className="mb-6">
+                                        <label className="text-xs opacity-70 uppercase tracking-wider mb-2 block">Select Network</label>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, walletNetwork: 'TRC20' })}
+                                                className={`py-3 px-4 rounded-lg font-bold text-sm transition-all ${formData.walletNetwork === 'TRC20'
+                                                    ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg'
+                                                    : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                                                    }`}
+                                            >
+                                                TRC20 (Tron)
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, walletNetwork: 'BEP20' })}
+                                                className={`py-3 px-4 rounded-lg font-bold text-sm transition-all ${formData.walletNetwork === 'BEP20'
+                                                    ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-black shadow-lg'
+                                                    : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                                                    }`}
+                                            >
+                                                BEP20 (BSC)
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Wallet Address Inputs */}
+                                    <div className="space-y-4">
+                                        {/* Single Dynamic Wallet Address Field */}
+                                        <div>
+                                            <label className="text-xs opacity-70 uppercase tracking-wider mb-2 block">
+                                                {formData.walletNetwork === 'TRC20' ? 'TRC20 Wallet Address' : 'BEP20 Wallet Address'}
+                                            </label>
+                                            <div className="relative">
+                                                <Wallet
+                                                    className={`absolute left-3 top-1/2 -translate-y-1/2 ${formData.walletNetwork === 'TRC20' ? 'text-green-400' : 'text-yellow-400'
+                                                        }`}
+                                                    size={20}
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={formData.walletNetwork === 'TRC20' ? formData.walletAddressTRC20 : formData.walletAddressBEP20}
+                                                    onChange={(e) => {
+                                                        if (formData.walletNetwork === 'TRC20') {
+                                                            setFormData({ ...formData, walletAddressTRC20: e.target.value });
+                                                        } else {
+                                                            setFormData({ ...formData, walletAddressBEP20: e.target.value });
+                                                        }
+                                                    }}
+                                                    placeholder={`Enter ${formData.walletNetwork} wallet address`}
+                                                    className={`w-full pl-11 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all font-mono text-sm ${formData.walletNetwork === 'TRC20'
+                                                        ? 'focus:border-green-400 focus:ring-green-400/50'
+                                                        : 'focus:border-yellow-400 focus:ring-yellow-400/50'
+                                                        }`}
+                                                />
+                                            </div>
+                                        </div>
+
                                         <button
-                                            onClick={connectWallet}
-                                            className="w-full py-2 bg-gradient-to-r from-golden-400 to-golden-600 text-black font-bold rounded-lg shadow-lg hover:shadow-golden-500/70 active:scale-95 transition-all flex items-center justify-center gap-2"
+                                            onClick={handleSave}
+                                            disabled={loading}
+                                            className="w-full py-3 bg-gradient-to-r from-golden-400 to-golden-600 text-black font-bold rounded-lg shadow-lg hover:shadow-golden-500/70 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
-                                            <Wallet size={18} />
-                                            {formData.walletAddress ? 'Change Wallet' : 'Connect Wallet'}
+                                            <Save size={18} />
+                                            {loading ? 'Updating...' : 'Update Wallet Addresses'}
                                         </button>
 
                                         <div>
                                             <p className="text-xs opacity-50 uppercase tracking-widest mb-1">Status</p>
-                                            <span className={`flex items-center gap-2 ${formData.walletAddress ? 'text-green-400' : 'text-red-400'} font-bold`}>
-                                                <Shield size={16} /> {formData.walletAddress ? 'Verified' : 'Unverified'}
+                                            <span className={`flex items-center gap-2 ${formData.walletAddressTRC20 || formData.walletAddressBEP20
+                                                ? 'text-green-400'
+                                                : 'text-red-400'
+                                                } font-bold`}>
+                                                <Shield size={16} />
+                                                {formData.walletAddressTRC20 || formData.walletAddressBEP20 ? 'Verified' : 'Unverified'}
                                             </span>
                                         </div>
                                     </div>
@@ -418,37 +496,135 @@ const Profile = () => {
                             </div>
 
                             {/* Bank Details Form */}
-                            <div className="border border-gray-200 rounded-2xl p-6 bg-gray-50">
-                                <h3 className="font-bold text-gray-700 mb-4">Bank Account Information</h3>
-                                <div className="space-y-4">
-                                    <input
-                                        type="text"
-                                        placeholder="Bank Name"
-                                        value={formData.bankName}
-                                        onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-gray-300"
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder="Account Number"
-                                        value={formData.accountNumber}
-                                        onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-gray-300"
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder="IFSC / Swift Code"
-                                        value={formData.ifscCode}
-                                        onChange={(e) => setFormData({ ...formData, ifscCode: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-gray-300"
-                                    />
-                                    <button
-                                        onClick={handleSave}
-                                        disabled={loading}
-                                        className="w-full py-3 bg-gradient-to-r from-golden-500 to-golden-600 text-white rounded-xl shadow-lg font-semibold hover:-translate-y-1 transition-transform"
-                                    >
-                                        {loading ? 'Updating...' : 'Update Bank Details'}
-                                    </button>
+                            {/* <div className="border border-gray-200 rounded-2xl p-6 bg-gray-50"> */}
+                            {/* <h3 className="font-bold text-gray-700 mb-4">Bank Account Information</h3>
+                            <div className="space-y-4">
+                                <input
+                                    type="text"
+                                    placeholder="Bank Name"
+                                    value={formData.bankName}
+                                    onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-gray-300"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Account Number"
+                                    value={formData.accountNumber}
+                                    onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-gray-300"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="IFSC / Swift Code"
+                                    value={formData.ifscCode}
+                                    onChange={(e) => setFormData({ ...formData, ifscCode: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-gray-300"
+                                />
+                                <button
+                                    onClick={handleSave}
+                                    disabled={loading}
+                                    className="w-full py-3 bg-gradient-to-r from-golden-500 to-golden-600 text-white rounded-xl shadow-lg font-semibold hover:-translate-y-1 transition-transform"
+                                >
+                                    {loading ? 'Updating...' : 'Update Bank Details'}
+                                </button>
+                            </div> */}
+                            {/* </div> */}
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* Income Tab */}
+                {activeTab === 'income' && (
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="space-y-6"
+                    >
+                        <h2 className="text-xl font-bold text-gray-800">Income Overview</h2>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {/* 1. Profit Wallet */}
+                            <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                    <TrendingUp size={100} />
+                                </div>
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <DollarSign size={24} />
+                                        <p className="text-sm opacity-80 uppercase tracking-wider">Profit Wallet</p>
+                                    </div>
+                                    <p className="text-3xl font-bold mb-1">
+                                        ${formData.profitWallet || '0.00'}
+                                    </p>
+                                    <p className="text-xs opacity-70">Total Profit Balance</p>
+                                </div>
+                            </div>
+
+                            {/* 2. Capital Wallet */}
+                            <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                    <Wallet size={100} />
+                                </div>
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Wallet size={24} />
+                                        <p className="text-sm opacity-80 uppercase tracking-wider">Capital Wallet</p>
+                                    </div>
+                                    <p className="text-3xl font-bold mb-1">
+                                        ${formData.capitalWallet || '0.00'}
+                                    </p>
+                                    <p className="text-xs opacity-70">Total Purchased Amount</p>
+                                </div>
+                            </div>
+
+                            {/* 3. Available Profit */}
+                            <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                    <DollarSign size={100} />
+                                </div>
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <CheckCircle size={24} />
+                                        <p className="text-sm opacity-80 uppercase tracking-wider">Available Profit</p>
+                                    </div>
+                                    <p className="text-3xl font-bold mb-1">
+                                        ${formData.availableProfit || '0.00'}
+                                    </p>
+                                    <p className="text-xs opacity-70">Withdrawal - Profit</p>
+                                </div>
+                            </div>
+
+                            {/* 4. Withdrawal Released */}
+                            <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                    <CheckCircle size={100} />
+                                </div>
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <CheckCircle size={24} />
+                                        <p className="text-sm opacity-80 uppercase tracking-wider">Withdrawal Released</p>
+                                    </div>
+                                    <p className="text-3xl font-bold mb-1">
+                                        ${formData.withdrawalReleased || '0.00'}
+                                    </p>
+                                    <p className="text-xs opacity-70">Admin Approved Amount</p>
+                                </div>
+                            </div>
+
+                            {/* 5. Withdrawal Pending */}
+                            <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                    <X size={100} />
+                                </div>
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <X size={24} />
+                                        <p className="text-sm opacity-80 uppercase tracking-wider">Withdrawal Pending</p>
+                                    </div>
+                                    <p className="text-3xl font-bold mb-1">
+                                        ${formData.withdrawalPending || '0.00'}
+                                    </p>
+                                    <p className="text-xs opacity-70">Pending Approval</p>
                                 </div>
                             </div>
                         </div>
