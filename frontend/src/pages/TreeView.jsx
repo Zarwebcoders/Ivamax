@@ -14,6 +14,20 @@ const TreeView = () => {
     const [searchResults, setSearchResults] = useState([]);
 
     const [highlightedUserId, setHighlightedUserId] = useState(null);
+    const [zoom, setZoom] = useState(1.0); // Default zoom level at 100%
+
+    // Zoom controls
+    const handleZoomIn = () => {
+        setZoom(prev => Math.min(prev + 0.1, 2)); // Max zoom 2x
+    };
+
+    const handleZoomOut = () => {
+        setZoom(prev => Math.max(prev - 0.1, 0.5)); // Min zoom 0.5x
+    };
+
+    const handleResetZoom = () => {
+        setZoom(1.0);
+    };
 
     // Debounced Search
     useEffect(() => {
@@ -238,10 +252,44 @@ const TreeView = () => {
                 </div>
             </motion.div>
 
-            <div className="card overflow-auto min-h-[600px] border-2 border-black shadow-lg shadow-gray-400 flex justify-center p-12 bg-gray-200 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
-                {treeData ? renderTree(treeData) : (
-                    <div className="text-center text-gray-500">Tree data not found</div>
-                )}
+            <div className="relative card overflow-auto min-h-[600px] border-2 border-black shadow-lg shadow-gray-400 flex justify-center p-12 bg-gray-200 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
+                {/* Zoom Controls - Right Side */}
+                <div className="absolute top-4 right-4 flex flex-col gap-2 z-50">
+                    <button
+                        onClick={handleZoomIn}
+                        className="w-10 h-10 flex items-center justify-center rounded-lg bg-white border-2 border-gray-400 shadow-lg hover:bg-golden-100 hover:border-golden-500 transition-all active:scale-95"
+                        title="Zoom In"
+                    >
+                        <span className="text-xl font-bold text-gray-700">+</span>
+                    </button>
+                    <button
+                        onClick={handleResetZoom}
+                        className="w-10 h-10 flex items-center justify-center rounded-lg bg-white border-2 border-gray-400 shadow-lg hover:bg-golden-100 hover:border-golden-500 transition-all active:scale-95"
+                        title="Reset Zoom"
+                    >
+                        <span className="text-xs font-bold text-gray-700">{Math.round(zoom * 100)}%</span>
+                    </button>
+                    <button
+                        onClick={handleZoomOut}
+                        className="w-10 h-10 flex items-center justify-center rounded-lg bg-white border-2 border-gray-400 shadow-lg hover:bg-golden-100 hover:border-golden-500 transition-all active:scale-95"
+                        title="Zoom Out"
+                    >
+                        <span className="text-xl font-bold text-gray-700">−</span>
+                    </button>
+                </div>
+
+                {/* Tree Container with Zoom */}
+                <div
+                    style={{
+                        transform: `scale(${zoom})`,
+                        transformOrigin: 'top center',
+                        transition: 'transform 0.2s ease-out'
+                    }}
+                >
+                    {treeData ? renderTree(treeData) : (
+                        <div className="text-center text-gray-500">Tree data not found</div>
+                    )}
+                </div>
             </div>
         </div>
     );
