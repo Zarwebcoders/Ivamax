@@ -12,10 +12,12 @@ const register = async (req, res) => {
         const { fullName, mobile, email, password } = req.body;
 
         // Check if user already exists
+        /* TEMPORARY: Commented out to allow multiple reg
         const userExists = await User.findOne({ email });
         if (userExists) {
             return res.status(400).json({ message: 'User already exists with this email' });
         }
+        */
 
         // =========================================================
         // 1. REFERRAL LINK PARSING
