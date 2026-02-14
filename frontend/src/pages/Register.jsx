@@ -7,7 +7,7 @@ import { Eye, EyeOff } from 'lucide-react';
 const Register = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { register } = useAuth();
+    const { register, logout } = useAuth();
 
     // Parse URL Params using useLocation which is reactive to router changes
     const getUrlParams = () => {
@@ -139,7 +139,8 @@ const Register = () => {
             console.log("FINAL REGISTER PAYLOAD:", registerData);
 
             await register(registerData);
-            navigate('/');
+            logout(); // Ensure user is not auto-logged in
+            navigate('/login', { state: { message: 'Registration successful! Please login to continue.' } });
         } catch (err) {
             console.error("Register Failed:", err);
             setError(err.response?.data?.message || 'Registration failed. Please try again.');
