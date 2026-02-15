@@ -43,8 +43,27 @@ const Dashboard = () => {
                 }
 
                 if (announcementsResponse.success) {
-                    const bannerItems = announcementsResponse.data.filter(a => a.type === 'banner');
-                    setBanners(bannerItems);
+                    // Filter out any banners that are not relevant (e.g., hidden/test content like Mafia)
+                    const bannerItems = announcementsResponse.data.filter(a =>
+                        a.type === 'banner' &&
+                        !a.title?.toLowerCase().includes('mafia') &&
+                        !a.message?.toLowerCase().includes('mafia')
+                    );
+
+                    const defaultBanners = [
+                        {
+                            title: "Premium Global Network",
+                            message: "Join the most powerful network marketing platform in the world. Maximize your earnings with IVAMAX.",
+                            image: "/banners/banner_desktop.png"
+                        },
+                        {
+                            title: "Smart Investment Solutions",
+                            message: "Experience high-performance returns with our innovative investment strategies.",
+                            image: "/banners/banner_mobile.png"
+                        }
+                    ];
+                    // Prepend default premium banners
+                    setBanners([...defaultBanners, ...bannerItems]);
                 }
 
             } catch (error) {
@@ -167,7 +186,6 @@ const Dashboard = () => {
                         { id: 'income', label: 'Income', icon: <DollarSign size={18} /> },
                         { id: 'business', label: 'Business', icon: <Briefcase size={18} /> },
                         { id: 'rank', label: 'Rank', icon: <Trophy size={18} /> },
-                        { id: 'referral', label: 'Referral', icon: <UserPlus size={18} /> },
                         { id: 'actions', label: 'Actions', icon: <PieChart size={18} /> },
                     ].map(tab => (
                         <button
@@ -215,7 +233,7 @@ const Dashboard = () => {
                                             src={(() => {
                                                 if (banners[currentBannerIndex]?.image) {
                                                     const path = banners[currentBannerIndex].image;
-                                                    if (path.startsWith('http')) return path;
+                                                    if (path.startsWith('http') || path.startsWith('/banners/')) return path;
                                                     const cleanPath = path.replace(/\\/g, '/').replace(/^\//, '');
                                                     return `${baseUrl}/${cleanPath}`;
                                                 }
@@ -506,165 +524,7 @@ const Dashboard = () => {
                 </motion.div>
             )}
 
-            {/* Referral Center Section */}
-            {(isMobile && activeTab === 'referral') && (
-                <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    variants={cardVariants}
-                    className="bg-white rounded-[40px] p-6 md:p-10 border border-gray-100 shadow-xl overflow-hidden relative"
-                >
-                    {/* Background Decorations */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none"></div>
 
-                    <div className="relative z-10 flex flex-col h-full">
-                        <div className="flex items-center justify-between mb-8 md:mb-12">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-amber-500/10 rounded-2xl">
-                                    <Users className="text-amber-500" size={28} />
-                                </div>
-                                <div className="text-left">
-                                    <h3 className="text-2xl md:text-3xl font-black text-[#0f172a]">Referral Center</h3>
-                                    <p className="text-gray-500 font-medium text-sm md:text-base">Manage and grow your network</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Prominent User ID */}
-                        <div className="text-center mb-8 md:mb-12">
-                            <span className="text-xs md:text-sm font-bold text-gray-400 uppercase tracking-[3px]">Your Referral ID</span>
-                            <div className="text-3xl md:text-5xl font-black text-amber-500 tracking-tight mt-3 flex items-center justify-center gap-4">
-                                {user?.username || 'IVA1002'}
-                                <button
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(user?.username || 'IVA1002');
-                                        setCopiedId(true);
-                                        setTimeout(() => setCopiedId(false), 2000);
-                                    }}
-                                    className="text-gray-400 hover:text-amber-500 transition-colors"
-                                >
-                                    {copiedId ? <Check size={28} className="text-green-500" /> : <Copy size={28} />}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Placement Controls */}
-                        <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-12 mb-8 md:mb-14">
-                            {/* Left Side */}
-                            <div className="flex flex-row md:flex-col items-center gap-3 w-full md:w-auto">
-                                <button
-                                    onClick={() => setActiveRefTab('left')}
-                                    className={`flex-1 md:px-10 py-3 md:py-4 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all shadow-md min-w-[140px] md:w-48 relative ${activeRefTab === 'left'
-                                        ? 'bg-amber-500 text-white shadow-amber-500/30 ring-4 ring-amber-500/20 transform scale-105'
-                                        : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'
-                                        }`}
-                                >
-                                    Left Link
-                                </button>
-                                <button
-                                    onClick={() => setActiveRefTab('placing-left')}
-                                    className={`flex-1 md:px-10 py-3 md:py-4 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all shadow-md min-w-[140px] md:w-48 ${activeRefTab === 'placing-left'
-                                        ? 'bg-amber-500 text-white shadow-amber-500/30 ring-4 ring-amber-500/20 transform scale-105'
-                                        : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'
-                                        }`}
-                                >
-                                    Placing Left
-                                </button>
-                            </div>
-
-                            {/* Divider on desktop */}
-                            <div className="hidden md:block w-px h-32 bg-gray-100"></div>
-
-                            {/* Right Side */}
-                            <div className="flex flex-row md:flex-col items-center gap-3 w-full md:w-auto">
-                                <button
-                                    onClick={() => setActiveRefTab('right')}
-                                    className={`flex-1 md:px-10 py-3 md:py-4 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all shadow-md min-w-[140px] md:w-48 relative ${activeRefTab === 'right'
-                                        ? 'bg-amber-500 text-white shadow-amber-500/30 ring-4 ring-amber-500/20 transform scale-105'
-                                        : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'
-                                        }`}
-                                >
-                                    Right Link
-                                </button>
-                                <button
-                                    onClick={() => setActiveRefTab('placing-right')}
-                                    className={`flex-1 md:px-10 py-3 md:py-4 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all shadow-md min-w-[140px] md:w-48 ${activeRefTab === 'placing-right'
-                                        ? 'bg-amber-500 text-white shadow-amber-500/30 ring-4 ring-amber-500/20 transform scale-105'
-                                        : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'
-                                        }`}
-                                >
-                                    Placing Right
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Link & Socials */}
-                        <div className="space-y-6">
-                            <div className="bg-gray-50 border border-gray-200 rounded-[28px] p-2.5 md:p-3 flex items-center gap-3 shadow-inner group transition-all focus-within:ring-2 focus-within:ring-amber-500/20">
-                                <input
-                                    type="text"
-                                    readOnly
-                                    value={`${window.location.origin}/register?ref=${user?.username || 'IVA1002'}&position=${activeRefTab === 'placing-left' ? 'left' : activeRefTab === 'placing-right' ? 'right' : activeRefTab}`}
-                                    className="bg-transparent flex-1 text-[11px] md:text-base font-bold text-gray-700 outline-none px-4 truncate font-mono"
-                                />
-                                <button
-                                    onClick={() => {
-                                        const link = `${window.location.origin}/register?ref=${user?.username || 'IVA1002'}&position=${activeRefTab === 'placing-left' ? 'left' : activeRefTab === 'placing-right' ? 'right' : activeRefTab}`;
-                                        navigator.clipboard.writeText(link);
-                                        setCopiedSide('active');
-                                        setTimeout(() => setCopiedSide(null), 2000);
-                                    }}
-                                    className="bg-gray-900 text-white px-5 md:px-8 py-3 md:py-4 rounded-[20px] text-xs font-black uppercase tracking-widest hover:bg-black transition-all flex items-center gap-2 shadow-lg active:scale-95 shrink-0"
-                                >
-                                    {copiedSide === 'active' ? <Check size={18} /> : <Copy size={18} />}
-                                    <span className="hidden sm:inline">{copiedSide === 'active' ? 'Copied' : 'Copy Link'}</span>
-                                </button>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <button
-                                    onClick={() => {
-                                        const pos = activeRefTab === 'placing-left' ? 'left' : activeRefTab === 'placing-right' ? 'right' : activeRefTab;
-                                        const link = `${window.location.origin}/register?ref=${user?.username}&position=${pos}`;
-                                        const text = `Join IVAMAX and start your journey today! Use my referral link: ${link}`;
-                                        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                                    }}
-                                    className="bg-[#25D366] text-white py-4 rounded-[24px] font-black uppercase text-xs md:text-sm shadow-lg shadow-[#25D366]/20 hover:bg-[#20bd5a] transition-all flex items-center justify-center gap-3 active:scale-95 group"
-                                >
-                                    <MessageCircle size={22} className="group-hover:rotate-12 transition-transform" /> Share via WhatsApp
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        const pos = activeRefTab === 'placing-left' ? 'left' : activeRefTab === 'placing-right' ? 'right' : activeRefTab;
-                                        const link = `${window.location.origin}/register?ref=${user?.username}&position=${pos}`;
-                                        const text = `Join IVAMAX and start your journey today!`;
-                                        if (navigator.share && isMobile) {
-                                            navigator.share({ title: 'IVAMAX Referral', text: text, url: link }).catch(console.error);
-                                        } else {
-                                            window.open(`https://www.instagram.com/`, '_blank');
-                                        }
-                                    }}
-                                    className="bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] text-white py-4 rounded-[24px] font-black uppercase text-xs md:text-sm shadow-lg shadow-red-500/20 transition-all flex items-center justify-center gap-3 active:scale-95 group"
-                                >
-                                    <Smartphone size={22} className="group-hover:rotate-12 transition-transform" /> Instagram Direct
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        const pos = activeRefTab === 'placing-left' ? 'left' : activeRefTab === 'placing-right' ? 'right' : activeRefTab;
-                                        const link = `${window.location.origin}/register?ref=${user?.username}&position=${pos}`;
-                                        const text = `Join IVAMAX and start your journey today!`;
-                                        window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`, '_blank');
-                                    }}
-                                    className="bg-[#0088cc] text-white py-4 rounded-[24px] font-black uppercase text-xs md:text-sm shadow-lg shadow-[#0088cc]/20 hover:bg-[#0077b5] transition-all flex items-center justify-center gap-3 active:scale-95 group"
-                                >
-                                    <Send size={22} className="group-hover:-translate-y-1 group-hover:translate-x-1 transition-transform" /> Send on Telegram
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </motion.div>
-            )}
 
             {/* Quick Actions */}
             {(!isMobile || activeTab === 'actions') && (

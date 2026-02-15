@@ -151,10 +151,10 @@ const Profile = () => {
             initial="hidden"
             animate="visible"
             variants={containerVariants}
-            className="space-y-8 min-h-screen bg-gray-50 pb-20"
+            className="space-y-6 md:space-y-8 min-h-screen bg-gray-50 pb-20"
         >
             {/* Header Section */}
-            <div className="relative rounded-3xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8 md:p-10 shadow-2xl overflow-hidden">
+            <div className="relative rounded-3xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4 md:p-10 shadow-2xl overflow-hidden">
                 {/* Animated Background Elements */}
                 <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-golden-500/20 to-transparent rounded-full blur-3xl"></div>
                 <div className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-tr from-golden-600/10 to-transparent rounded-full blur-2xl"></div>
@@ -191,7 +191,7 @@ const Profile = () => {
                         </div>
 
                         {/* User Details Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                        <div className="grid grid-cols-1 gap-4 mt-6">
                             {/* User ID Card */}
                             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all duration-300">
                                 <div className="flex items-center gap-3">
@@ -232,7 +232,7 @@ const Profile = () => {
             </div>
 
             {/* Content Area */}
-            <div className="bg-white rounded-3xl shadow-xl shadow-gray-400 border border-gray-400 p-6">
+            <div className="bg-white rounded-3xl shadow-xl shadow-gray-400 border border-gray-400 p-4 md:p-6">
                 {activeTab === 'personal' && (
                     <motion.form
                         initial={{ opacity: 0, x: 20 }}
@@ -558,9 +558,9 @@ const Profile = () => {
                     >
                         <h2 className="text-xl font-bold text-gray-800">Income Overview</h2>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 gap-6">
                             {/* 1. Profit Wallet */}
-                            <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
+                            <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 md:p-6 rounded-2xl shadow-xl relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-4 opacity-10">
                                     <TrendingUp size={100} />
                                 </div>
@@ -577,7 +577,7 @@ const Profile = () => {
                             </div>
 
                             {/* 2. Capital Wallet */}
-                            <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
+                            <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 md:p-6 rounded-2xl shadow-xl relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-4 opacity-10">
                                     <Wallet size={100} />
                                 </div>
@@ -594,7 +594,7 @@ const Profile = () => {
                             </div>
 
                             {/* 3. Available Profit */}
-                            <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
+                            <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 md:p-6 rounded-2xl shadow-xl relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-4 opacity-10">
                                     <DollarSign size={100} />
                                 </div>
@@ -611,7 +611,7 @@ const Profile = () => {
                             </div>
 
                             {/* 4. Withdrawal Released */}
-                            <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
+                            <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white p-4 md:p-6 rounded-2xl shadow-xl relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-4 opacity-10">
                                     <CheckCircle size={100} />
                                 </div>
@@ -628,7 +628,7 @@ const Profile = () => {
                             </div>
 
                             {/* 5. Withdrawal Pending */}
-                            <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
+                            <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 md:p-6 rounded-2xl shadow-xl relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-4 opacity-10">
                                     <X size={100} />
                                 </div>

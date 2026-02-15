@@ -15,14 +15,14 @@ const findPlacement = async (sponsorId, strategy) => {
     if (strategy === 'left') {
         // 1. Normal Left Link: Direct placement
         if (sponsorTree.leftDirectId) {
-            throw new Error('Sponsor\'s Left position is already occupied');
+            throw new Error('This position is filled');
         }
         return { parentId: sponsorId, side: 'Left' };
 
     } else if (strategy === 'right') {
         // 2. Normal Right Link: Direct placement
         if (sponsorTree.rightDirectId) {
-            throw new Error('Sponsor\'s Right position is already occupied');
+            throw new Error('This position is filled');
         }
         return { parentId: sponsorId, side: 'Right' };
 
