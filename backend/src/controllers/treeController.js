@@ -32,6 +32,24 @@ const getTree = async (req, res) => {
 
             const user = await User.findOne({ userId: nodeId }).select('userId fullName rank isActive packageType');
 
+            if (!user) {
+                console.error(`[TREE ERROR] Node ${nodeId} found in Tree but missing in User collection!`);
+                // Return a placeholder or null to avoid crash
+                return {
+                    userId: nodeId,
+                    fullName: "UNKNOWN (Data Error)",
+                    rank: 0,
+                    isActive: false,
+                    packageType: "Error",
+                    leftPairs: node.leftPairs,
+                    rightPairs: node.rightPairs,
+                    totalLeft: node.totalLeftMembers || 0,
+                    totalRight: node.totalRightMembers || 0,
+                    children: [],
+                    error: true
+                };
+            }
+
             const treeData = {
                 userId: user.userId,
                 fullName: user.fullName,

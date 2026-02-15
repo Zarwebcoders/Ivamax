@@ -28,7 +28,9 @@ const activatePackage = async (depositId, processedBy = 'SYSTEM') => {
         user.isActive = true; // Ensure user is active
         await user.save();
 
-        // 3. Auto-process first income for current month (PMR)
+        // 3. Auto-process first income for current month (PMR) - REMOVED per requirement
+        // "Income 1 month bad milegi" - Income should start after 1 month
+        /*
         try {
             const { processUserMonthlyIncome } = require('../controllers/incomeController');
             const now = new Date();
@@ -40,6 +42,7 @@ const activatePackage = async (depositId, processedBy = 'SYSTEM') => {
         } catch (incomeError) {
             console.error('[SYSTEM] Error auto-processing income:', incomeError.message);
         }
+        */
 
         return { success: true, message: 'Package activated successfully' };
     } catch (error) {

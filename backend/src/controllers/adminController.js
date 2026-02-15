@@ -320,6 +320,84 @@ const createUser = async (req, res) => {
         // 6. UPDATE UPLINE
         await updateUplineCounts(newUserId);
 
+        // 7. SEND WELCOME EMAIL (Exact same logic as Public Registration)
+        try {
+            const sendEmail = require('../utils/sendEmail');
+            const htmlContent = `
+                <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;">
+                    
+                    <!-- Header -->
+                    <div style="background: linear-gradient(135deg, #1a1a1a 0%, #2d3748 100%); text-align: center; padding: 40px 20px;">
+                       <h1 style="color: #FFD700; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">Welcome, ${fullName}!</h1>
+                    </div>
+
+                    <!-- Content -->
+                    <div style="padding: 40px 30px;">
+                        <p style="font-size: 16px; color: #4a5568; margin-bottom: 24px;">Dear <strong>${fullName}</strong>,</p>
+                        
+                        <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin-bottom: 32px;">
+                            We are thrilled to examine your registration with <strong>IVAMAX</strong>. Your account has been successfully created, and you are now ready to start your journey with us.
+                        </p>
+
+                        <!-- Warning Box -->
+                        <div style="background-color: #fff5f5; border: 1px solid #fc8181; border-radius: 8px; padding: 16px; margin-bottom: 32px; text-align: center;">
+                            <p style="color: #c53030; font-weight: bold; margin: 0; font-size: 14px;">
+                                ⚠️ IMPORTANT WARNING
+                            </p>
+                            <p style="color: #742a2a; margin-top: 8px; font-size: 14px;">
+                                Please login to your account within <strong>24 hours</strong> to complete activation. <br/>
+                                Accounts not accessed within this timeframe may be automatically deleted for security reasons.
+                            </p>
+                        </div>
+
+                        <!-- Credentials Box -->
+                        <div style="background-color: #f7fafc; border-left: 4px solid #FFD700; border-radius: 8px; padding: 24px; margin-bottom: 32px; box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);">
+                            <h3 style="margin: 0 0 16px 0; color: #2d3748; font-size: 18px;">Your Login Credentials</h3>
+                            
+                            <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                                <span style="font-size: 14px; color: #718096; width: 100px;">User ID:</span>
+                                <span style="font-size: 18px; color: #1a202c; font-weight: 700; font-family: monospace;">${newUserId}</span>
+                            </div>
+                            
+                            <div style="display: flex; align-items: center;">
+                                <span style="font-size: 14px; color: #718096; width: 100px;">Password:</span>
+                                <span style="font-size: 18px; color: #1a202c; font-weight: 700; font-family: monospace;">${password}</span>
+                            </div>
+                        </div>
+
+                        <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin-bottom: 32px; text-align: center;">
+                            Please keep these credentials safe and do not share them with anyone.
+                        </p>
+
+                        <!-- CTA Button -->
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?uid=${newUserId}&pwd=${password}" style="background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%); color: #1a202c; padding: 16px 40px; text-decoration: none; border-radius: 50px; font-weight: 800; font-size: 16px; transition: all 0.3s ease; display: inline-block; box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.5);">
+                                Login to Your Dashboard
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div style="background-color: #edf2f7; padding: 24px; text-align: center;">
+                        <p style="font-size: 12px; color: #a0aec0; margin: 0;">
+                            &copy; ${new Date().getFullYear()} IVAMAX. All rights reserved.<br>
+                            Need help? Contact <a href="mailto:support@ivamax.live" style="color: #4299e1; text-decoration: none;">support@ivamax.live</a>
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            await sendEmail({
+                email: newUser.email,
+                subject: 'Welcome to IVAMAX - Registration Successful',
+                html: htmlContent,
+                message: `Welcome to IVAMAX! Your User ID is ${newUserId} and password is ${password}. Login at: ${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`
+            });
+            console.log(`[SUCCESS] Welcome email sent to ${newUser.email}`);
+        } catch (err) {
+            console.error('[WARNING] Failed to send welcome email:', err);
+        }
+
         res.status(201).json({
             success: true,
             message: 'User created successfully',

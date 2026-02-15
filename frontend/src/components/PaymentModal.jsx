@@ -243,7 +243,7 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                                         </div>
                                         <div className="text-left">
                                             <p className="font-bold text-gray-900">Automatic</p>
-                                            <p className="text-xs text-gray-600">MetaMask (BEP20) / TronLink</p>
+                                            <p className="text-xs text-gray-600">BEP20 / TRC20</p>
                                         </div>
                                     </div>
                                     <div className="bg-golden-200 text-golden-800 text-[10px] font-bold px-2 py-1 rounded uppercase">Recommended</div>
@@ -289,7 +289,7 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                                                 : 'text-gray-500 hover:text-gray-700'
                                                 }`}
                                         >
-                                            {net === 'BEP20' ? 'BSC (MetaMask)' : 'Tron (TronLink)'}
+                                            {net === 'BEP20' ? 'BEP20' : 'TRC20'}
                                         </button>
                                     ))}
                                 </div>
@@ -320,13 +320,13 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                                         ) : (
                                             <>
                                                 <Zap size={20} fill="currentColor" />
-                                                Pay with {autoNetwork === 'TRC20' ? 'TronLink' : 'MetaMask'}
+                                                Pay Now
                                             </>
                                         )}
                                     </button>
                                 )}
                                 <p className="text-xs text-center text-gray-400">
-                                    {autoNetwork === 'TRC20' ? 'Requires TronLink Extension' : 'Requires MetaMask / Web3 Wallet'}
+                                    {autoNetwork === 'TRC20' ? 'Requires TRC20 Compatible Wallet' : 'Requires BEP20 Compatible Wallet'}
                                 </p>
                             </div>
                         ) : (
@@ -430,8 +430,8 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                         )}
                     </div>
                 </motion.div>
-            </div>
-        </AnimatePresence>
+            </div >
+        </AnimatePresence >
     );
 };
 

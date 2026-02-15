@@ -6,7 +6,8 @@ import {
     TrendingUp, Users, Crown, DollarSign, Clock, Landmark, PieChart,
     ArrowRightLeft, Trophy, Target, TreeDeciduous, BarChart3,
     CircleDollarSign, Briefcase, Copy, Check, MessageCircle, Send,
-    Award, ExternalLink, UserPlus, ArrowLeftRight, ChevronRight, HelpCircle
+    Award, ExternalLink, UserPlus, ArrowLeftRight, ChevronRight, HelpCircle,
+    Instagram, Share2, Smartphone
 } from 'lucide-react';
 import { announcementService } from '../services/announcement.service';
 import { dashboardService } from '../services/dashboard.service';
@@ -25,6 +26,9 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
     const [isMobile, setIsMobile] = useState(false);
+    const [copiedId, setCopiedId] = useState(false);
+    const [copiedSide, setCopiedSide] = useState(null);
+    const [activeRefTab, setActiveRefTab] = useState('placing-left');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -163,6 +167,7 @@ const Dashboard = () => {
                         { id: 'income', label: 'Income', icon: <DollarSign size={18} /> },
                         { id: 'business', label: 'Business', icon: <Briefcase size={18} /> },
                         { id: 'rank', label: 'Rank', icon: <Trophy size={18} /> },
+                        { id: 'referral', label: 'Referral', icon: <UserPlus size={18} /> },
                         { id: 'actions', label: 'Actions', icon: <PieChart size={18} /> },
                     ].map(tab => (
                         <button
@@ -179,9 +184,11 @@ const Dashboard = () => {
                 </div>
             )}
 
-            {/* Hero Section / Welcome - MOVED TO TOP */}
+            {/* Hero Section / Welcome - Only on Overview tab for mobile */}
             {(!isMobile || activeTab === 'overview') && (
                 <motion.div
+                    initial="hidden"
+                    animate="visible"
                     variants={cardVariants}
                     className="space-y-6"
                 >
@@ -197,30 +204,56 @@ const Dashboard = () => {
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <div className="lg:col-span-2 relative w-full h-64 md:h-80 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/30 group">
-                                <motion.img
-                                    key={currentBannerIndex}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ duration: 0.5 }}
-                                    src={(() => {
-                                        if (banners.length > 0 && banners[currentBannerIndex]?.image) {
-                                            const path = banners[currentBannerIndex].image;
-                                            if (path.startsWith('http')) return path;
-                                            const cleanPath = path.replace(/\\/g, '/').replace(/^\//, '');
-                                            return `${baseUrl}/${cleanPath}`;
-                                        }
-                                        return "https://wallpapers.com/images/hd/mafia-3-lincoln-clay-poster-9k7y7y7y7y7y7y7y.jpg";
-                                    })()}
-                                    className="absolute inset-0 w-full h-full object-cover z-0"
-                                />
-                                {banners.length > 0 && (
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10 flex flex-col justify-end p-6">
-                                        <h2 className="text-white text-3xl font-black mb-1">{banners[currentBannerIndex].title}</h2>
-                                        <p className="text-gray-200 text-base line-clamp-2">{banners[currentBannerIndex].message}</p>
+                            <div className="lg:col-span-2 relative w-full h-64 md:h-80 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/30 group bg-gray-900">
+                                {banners.length > 0 ? (
+                                    <>
+                                        <motion.img
+                                            key={currentBannerIndex}
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ duration: 0.5 }}
+                                            src={(() => {
+                                                if (banners[currentBannerIndex]?.image) {
+                                                    const path = banners[currentBannerIndex].image;
+                                                    if (path.startsWith('http')) return path;
+                                                    const cleanPath = path.replace(/\\/g, '/').replace(/^\//, '');
+                                                    return `${baseUrl}/${cleanPath}`;
+                                                }
+                                                return "";
+                                            })()}
+                                            className="absolute inset-0 w-full h-full object-cover z-0"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10 flex flex-col justify-end p-8">
+                                            <h2 className="text-white text-3xl md:text-4xl font-black mb-2">{banners[currentBannerIndex].title}</h2>
+                                            <p className="text-gray-200 text-lg line-clamp-2">{banners[currentBannerIndex].message}</p>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="absolute inset-0 w-full h-full z-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black flex flex-col justify-center items-center p-8 text-center overflow-hidden">
+                                        {/* Animated Background Elements */}
+                                        <div className="absolute top-0 left-0 w-full h-full opacity-20">
+                                            <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] animate-[spin_60s_linear_infinite] opacity-30 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0deg,rgba(245,158,11,0.1)_180deg,transparent_360deg)]"></div>
+                                        </div>
+
+                                        {/* CSS Grid Pattern */}
+                                        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#F59E0B 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
+
+                                        {/* Content */}
+                                        <div className="relative z-10">
+                                            <h2 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FFD700] via-[#FDB931] to-[#C0A062] tracking-tighter mb-2 drop-shadow-2xl">
+                                                IVAMAX
+                                            </h2>
+                                            <p className="text-gray-400 text-lg md:text-xl font-bold tracking-[0.5em] uppercase pl-2">
+                                                Global Network
+                                            </p>
+
+                                            <div className="mt-8 flex justify-center gap-2">
+                                                <div className="w-16 h-1 bg-gradient-to-r from-transparent to-golden-500 rounded-full opacity-50"></div>
+                                                <div className="w-16 h-1 bg-gradient-to-l from-transparent to-golden-500 rounded-full opacity-50"></div>
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                             </div>
 
                             <div className="lg:col-span-1 bg-black/5 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-xl h-64 md:h-80 flex flex-col justify-center gap-8 relative overflow-hidden">
@@ -240,20 +273,27 @@ const Dashboard = () => {
                 </motion.div>
             )}
 
+
             {/* Business & Rank Section */}
-            {(!isMobile || activeTab === 'overview' || activeTab === 'business' || activeTab === 'rank') && (
+            {(!isMobile || activeTab === 'business' || activeTab === 'rank') && (
                 <motion.div
+                    initial="hidden"
+                    animate="visible"
                     variants={containerVariants}
                     className="grid grid-cols-1 lg:grid-cols-3 gap-6"
                 >
                     {/* Business Overview - Left Section (2/3 width on desktop) */}
-                    {(!isMobile || activeTab === 'overview' || activeTab === 'business') && (
+                    {(!isMobile || activeTab === 'business') && (
                         <motion.div
+                            initial="hidden"
+                            animate="visible"
                             variants={cardVariants}
                             whileHover={scaleOnHover}
                             className="lg:col-span-2 bg-white rounded-[40px] p-8 border border-gray-100 shadow-xl overflow-hidden min-h-[480px] flex flex-col"
                         >
-
+                            <h3 className="text-2xl font-black text-[#0f172a] mb-8 flex items-center gap-3">
+                                <Briefcase className="text-golden-500" /> Business Overview
+                            </h3>
 
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 flex-grow items-start">
                                 {/* Left Pairs Card */}
@@ -307,42 +347,46 @@ const Dashboard = () => {
                                     </div>
                                 </motion.div>
 
-                                {/* Row 2: Rank Details - Side by Side on Mobile */}
-                                {/* Current Rank Card */}
-                                <motion.div
-                                    variants={cardVariants}
-                                    whileHover={{ scale: 1.05 }}
-                                    className="bg-[#faf5ff] rounded-3xl p-4 md:p-6 border border-[#f3e8ff] relative group col-span-1"
-                                >
-                                    <div className="absolute top-4 right-4 md:top-6 md:right-6 p-1.5 md:p-2 bg-white/80 rounded-lg text-[#a855f7] shadow-sm">
-                                        <Trophy size={14} className="md:w-[18px] md:h-[18px]" />
-                                    </div>
-                                    <p className="text-[#a855f7] font-bold text-xs md:text-sm tracking-tight mb-3 md:mb-6">Current Rank</p>
-                                    <h4 className="text-xl md:text-[36px] font-black text-[#0f172a] leading-none uppercase tracking-tight mb-3 md:mb-6 truncate">
-                                        {stats.currentRank || 'MEMBER'}
-                                    </h4>
-                                    <div className="w-full h-1 md:h-1.5 bg-[#f3e8ff] rounded-full overflow-hidden">
-                                        <div className="h-full bg-[#a855f7] w-full" />
-                                    </div>
-                                </motion.div>
+                                {/* Row 2: Rank Details - Hidden on mobile Business tab, shown on desktop */}
+                                {!isMobile && (
+                                    <>
+                                        {/* Current Rank Card */}
+                                        <motion.div
+                                            variants={cardVariants}
+                                            whileHover={{ scale: 1.05 }}
+                                            className="bg-[#faf5ff] rounded-3xl p-4 md:p-6 border border-[#f3e8ff] relative group col-span-1"
+                                        >
+                                            <div className="absolute top-4 right-4 md:top-6 md:right-6 p-1.5 md:p-2 bg-white/80 rounded-lg text-[#a855f7] shadow-sm">
+                                                <Trophy size={14} className="md:w-[18px] md:h-[18px]" />
+                                            </div>
+                                            <p className="text-[#a855f7] font-bold text-xs md:text-sm tracking-tight mb-3 md:mb-6">Current Rank</p>
+                                            <h4 className="text-xl md:text-[36px] font-black text-[#0f172a] leading-none uppercase tracking-tight mb-3 md:mb-6 truncate">
+                                                {stats.currentRank || 'MEMBER'}
+                                            </h4>
+                                            <div className="w-full h-1 md:h-1.5 bg-[#f3e8ff] rounded-full overflow-hidden">
+                                                <div className="h-full bg-[#a855f7] w-full" />
+                                            </div>
+                                        </motion.div>
 
-                                {/* Closing Rank / Next Milestone Card */}
-                                <motion.div
-                                    variants={cardVariants}
-                                    whileHover={{ scale: 1.05 }}
-                                    className="bg-golden-50 rounded-3xl p-4 md:p-6 border border-golden-100 relative group col-span-1"
-                                >
-                                    <div className="absolute top-4 right-4 md:top-6 md:right-6 p-1.5 md:p-2 bg-white/80 rounded-lg text-golden-600 shadow-sm">
-                                        <Award size={14} className="md:w-[18px] md:h-[18px]" />
-                                    </div>
-                                    <p className="text-golden-600 font-bold text-xs md:text-sm tracking-tight mb-3 md:mb-6">Closing Rank</p>
-                                    <h4 className="text-xl md:text-[36px] font-black text-gray-900 leading-none uppercase tracking-tight mb-3 md:mb-6 truncate">
-                                        {stats.nextRankName || 'GOLD'}
-                                    </h4>
-                                    <div className="w-full h-1 md:h-1.5 bg-golden-200 rounded-full overflow-hidden">
-                                        <div className="h-full bg-golden-500" style={{ width: `${stats.rankProgress || 0}%` }} />
-                                    </div>
-                                </motion.div>
+                                        {/* Closing Rank / Next Milestone Card */}
+                                        <motion.div
+                                            variants={cardVariants}
+                                            whileHover={{ scale: 1.05 }}
+                                            className="bg-golden-50 rounded-3xl p-4 md:p-6 border border-golden-100 relative group col-span-1"
+                                        >
+                                            <div className="absolute top-4 right-4 md:top-6 md:right-6 p-1.5 md:p-2 bg-white/80 rounded-lg text-golden-600 shadow-sm">
+                                                <Award size={14} className="md:w-[18px] md:h-[18px]" />
+                                            </div>
+                                            <p className="text-golden-600 font-bold text-xs md:text-sm tracking-tight mb-3 md:mb-6">Closing Rank</p>
+                                            <h4 className="text-xl md:text-[36px] font-black text-gray-900 leading-none uppercase tracking-tight mb-3 md:mb-6 truncate">
+                                                {stats.nextRankName || 'GOLD'}
+                                            </h4>
+                                            <div className="w-full h-1 md:h-1.5 bg-golden-200 rounded-full overflow-hidden">
+                                                <div className="h-full bg-golden-500" style={{ width: `${stats.rankProgress || 0}%` }} />
+                                            </div>
+                                        </motion.div>
+                                    </>
+                                )}
                             </div>
                         </motion.div>
                     )}
@@ -350,10 +394,25 @@ const Dashboard = () => {
                     {/* Rank Status - Right Section (Dark Design from image) */}
                     {(!isMobile || activeTab === 'rank') && (
                         <motion.div
+                            initial="hidden"
+                            animate="visible"
                             variants={cardVariants}
                             whileHover={{ scale: 1.02 }}
-                            className="lg:col-span-1 bg-[#1a1f2e] rounded-[40px] p-10 border border-[#2d3748] shadow-2xl flex flex-col relative overflow-hidden h-full"
+                            className="lg:col-span-1 bg-[#1a1f2e] rounded-[40px] p-6 lg:p-10 border border-[#2d3748] shadow-2xl flex flex-col relative overflow-hidden h-full"
                         >
+                            {/* Rank Progress Info for Mobile (Moved from Business Section) */}
+                            {isMobile && (
+                                <div className="grid grid-cols-2 gap-4 mb-8">
+                                    <div className="bg-[#242c3d] rounded-2xl p-4 border border-[#334155]">
+                                        <p className="text-[#a855f7] font-bold text-[10px] uppercase mb-1">Current Rank</p>
+                                        <p className="text-white font-black text-sm uppercase">{stats.currentRank || 'MEMBER'}</p>
+                                    </div>
+                                    <div className="bg-[#242c3d] rounded-2xl p-4 border border-[#334155]">
+                                        <p className="text-golden-500 font-bold text-[10px] uppercase mb-1">Next Rank</p>
+                                        <p className="text-white font-black text-sm uppercase">{stats.nextRankName || 'GOLD'}</p>
+                                    </div>
+                                </div>
+                            )}
                             {/* Accent border at top */}
                             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-golden-400 to-golden-600 opacity-50" />
 
@@ -410,36 +469,208 @@ const Dashboard = () => {
             {/* Income Cards */}
             {(!isMobile || activeTab === 'income') && (
                 <motion.div
-                    variants={containerVariants}
-                    className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+                    initial="hidden"
+                    animate="visible"
+                    variants={cardVariants}
+                    className="bg-white rounded-[40px] p-8 border border-gray-100 shadow-xl"
                 >
-                    {[
-                        { label: "Total Income", value: stats.totalIncome || 0, color: "text-amber-500", icon: <DollarSign size={24} />, bg: "bg-[#fffbeb]" },
-                        { label: "PMR Income", value: stats.pmrIncome || 0, color: "text-blue-500", icon: <TrendingUp size={24} />, bg: "bg-[#f0f7ff]" },
-                        { label: "DRR Income", value: stats.drrIncome || 0, color: "text-green-500", icon: <Users size={24} />, bg: "bg-[#f0fdf4]" },
-                        { label: "FCR Income", value: stats.fcrIncome || 0, color: "text-purple-500", icon: <Crown size={24} />, bg: "bg-[#faf5ff]" }
-                    ].map((item, idx) => (
-                        <motion.div
-                            key={idx}
-                            variants={cardVariants}
-                            whileHover={{ scale: 1.05, y: -5 }}
-                            className={`${item.bg} rounded-3xl p-6 shadow-sm border border-black/5 flex flex-col justify-between h-36`}
-                        >
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <p className="text-xs font-black text-gray-500 uppercase tracking-widest">{item.label}</p>
-                                    <h3 className={`text-4xl font-black mt-2 ${item.color}`}>${item.value}</h3>
+                    <h3 className="text-2xl font-black text-[#0f172a] mb-8 flex items-center gap-3">
+                        <DollarSign className="text-amber-500" /> My Earnings
+                    </h3>
+                    <motion.div
+                        variants={containerVariants}
+                        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+                    >
+                        {[
+                            { label: "Total Income", value: stats.totalIncome || 0, color: "text-amber-500", icon: <DollarSign size={24} />, bg: "bg-[#fffbeb]" },
+                            { label: "PMR Income", value: stats.pmrIncome || 0, color: "text-blue-500", icon: <TrendingUp size={24} />, bg: "bg-[#f0f7ff]" },
+                            { label: "DRR Income", value: stats.drrIncome || 0, color: "text-green-500", icon: <Users size={24} />, bg: "bg-[#f0fdf4]" },
+                            { label: "FCR Income", value: stats.fcrIncome || 0, color: "text-purple-500", icon: <Crown size={24} />, bg: "bg-[#faf5ff]" }
+                        ].map((item, idx) => (
+                            <motion.div
+                                key={idx}
+                                variants={cardVariants}
+                                whileHover={{ scale: 1.05, y: -5 }}
+                                className={`${item.bg} rounded-3xl p-6 shadow-sm border border-black/5 flex flex-col justify-between h-36`}
+                            >
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-xs font-black text-gray-500 uppercase tracking-widest">{item.label}</p>
+                                        <h3 className={`text-4xl font-black mt-2 ${item.color}`}>${item.value}</h3>
+                                    </div>
+                                    <div className="p-2 bg-white/80 rounded-xl text-gray-400 shadow-sm">{item.icon}</div>
                                 </div>
-                                <div className="p-2 bg-white/80 rounded-xl text-gray-400 shadow-sm">{item.icon}</div>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </motion.div>
+            )}
+
+            {/* Referral Center Section */}
+            {(isMobile && activeTab === 'referral') && (
+                <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    variants={cardVariants}
+                    className="bg-white rounded-[40px] p-6 md:p-10 border border-gray-100 shadow-xl overflow-hidden relative"
+                >
+                    {/* Background Decorations */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none"></div>
+
+                    <div className="relative z-10 flex flex-col h-full">
+                        <div className="flex items-center justify-between mb-8 md:mb-12">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-amber-500/10 rounded-2xl">
+                                    <Users className="text-amber-500" size={28} />
+                                </div>
+                                <div className="text-left">
+                                    <h3 className="text-2xl md:text-3xl font-black text-[#0f172a]">Referral Center</h3>
+                                    <p className="text-gray-500 font-medium text-sm md:text-base">Manage and grow your network</p>
+                                </div>
                             </div>
-                        </motion.div>
-                    ))}
+                        </div>
+
+                        {/* Prominent User ID */}
+                        <div className="text-center mb-8 md:mb-12">
+                            <span className="text-xs md:text-sm font-bold text-gray-400 uppercase tracking-[3px]">Your Referral ID</span>
+                            <div className="text-3xl md:text-5xl font-black text-amber-500 tracking-tight mt-3 flex items-center justify-center gap-4">
+                                {user?.username || 'IVA1002'}
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(user?.username || 'IVA1002');
+                                        setCopiedId(true);
+                                        setTimeout(() => setCopiedId(false), 2000);
+                                    }}
+                                    className="text-gray-400 hover:text-amber-500 transition-colors"
+                                >
+                                    {copiedId ? <Check size={28} className="text-green-500" /> : <Copy size={28} />}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Placement Controls */}
+                        <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-12 mb-8 md:mb-14">
+                            {/* Left Side */}
+                            <div className="flex flex-row md:flex-col items-center gap-3 w-full md:w-auto">
+                                <button
+                                    onClick={() => setActiveRefTab('left')}
+                                    className={`flex-1 md:px-10 py-3 md:py-4 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all shadow-md min-w-[140px] md:w-48 relative ${activeRefTab === 'left'
+                                        ? 'bg-amber-500 text-white shadow-amber-500/30 ring-4 ring-amber-500/20 transform scale-105'
+                                        : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    Left Link
+                                </button>
+                                <button
+                                    onClick={() => setActiveRefTab('placing-left')}
+                                    className={`flex-1 md:px-10 py-3 md:py-4 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all shadow-md min-w-[140px] md:w-48 ${activeRefTab === 'placing-left'
+                                        ? 'bg-amber-500 text-white shadow-amber-500/30 ring-4 ring-amber-500/20 transform scale-105'
+                                        : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    Placing Left
+                                </button>
+                            </div>
+
+                            {/* Divider on desktop */}
+                            <div className="hidden md:block w-px h-32 bg-gray-100"></div>
+
+                            {/* Right Side */}
+                            <div className="flex flex-row md:flex-col items-center gap-3 w-full md:w-auto">
+                                <button
+                                    onClick={() => setActiveRefTab('right')}
+                                    className={`flex-1 md:px-10 py-3 md:py-4 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all shadow-md min-w-[140px] md:w-48 relative ${activeRefTab === 'right'
+                                        ? 'bg-amber-500 text-white shadow-amber-500/30 ring-4 ring-amber-500/20 transform scale-105'
+                                        : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    Right Link
+                                </button>
+                                <button
+                                    onClick={() => setActiveRefTab('placing-right')}
+                                    className={`flex-1 md:px-10 py-3 md:py-4 rounded-xl font-black text-xs md:text-sm uppercase tracking-wider transition-all shadow-md min-w-[140px] md:w-48 ${activeRefTab === 'placing-right'
+                                        ? 'bg-amber-500 text-white shadow-amber-500/30 ring-4 ring-amber-500/20 transform scale-105'
+                                        : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    Placing Right
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Link & Socials */}
+                        <div className="space-y-6">
+                            <div className="bg-gray-50 border border-gray-200 rounded-[28px] p-2.5 md:p-3 flex items-center gap-3 shadow-inner group transition-all focus-within:ring-2 focus-within:ring-amber-500/20">
+                                <input
+                                    type="text"
+                                    readOnly
+                                    value={`${window.location.origin}/register?ref=${user?.username || 'IVA1002'}&position=${activeRefTab === 'placing-left' ? 'left' : activeRefTab === 'placing-right' ? 'right' : activeRefTab}`}
+                                    className="bg-transparent flex-1 text-[11px] md:text-base font-bold text-gray-700 outline-none px-4 truncate font-mono"
+                                />
+                                <button
+                                    onClick={() => {
+                                        const link = `${window.location.origin}/register?ref=${user?.username || 'IVA1002'}&position=${activeRefTab === 'placing-left' ? 'left' : activeRefTab === 'placing-right' ? 'right' : activeRefTab}`;
+                                        navigator.clipboard.writeText(link);
+                                        setCopiedSide('active');
+                                        setTimeout(() => setCopiedSide(null), 2000);
+                                    }}
+                                    className="bg-gray-900 text-white px-5 md:px-8 py-3 md:py-4 rounded-[20px] text-xs font-black uppercase tracking-widest hover:bg-black transition-all flex items-center gap-2 shadow-lg active:scale-95 shrink-0"
+                                >
+                                    {copiedSide === 'active' ? <Check size={18} /> : <Copy size={18} />}
+                                    <span className="hidden sm:inline">{copiedSide === 'active' ? 'Copied' : 'Copy Link'}</span>
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <button
+                                    onClick={() => {
+                                        const pos = activeRefTab === 'placing-left' ? 'left' : activeRefTab === 'placing-right' ? 'right' : activeRefTab;
+                                        const link = `${window.location.origin}/register?ref=${user?.username}&position=${pos}`;
+                                        const text = `Join IVAMAX and start your journey today! Use my referral link: ${link}`;
+                                        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                                    }}
+                                    className="bg-[#25D366] text-white py-4 rounded-[24px] font-black uppercase text-xs md:text-sm shadow-lg shadow-[#25D366]/20 hover:bg-[#20bd5a] transition-all flex items-center justify-center gap-3 active:scale-95 group"
+                                >
+                                    <MessageCircle size={22} className="group-hover:rotate-12 transition-transform" /> Share via WhatsApp
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        const pos = activeRefTab === 'placing-left' ? 'left' : activeRefTab === 'placing-right' ? 'right' : activeRefTab;
+                                        const link = `${window.location.origin}/register?ref=${user?.username}&position=${pos}`;
+                                        const text = `Join IVAMAX and start your journey today!`;
+                                        if (navigator.share && isMobile) {
+                                            navigator.share({ title: 'IVAMAX Referral', text: text, url: link }).catch(console.error);
+                                        } else {
+                                            window.open(`https://www.instagram.com/`, '_blank');
+                                        }
+                                    }}
+                                    className="bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] text-white py-4 rounded-[24px] font-black uppercase text-xs md:text-sm shadow-lg shadow-red-500/20 transition-all flex items-center justify-center gap-3 active:scale-95 group"
+                                >
+                                    <Smartphone size={22} className="group-hover:rotate-12 transition-transform" /> Instagram Direct
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        const pos = activeRefTab === 'placing-left' ? 'left' : activeRefTab === 'placing-right' ? 'right' : activeRefTab;
+                                        const link = `${window.location.origin}/register?ref=${user?.username}&position=${pos}`;
+                                        const text = `Join IVAMAX and start your journey today!`;
+                                        window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`, '_blank');
+                                    }}
+                                    className="bg-[#0088cc] text-white py-4 rounded-[24px] font-black uppercase text-xs md:text-sm shadow-lg shadow-[#0088cc]/20 hover:bg-[#0077b5] transition-all flex items-center justify-center gap-3 active:scale-95 group"
+                                >
+                                    <Send size={22} className="group-hover:-translate-y-1 group-hover:translate-x-1 transition-transform" /> Send on Telegram
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </motion.div>
             )}
 
             {/* Quick Actions */}
             {(!isMobile || activeTab === 'actions') && (
                 <motion.div
+                    initial="hidden"
+                    animate="visible"
                     variants={cardVariants}
                     className="bg-white rounded-[40px] p-8 border border-gray-100 shadow-xl"
                 >
@@ -464,11 +695,12 @@ const Dashboard = () => {
                                 onClick={() => navigate(action.path)}
                                 className="group bg-[#f8fafc] rounded-[32px] p-8 text-left border border-[#f1f5f9] hover:bg-white hover:shadow-2xl transition-all duration-300"
                             >
-                                <div className={`w-16 h-16 rounded-[24px] ${action.color} flex items-center justify-center text-white mb-8 shadow-lg group-hover:scale-110 transition-transform`}>{action.icon}</div>
-                                <h4 className="text-[22px] font-black text-[#0f172a] mb-2 leading-none">{action.label}</h4>
-                                <div className="flex items-center gap-2 text-blue-600 font-bold text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                                    Open <ChevronRight size={18} />
+                                <div className={`w-16 h-16 rounded-[24px] ${action.color} flex items-center justify-center text-white mb-6 shadow-lg group-hover:scale-110 transition-transform`}>
+                                    {action.icon}
                                 </div>
+                                <h4 className="text-xl md:text-[22px] font-black text-[#0f172a] leading-tight">
+                                    {action.label}
+                                </h4>
                             </motion.button>
                         ))}
                     </motion.div>

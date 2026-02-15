@@ -177,6 +177,23 @@ const calculateFounderClubRoyalty = async (userId, month, year) => {
 // Process monthly income for a single user
 const processUserMonthlyIncome = async (userId, month, year) => {
     try {
+        const user = await User.findOne({ userId });
+        if (!user) return { message: 'User not found', userId };
+
+        // Check 1-month waiting period (Income starts 1 month after investment/joining)
+        if (user.investmentDate) {
+            const oneMonthAfter = new Date(user.investmentDate);
+            oneMonthAfter.setMonth(oneMonthAfter.getMonth() + 1);
+
+            // End of the processing month
+            // month is 1-12, Date month is 0-11. (year, month, 0) gives last day of 'month' (1-indexed)
+            const processingMonthEnd = new Date(year, month, 0);
+
+            if (oneMonthAfter > processingMonthEnd) {
+                return { message: 'Waiting period (1 month) not completed', userId, skipped: true };
+            }
+        }
+
         // Check if already processed
         const existing = await Income.findOne({
             userId,

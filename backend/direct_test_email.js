@@ -5,10 +5,10 @@ const testEmail = async () => {
     console.log('Starting self-contained test...');
 
     // Explicitly using the values we want to test
-    const host = 'mail.spacemail.com';
-    const port = 465;
-    const user = 'support@ivamax.live';
-    const pass = 'Imx@274121'; // Hardcoded to verify, then will revert to env
+    const host = process.env.EMAIL_HOST;
+    const port = process.env.EMAIL_PORT;
+    const user = process.env.EMAIL_USER;
+    const pass = process.env.EMAIL_PASSWORD;
 
     console.log(`Config: ${host}:${port} (${user})`);
 
@@ -16,7 +16,7 @@ const testEmail = async () => {
         const transporter = nodemailer.createTransport({
             host: host,
             port: port,
-            secure: true, // 465 requires secure: true
+            secure: false, // 587 requires secure: false (STARTTLS)
             auth: {
                 user: user,
                 pass: pass
