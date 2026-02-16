@@ -40,7 +40,7 @@ const Dashboard = () => {
 
                 if (statsResponse.success) {
                     setStats(statsResponse.data);
-                }   
+                }
 
                 if (announcementsResponse.success) {
                     // Filter out any banners that are not relevant (e.g., hidden/test content like Mafia)
@@ -284,7 +284,7 @@ const Dashboard = () => {
                                 <div className="relative z-10">
                                     <span className="text-xs font-black uppercase tracking-[3px] text-black/40 block mb-2">Network Size</span>
                                     <h3 className="text-3xl font-black text-gray-900 tracking-tighter uppercase">
-                                        {user?.closingRank || 'NO RANK'}
+                                        {user?.networkSize || 'NO RANK'}
                                     </h3>
                                 </div>
                             </div>
@@ -455,13 +455,44 @@ const Dashboard = () => {
                             {/* Royalty Percentage Box */}
                             <div className="bg-[#242c3d] rounded-[32px] p-8 border border-[#334155] mb-10 flex flex-col gap-2 group hover:border-golden-500/50 transition-all">
                                 <div className="flex items-center justify-between mb-2">
-                                    <p className="text-[#94a3b8] font-black text-sm">Royalty Percentage</p>
+                                    <p className="text-[#94a3b8] font-black text-sm">Royalty Reward</p>
                                     <Target className="text-golden-500" size={20} />
                                 </div>
-                                <div className="flex items-baseline gap-3">
-                                    <span className="text-[48px] font-black text-white leading-none">10%</span>
-                                    <span className="text-golden-400 font-bold text-sm">of network earnings</span>
-                                </div>
+
+                                {(() => {
+                                    const rankRoyalties = {
+                                        'ASSOCIATE': { percent: 1, amount: 2.5 },
+                                        'JN. EXECUTIVE': { percent: 2, amount: 5 },
+                                        'SN. EXECUTIVE': { percent: 4, amount: 10 },
+                                        'ASS. MANAGER': { percent: 8, amount: 20 },
+                                        'MANAGER': { percent: 15, amount: 37.5 },
+                                        'ASS. DIRECTOR': { percent: 30, amount: 75 },
+                                        'DIRECTOR': { percent: 60, amount: 150 },
+                                        'ASSO. PRESIDENT': { percent: 125, amount: 312.5 },
+                                        'PRESIDENT': { percent: 250, amount: 625 },
+                                        'CEO': { percent: 500, amount: 1250 },
+                                        'FOUNDER': { percent: 1000, amount: 2500 }
+                                    };
+
+                                    const currentRank = stats.currentRank ? stats.currentRank.toUpperCase() : 'MEMBER';
+                                    const royalty = rankRoyalties[currentRank] || { percent: 0, amount: 0 };
+
+                                    return (
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="text-[48px] font-black text-white leading-none">{royalty.percent}%</span>
+                                                <span className="text-golden-400 font-bold text-sm">Monthly Fix Royalty</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <div className="bg-golden-500/10 px-3 py-1 rounded-lg border border-golden-500/20">
+                                                    <span className="text-golden-400 font-bold text-sm">
+                                                        ${royalty.amount} <span className="text-gray-400 font-normal text-xs ml-1">Monthly Amount</span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                             </div>
 
                             {/* Next Rank Progress at bottom */}
