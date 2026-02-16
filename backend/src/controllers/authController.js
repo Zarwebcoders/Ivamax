@@ -385,17 +385,29 @@ const getMe = async (req, res) => {
         const user = await User.findById(req.user._id).select('-password');
 
         // Get sponsher information from Tree
-        const treeNode = await Tree.findOne({ userId: user.userId });
+        // Get sponsor information
+        // We prefer the direct referrer (referralId). 
+        // fallback to tree parent if referralId is missing (legacy support) but usually parent != sponsor in binary
         let sponsherData = {
             sponsherId: null,
-            sponsherUsername: null
+            sponsherUsername: 'N/A'
         };
 
-        if (treeNode && treeNode.parentId) {
-            const sponsher = await User.findOne({ userId: treeNode.parentId }).select('userId fullName');
-            if (sponsher) {
-                sponsherData.sponsherId = sponsher.userId;
-                sponsherData.sponsherUsername = sponsher.fullName;
+        if (user.referralId) {
+            const sponsor = await User.findOne({ userId: user.referralId }).select('userId fullName');
+            if (sponsor) {
+                sponsherData.sponsherId = sponsor.userId;
+                sponsherData.sponsherUsername = sponsor.fullName;
+            }
+        } else {
+            // Fallback to placement parent if no direct sponsor recorded
+            const treeNode = await Tree.findOne({ userId: user.userId });
+            if (treeNode && treeNode.parentId) {
+                const parent = await User.findOne({ userId: treeNode.parentId }).select('userId fullName');
+                if (parent) {
+                    sponsherData.sponsherId = parent.userId;
+                    sponsherData.sponsherUsername = parent.fullName; // Note: This is Placement Upliner, not necessarily Sponsor
+                }
             }
         }
 

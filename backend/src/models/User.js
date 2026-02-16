@@ -32,6 +32,11 @@ const userSchema = new mongoose.Schema({
         required: false,
     },
 
+    referralId: {
+        type: String,
+        default: null,
+        index: true
+    },
     referralLink: {
         type: String,
         default: null,
@@ -71,7 +76,7 @@ const userSchema = new mongoose.Schema({
     },
     isActive: {
         type: Boolean,
-        default: true,
+        default: false,
     },
     isEmailVerified: {
         type: Boolean,

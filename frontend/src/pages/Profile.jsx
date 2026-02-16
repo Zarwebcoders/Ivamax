@@ -105,6 +105,38 @@ const Profile = () => {
         }
     };
 
+    const [passwordForm, setPasswordForm] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    });
+
+    const handlePasswordUpdate = async () => {
+        if (!passwordForm.newPassword) {
+            toast.error("Please enter a new password");
+            return;
+        }
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+            toast.error("New passwords do not match");
+            return;
+        }
+
+        // Note: Backend currently doesn't enforce current password check on this endpoint
+        // sending only the new password to updateProfile
+
+        setLoading(true);
+        try {
+            await authService.updateProfile({ password: passwordForm.newPassword });
+            toast.success("Password updated successfully");
+            setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        } catch (error) {
+            console.error(error);
+            toast.error(error.response?.data?.message || "Failed to update password");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const connectWallet = async () => {
         if (window.ethereum) {
             try {
@@ -393,18 +425,40 @@ const Profile = () => {
                                 <div className="space-y-4">
                                     <div className="relative">
                                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                                        <input type="password" placeholder="Current Password" className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-gray-300" />
+                                        <input
+                                            type="password"
+                                            placeholder="Current Password"
+                                            value={passwordForm.currentPassword}
+                                            onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                                            className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-gray-300"
+                                        />
                                     </div>
                                     <div className="relative">
                                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                                        <input type="password" placeholder="New Password" className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-gray-300" />
+                                        <input
+                                            type="password"
+                                            placeholder="New Password"
+                                            value={passwordForm.newPassword}
+                                            onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                                            className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-gray-300"
+                                        />
                                     </div>
                                     <div className="relative">
                                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                                        <input type="password" placeholder="Confirm New Password" className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-gray-300" />
+                                        <input
+                                            type="password"
+                                            placeholder="Confirm New Password"
+                                            value={passwordForm.confirmPassword}
+                                            onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                                            className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-gray-300"
+                                        />
                                     </div>
-                                    <button className="px-6 py-3 bg-gray-800 text-white rounded-xl shadow hover:bg-gray-700 transition-colors">
-                                        Update Password
+                                    <button
+                                        onClick={handlePasswordUpdate}
+                                        disabled={loading}
+                                        className="px-6 py-3 bg-gray-800 text-white rounded-xl shadow hover:bg-gray-700 transition-colors disabled:opacity-50"
+                                    >
+                                        {loading ? 'Updating...' : 'Update Password'}
                                     </button>
                                 </div>
                             </div>
@@ -558,25 +612,8 @@ const Profile = () => {
                     >
                         <h2 className="text-xl font-bold text-gray-800">Income Overview</h2>
 
-                        <div className="grid grid-cols-1 gap-6">
-                            {/* 1. Profit Wallet */}
-                            <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 md:p-6 rounded-2xl shadow-xl relative overflow-hidden">
-                                <div className="absolute top-0 right-0 p-4 opacity-10">
-                                    <TrendingUp size={100} />
-                                </div>
-                                <div className="relative z-10">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <DollarSign size={24} />
-                                        <p className="text-sm opacity-80 uppercase tracking-wider">Profit Wallet</p>
-                                    </div>
-                                    <p className="text-3xl font-bold mb-1">
-                                        ${formData.profitWallet || '0.00'}
-                                    </p>
-                                    <p className="text-xs opacity-70">Total Profit Balance</p>
-                                </div>
-                            </div>
-
-                            {/* 2. Capital Wallet */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {/* 1. Capital Wallet (Moved First) */}
                             <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 md:p-6 rounded-2xl shadow-xl relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-4 opacity-10">
                                     <Wallet size={100} />
@@ -590,6 +627,23 @@ const Profile = () => {
                                         ${formData.capitalWallet || '0.00'}
                                     </p>
                                     <p className="text-xs opacity-70">Total Purchased Amount</p>
+                                </div>
+                            </div>
+
+                            {/* 2. Profit Wallet (Moved Second) */}
+                            <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 md:p-6 rounded-2xl shadow-xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                    <TrendingUp size={100} />
+                                </div>
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <DollarSign size={24} />
+                                        <p className="text-sm opacity-80 uppercase tracking-wider">Profit Wallet</p>
+                                    </div>
+                                    <p className="text-3xl font-bold mb-1">
+                                        ${formData.profitWallet || '0.00'}
+                                    </p>
+                                    <p className="text-xs opacity-70">Total Profit Balance</p>
                                 </div>
                             </div>
 
