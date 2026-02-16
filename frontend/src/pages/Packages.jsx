@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Star, Shield, Zap, Award, Gift, Clock, XCircle, CheckCircle } from 'lucide-react';
+import { Check, Star, Shield, Zap, Award, Gift, Clock, XCircle, CheckCircle, Copy } from 'lucide-react';
 import PaymentModal from '../components/PaymentModal';
 import depositService from '../services/deposit.service';
 import { toast } from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 
 const Packages = () => {
+    const { user, refreshUser } = useAuth();
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [depositHistory, setDepositHistory] = useState([]);
@@ -13,15 +15,19 @@ const Packages = () => {
     const [packageStatus, setPackageStatus] = useState(null); // 'active', 'pending', or null
 
     useEffect(() => {
-        fetchHistory();
+        refreshUser();
     }, []);
+
+    useEffect(() => {
+        fetchHistory();
+    }, [user]);
 
     const fetchHistory = async () => {
         try {
             setLoading(true);
             const response = await depositService.getMyDeposits();
-            if (response.data) {
-                const history = response.data;
+            if (response.data && response.data.success) {
+                const history = response.data.data || [];
                 setDepositHistory(history);
 
                 // Check specifically for 'premium_starter' package status
@@ -37,6 +43,9 @@ const Packages = () => {
                     setPackageStatus('active');
                 } else if (pendingDeposit) {
                     setPackageStatus('pending');
+                } else if (user && user.isActive) {
+                    // Fallback: If user is marked active in DB (e.g. manual activation), show active
+                    setPackageStatus('active');
                 } else {
                     setPackageStatus(null);
                 }
@@ -160,27 +169,64 @@ const Packages = () => {
                         <div className="mb-8 mt-4"></div>
 
                         {/* CTA Button */}
-                        <button
-                            onClick={() => handleActivate({ id: 'premium_starter', name: 'Premium Starter', price: 250 })}
-                            disabled={!!packageStatus || loading}
-                            className={`w-full font-bold py-3 rounded-xl shadow-lg flex items-center justify-center group overflow-hidden relative transition-all duration-300 ${packageStatus === 'active'
-                                ? 'bg-green-600 text-white cursor-default'
-                                : packageStatus === 'pending'
+                        {packageStatus === 'active' ? (
+                            <div className="space-y-3">
+                                <div className="text-center mb-4">
+                                    <p className="text-green-700 font-bold text-sm bg-green-50 py-1 px-3 rounded-full inline-flex items-center gap-1">
+                                        <CheckCircle size={14} /> Active Account
+                                    </p>
+                                </div>
+                                <div className="space-y-2">
+                                    {[
+                                        { label: 'Left Link', side: 'left' },
+                                        { label: 'Right Link', side: 'right' },
+                                        { label: 'Placing Left', side: 'placing-left' },
+                                        { label: 'Placing Right', side: 'placing-right' }
+                                    ].map((link) => (
+                                        <div key={link.side} className="relative group/link">
+                                            <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg p-2 hover:border-golden-400 transition-colors">
+                                                <div className="flex flex-col overflow-hidden">
+                                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider ml-1">{link.label}</span>
+                                                    <code className="text-[10px] text-gray-400 truncate max-w-[150px] ml-1">
+                                                        {`${window.location.origin}/register?ref=${user?.userId}&position=${link.side}`}
+                                                    </code>
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        const url = `${window.location.origin}/register?ref=${user?.userId}&position=${link.side}`;
+                                                        navigator.clipboard.writeText(url);
+                                                        toast.success(`${link.label} Copied!`);
+                                                    }}
+                                                    className="p-2 bg-white rounded-md shadow-sm border border-gray-100 hover:bg-golden-50 text-gray-600 hover:text-golden-600 transition-all active:scale-95"
+                                                    title="Copy Link"
+                                                >
+                                                    <Copy size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => handleActivate({ id: 'premium_starter', name: 'Premium Starter', price: 250 })}
+                                disabled={!!packageStatus || loading}
+                                className={`w-full font-bold py-3 rounded-xl shadow-lg flex items-center justify-center group overflow-hidden relative transition-all duration-300 ${packageStatus === 'pending'
                                     ? 'bg-yellow-500 text-white cursor-default'
                                     : 'bg-gradient-to-r from-gray-900 to-gray-800 text-white hover:shadow-xl hover:scale-[1.02]'
-                                }`}
-                        >
-                            <span className="relative z-10 flex items-center gap-2">
-                                {loading ? 'Checking...' :
-                                    packageStatus === 'active' ? 'Active' :
+                                    }`}
+                            >
+                                <span className="relative z-10 flex items-center gap-2">
+                                    {loading ? 'Checking...' :
                                         packageStatus === 'pending' ? 'Pending Approval' :
                                             <>Activate Now <Zap size={18} className="group-hover:text-golden-400 transition-colors" /></>
-                                }
-                            </span>
-                            {!packageStatus && !loading && (
-                                <div className="absolute inset-0 bg-gradient-to-r from-golden-500 to-golden-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                            )}
-                        </button>
+                                    }
+                                </span>
+                                {!packageStatus && !loading && (
+                                    <div className="absolute inset-0 bg-gradient-to-r from-golden-500 to-golden-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                                )}
+                            </button>
+                        )}
                     </div>
                 </div>
             </motion.div>

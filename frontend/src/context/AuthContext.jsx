@@ -45,12 +45,35 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
+    const refreshUser = async () => {
+        try {
+            const responseData = await authService.getCurrentUser();
+            // authController.getMe returns { success: true, data: userObj }
+            // Some other controllers might return just userObj. 
+            // We need to be careful. Based on previous analysis, getMe returns wrapped data.
+            const userData = responseData.data || responseData;
+
+            if (userData) {
+                setUser(userData);
+                // Also update local storage to keep it in sync
+                const stored = JSON.parse(localStorage.getItem('user') || '{}');
+                // Merge carefully. 
+                const updated = { ...stored, ...userData };
+                localStorage.setItem('user', JSON.stringify(updated));
+            }
+            return userData;
+        } catch (error) {
+            console.error("Failed to refresh user:", error);
+        }
+    };
+
     const value = {
         user,
         loading,
         login,
         register,
         logout,
+        refreshUser,
         isAuthenticated: !!user,
         isAdmin: user?.role === 'admin',
     };
