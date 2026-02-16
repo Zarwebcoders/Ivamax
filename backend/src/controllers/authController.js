@@ -451,6 +451,7 @@ const getMe = async (req, res) => {
             success: true,
             data: {
                 ...user.toObject(),
+                treeData: await Tree.findOne({ userId: user.userId }),
                 ...sponsherData,
                 profitWallet,
                 capitalWallet,

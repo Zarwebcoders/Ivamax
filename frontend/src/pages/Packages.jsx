@@ -178,29 +178,39 @@ const Packages = () => {
                                 </div>
                                 <div className="space-y-2">
                                     {[
-                                        { label: 'Left Link', side: 'left' },
-                                        { label: 'Right Link', side: 'right' },
-                                        { label: 'Placing Left', side: 'placing-left' },
-                                        { label: 'Placing Right', side: 'placing-right' }
+                                        { label: 'Left Link', side: 'left', disabled: !!user?.treeData?.leftDirectId },
+                                        { label: 'Right Link', side: 'right', disabled: !!user?.treeData?.rightDirectId },
+                                        { label: 'Placing Left', side: 'placing-left', disabled: false },
+                                        { label: 'Placing Right', side: 'placing-right', disabled: false }
                                     ].map((link) => (
-                                        <div key={link.side} className="relative group/link">
-                                            <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg p-2 hover:border-golden-400 transition-colors">
+                                        <div key={link.side} className={`relative group/link ${link.disabled ? 'opacity-50' : ''}`}>
+                                            <div className={`flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg p-2 ${!link.disabled && 'hover:border-golden-400'} transition-colors`}>
                                                 <div className="flex flex-col overflow-hidden">
-                                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider ml-1">{link.label}</span>
+                                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider ml-1">
+                                                        {link.label} {link.disabled && '(USED)'}
+                                                    </span>
                                                     <code className="text-[10px] text-gray-400 truncate max-w-[150px] ml-1">
-                                                        {`${window.location.origin}/register?ref=${user?.userId}&position=${link.side}`}
+                                                        {link.disabled ? 'Link Expired / Spot Taken' : `${window.location.origin}/register?ref=${user?.userId}&position=${link.side}`}
                                                     </code>
                                                 </div>
                                                 <button
                                                     onClick={() => {
+                                                        if (link.disabled) {
+                                                            toast.error('This link is already used (One-time use only)');
+                                                            return;
+                                                        }
                                                         const url = `${window.location.origin}/register?ref=${user?.userId}&position=${link.side}`;
                                                         navigator.clipboard.writeText(url);
                                                         toast.success(`${link.label} Copied!`);
                                                     }}
-                                                    className="p-2 bg-white rounded-md shadow-sm border border-gray-100 hover:bg-golden-50 text-gray-600 hover:text-golden-600 transition-all active:scale-95"
-                                                    title="Copy Link"
+                                                    disabled={link.disabled}
+                                                    className={`p-2 rounded-md shadow-sm border border-gray-100 transition-all ${link.disabled
+                                                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                                            : 'bg-white hover:bg-golden-50 text-gray-600 hover:text-golden-600 active:scale-95'
+                                                        }`}
+                                                    title={link.disabled ? 'Link Used' : 'Copy Link'}
                                                 >
-                                                    <Copy size={14} />
+                                                    {link.disabled ? <XCircle size={14} /> : <Copy size={14} />}
                                                 </button>
                                             </div>
                                         </div>

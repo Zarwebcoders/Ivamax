@@ -40,7 +40,7 @@ const Dashboard = () => {
 
                 if (statsResponse.success) {
                     setStats(statsResponse.data);
-                }
+                }   
 
                 if (announcementsResponse.success) {
                     // Filter out any banners that are not relevant (e.g., hidden/test content like Mafia)
@@ -283,7 +283,9 @@ const Dashboard = () => {
                                 <div className="w-full h-px bg-black/10 relative z-10"></div>
                                 <div className="relative z-10">
                                     <span className="text-xs font-black uppercase tracking-[3px] text-black/40 block mb-2">Network Size</span>
-                                    <span className="text-4xl font-black text-gray-900 block">{stats.networkSize || 0} Members</span>
+                                    <h3 className="text-3xl font-black text-gray-900 tracking-tighter uppercase">
+                                        {user?.closingRank || 'NO RANK'}
+                                    </h3>
                                 </div>
                             </div>
                         </div>
@@ -379,7 +381,7 @@ const Dashboard = () => {
                                             </div>
                                             <p className="text-[#a855f7] font-bold text-xs md:text-sm tracking-tight mb-3 md:mb-6">Current Rank</p>
                                             <h4 className="text-xl md:text-[36px] font-black text-[#0f172a] leading-none uppercase tracking-tight mb-3 md:mb-6 truncate">
-                                                {stats.currentRank || 'MEMBER'}
+                                                {stats.currentRank || 'NO RANK'}
                                             </h4>
                                             <div className="w-full h-1 md:h-1.5 bg-[#f3e8ff] rounded-full overflow-hidden">
                                                 <div className="h-full bg-[#a855f7] w-full" />
@@ -397,7 +399,8 @@ const Dashboard = () => {
                                             </div>
                                             <p className="text-golden-600 font-bold text-xs md:text-sm tracking-tight mb-3 md:mb-6">Closing Rank</p>
                                             <h4 className="text-xl md:text-[36px] font-black text-gray-900 leading-none uppercase tracking-tight mb-3 md:mb-6 truncate">
-                                                {stats.nextRankName || 'GOLD'}
+                                                {/* {stats.nextRankName || 'No RANK'} */}
+                                                No Rank
                                             </h4>
                                             <div className="w-full h-1 md:h-1.5 bg-golden-200 rounded-full overflow-hidden">
                                                 <div className="h-full bg-golden-500" style={{ width: `${stats.rankProgress || 0}%` }} />
@@ -445,7 +448,7 @@ const Dashboard = () => {
                             <div className="text-center mb-10">
                                 <p className="text-[#94a3b8] font-bold text-[14px] uppercase tracking-[3px] mb-4">Your Current Rank</p>
                                 <h1 className="text-[64px] font-black text-white leading-none tracking-tight uppercase">
-                                    {stats.currentRank || 'Member'}
+                                    {stats.currentRank || 'No Rank'}
                                 </h1>
                             </div>
 

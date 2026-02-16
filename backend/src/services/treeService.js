@@ -6,6 +6,8 @@ const findPlacement = async (sponsorId, strategy) => {
     let parentNode = null;
     let side = null;
 
+    console.log(`[DEBUG] findPlacement called. Sponsor: ${sponsorId}, Strategy: '${strategy}'`);
+
     // Fetch Sponsor's Tree Node
     const sponsorTree = await Tree.findOne({ userId: sponsorId });
     if (!sponsorTree) {

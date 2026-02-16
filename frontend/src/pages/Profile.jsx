@@ -73,6 +73,7 @@ const Profile = () => {
                     accountNumber: u.accountNumber || '',
                     ifscCode: u.ifscCode || '',
                     rank: u.rank || 'Member',
+                    isActive: u.isActive, // Add active status
                     sponsherId: u.sponsherId || null,
                     sponsherUsername: u.sponsherUsername || null,
                     // Income wallet fields
@@ -165,16 +166,20 @@ const Profile = () => {
         visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
     };
 
-    const TabButton = ({ id, label, icon: Icon }) => (
+    const TabButton = ({ id, label, icon: Icon, disabled }) => (
         <button
-            onClick={() => setActiveTab(id)}
+            onClick={() => !disabled && setActiveTab(id)}
+            disabled={disabled}
             className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all duration-300 font-medium ${activeTab === id
                 ? 'bg-gradient-to-r from-golden-500 to-golden-600 text-white shadow-lg shadow-gray-400'
-                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-400 shadow-lg shadow-gray-300'
+                : disabled
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-70'
+                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-400 shadow-lg shadow-gray-300'
                 }`}
         >
             <Icon size={18} />
             {label}
+            {disabled && <Lock size={14} className="ml-1" />}
         </button>
     );
 
@@ -260,7 +265,12 @@ const Profile = () => {
                 <TabButton id="security" label="Security" icon={Shield} />
                 <TabButton id="banking" label="Wallet" icon={CreditCard} />
                 <TabButton id="income" label="Income" icon={DollarSign} />
-                <TabButton id="referral" label="Referral Link" icon={Users} />
+                <TabButton
+                    id="referral"
+                    label="Referral Link"
+                    icon={Users}
+                    disabled={!formData.isActive}
+                />
             </div>
 
             {/* Content Area */}

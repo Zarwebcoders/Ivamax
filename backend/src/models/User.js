@@ -64,11 +64,11 @@ const userSchema = new mongoose.Schema({
     },
     rank: {
         type: String,
-        default: 'Member',
+        default: 'No Rank',
     },
     closingRank: {
         type: String,
-        default: 'Member',
+        default: 'No Rank',
     },
     royaltyPercentage: {
         type: Number,

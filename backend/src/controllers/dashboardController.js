@@ -184,8 +184,8 @@ const getDashboardStats = async (req, res) => {
                 leftPairs: rankData.leftCount,
                 rightPairs: rankData.rightCount,
                 matchingCompleted,
-                currentRank: rankData.rankName || 'Member',
-                closingRank: user.closingRank || 'Member',
+                currentRank: rankData.rankName || 'No Rank',
+                closingRank: user.closingRank || 'No Rank',
                 royaltyPercentage: rankData.income || 0, // Dynamic based on actual rank
                 nextRankName: nextRankName,
                 rankProgress: Math.round(rankProgress), // Rounded percentage

@@ -17,6 +17,10 @@ connectDB();
 const initCronJobs = require('./src/services/cronService');
 initCronJobs();
 
+// Run One-Time Fix for Ranks
+const fixRanksOnStartup = require('./src/utils/fix_ranks_startup');
+fixRanksOnStartup();
+
 // Middleware
 const allowedOrigins = [
     'http://localhost:5173',

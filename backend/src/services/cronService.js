@@ -29,6 +29,11 @@ const initCronJobs = () => {
                     })
                 };
 
+                // 1. Run Rank Closing (Update Closing Rank)
+                const { runMonthlyClosing } = require('../utils/closingLogic');
+                await runMonthlyClosing();
+
+                // 2. Run Income Closing
                 await triggerMonthlyClosing(req, res);
             } catch (error) {
                 console.error('❌ Error in Auto-Closing Cron:', error);

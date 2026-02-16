@@ -24,7 +24,7 @@ const calculateUserRank = async (userId) => {
             return {
                 rank: 0,
                 income: 0,
-                rankName: 'Member',
+                rankName: 'No Rank',
                 leftCount: 0,
                 rightCount: 0,
                 totalId: 0,
@@ -38,7 +38,7 @@ const calculateUserRank = async (userId) => {
 
         // Check ranks from highest to lowest
         let achievedRank = 0;
-        let rankData = { name: 'Member', income: 0 };
+        let rankData = { name: 'No Rank', income: 0 };
 
         for (let rank = 11; rank >= 1; rank--) {
             const requirement = RANK_STRUCTURE[rank];
@@ -91,7 +91,7 @@ const updateUserRank = async (userId) => {
 
 // Get rank income for a specific rank number
 const getRankIncome = (rank) => {
-    return RANK_STRUCTURE[rank] || { name: 'Member', income: 0, left: 0, right: 0, totalId: 0 };
+    return RANK_STRUCTURE[rank] || { name: 'No Rank', income: 0, left: 0, right: 0, totalId: 0 };
 };
 
 // Get all ranks data
