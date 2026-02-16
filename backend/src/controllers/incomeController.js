@@ -224,7 +224,6 @@ const processUserMonthlyIncome = async (userId, month, year) => {
                 rank: pmr.rankName,
                 month,
                 year,
-                status: 'processed',
                 leftCount: pmr.leftCount,
                 rightCount: pmr.rightCount,
                 metadata: {
@@ -246,7 +245,6 @@ const processUserMonthlyIncome = async (userId, month, year) => {
                 netAmount: drr.totalAmount,
                 month,
                 year,
-                status: 'processed',
                 metadata: {
                     referralDetails: drr.referralDetails,
                 },
@@ -263,7 +261,6 @@ const processUserMonthlyIncome = async (userId, month, year) => {
                 netAmount: fcr.amount,
                 month,
                 year,
-                status: 'processed',
                 metadata: {
                     founderMembers: fcr.founderMembers,
                 },
@@ -273,18 +270,21 @@ const processUserMonthlyIncome = async (userId, month, year) => {
 
         // Save all income records
         if (incomes.length > 0) {
-            await Income.insertMany(incomes);
+            // Use 'pending' status for deferred payout
+            const pendingIncomes = incomes.map(inc => ({
+                ...inc,
+                status: 'pending',
+                paymentDueDate: new Date(new Date().setMonth(new Date().getMonth() + 1)) // Due in 1 month
+            }));
 
-            // Update user's monthly income and total earnings
-            const totalMonthlyIncome = incomes.reduce((sum, inc) => sum + inc.netAmount, 0);
+            await Income.insertMany(pendingIncomes);
+
+            // Update user's monthly income view (but DO NOT credit walletBalance)
+            const totalMonthlyIncome = pendingIncomes.reduce((sum, inc) => sum + inc.netAmount, 0);
             await User.updateOne(
                 { userId },
                 {
-                    $inc: {
-                        totalEarnings: totalMonthlyIncome,
-                        walletBalance: totalMonthlyIncome,
-                    },
-                    monthlyIncome: totalMonthlyIncome,
+                    $set: { monthlyIncome: totalMonthlyIncome }
                 }
             );
         }

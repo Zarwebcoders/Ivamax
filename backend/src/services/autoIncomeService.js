@@ -29,7 +29,7 @@ const autoCalculateAndCreditIncome = async (userId, triggeredBy = 'auto') => {
            TESTING MODE: Skip rank recalculation, use DB rank as-is
            This allows manual rank setting in DB for testing
         */
-        const TESTING_MODE = true;
+        const TESTING_MODE = false;
 
         let rankData;
         if (TESTING_MODE) {
