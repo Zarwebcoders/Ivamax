@@ -122,8 +122,8 @@ const getTree = async (req, res) => {
             return treeData;
         };
 
-        // Increase default depth to 10 to ensure we see the long legs
-        const depth = req.query.depth ? parseInt(req.query.depth) : 10;
+        // Set depth to 100 to effectively allow "unlimited" viewing for manual tree checks
+        const depth = req.query.depth ? parseInt(req.query.depth) : 100;
         const treeData = await buildTree(rootUserId, 0, depth);
 
         res.json({
