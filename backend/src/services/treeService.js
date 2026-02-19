@@ -58,8 +58,8 @@ const findPlacement = async (sponsorId, strategy) => {
     throw new Error('Invalid placement strategy');
 };
 
-// HELPER: Bubble up counts
-const updateUplineCounts = async (startUserId) => {
+// HELPER: Bubble up counts (Increment)
+const incrementUplineCounts = async (startUserId) => {
     let currentId = startUserId;
 
     // We loop until we hit the top or a broken link
@@ -89,6 +89,35 @@ const updateUplineCounts = async (startUserId) => {
         }
 
         currentId = parentId; // Move up one level
+    }
+};
+
+// HELPER: Bubble down counts (Decrement) - For Deletion
+const decrementUplineCounts = async (startUserId) => {
+    let currentId = startUserId;
+
+    while (currentId) {
+        const currentNode = await Tree.findOne({ userId: currentId });
+        if (!currentNode || !currentNode.parentId) break;
+
+        const parentId = currentNode.parentId;
+        const parentNode = await Tree.findOne({ userId: parentId });
+
+        if (!parentNode) break;
+
+        if (parentNode.leftDirectId === currentId) {
+            await Tree.updateOne(
+                { userId: parentId },
+                { $inc: { totalLeftMembers: -1 } }
+            );
+        } else if (parentNode.rightDirectId === currentId) {
+            await Tree.updateOne(
+                { userId: parentId },
+                { $inc: { totalRightMembers: -1 } }
+            );
+        }
+
+        currentId = parentId;
     }
 };
 
@@ -190,6 +219,7 @@ const moveUserNode = async (userId, newSponsorId, side) => {
 
 module.exports = {
     findPlacement,
-    updateUplineCounts,
+    incrementUplineCounts,
+    decrementUplineCounts,
     moveUserNode
 };

@@ -1,7 +1,10 @@
 const cron = require('node-cron');
 const User = require('../models/User');
 const Tree = require('../models/Tree');
+const User = require('../models/User');
+const Tree = require('../models/Tree');
 const { getValidityDeadline } = require('../utils/userValidity');
+const { decrementUplineCounts } = require('../services/treeService');
 
 const initScheduler = () => {
     console.log('[SCHEDULER] Service initialized.');
@@ -81,6 +84,27 @@ const deleteUserByType = async (userId) => {
         const treeNode = await Tree.findOne({ userId });
 
         if (treeNode) {
+            // 1.5 Decrement Upline Counts (Only if they were counted - i.e., Active)
+            // But scheduler only deletes Inactive users. 
+            // Since we changed logic to NOT count inactive users, we don't need to decrement.
+            // However, to be safe/robust (e.g. if an Active user is manually deleted via this function in future), 
+            // we should check. But for now, scheduler users are Inactive -> Count was 0 -> No decrement needed.
+            // WAIT! User requested: "Jab user delete ho, to upar walon ka count bhi kam ho jaye".
+            // Since they are Inactive, they are ALREADY 0. Decrementing 0 makes it -1.
+            // So we MUST NOT decrement for Inactive users who never activated.
+
+            // To be totally safe, let's check if the user was considered "Active" / "Counted".
+            // Implementation: We can check if they have a packageType or isActive.
+            // But we know from caller `cleanupInvalidUsers` that `isActive` is false.
+            // So we SKIP decrement here.
+
+            // NOTE: If we ever use this function to delete an ACTIVE user, we MUST decrement.
+            // I will add a check:
+            const user = await User.findOne({ userId });
+            if (user && user.isActive) {
+                await decrementUplineCounts(userId);
+            }
+
             // 2. Remove from Parent
             if (treeNode.parentId) {
                 const parentNode = await Tree.findOne({ userId: treeNode.parentId });

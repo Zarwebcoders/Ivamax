@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const Tree = require('../models/Tree');
 const { generateToken } = require('../utils/generateToken');
-const { findPlacement, updateUplineCounts } = require('../services/treeService');
+const { findPlacement } = require('../services/treeService');
 
 
 // @desc    Register new user
@@ -173,15 +173,10 @@ const register = async (req, res) => {
         }
 
         // =========================================================
-        // 5. UPDATE UPLINE COUNTS (BUBBLE UP)
+        // 5. UPDATE UPLINE COUNTS (BUBBLE UP) - DISABLED
         // =========================================================
-        try {
-            await updateUplineCounts(newUserId);
-            console.log(`[SUCCESS] Upline counts updated for ${newUserId}`);
-        } catch (err) {
-            console.error('[WARNING] Failed to update upline counts:', err);
-            // Don't fail registration for this, but log it
-        }
+        // Counts are now updated only upon package ACTIVATION
+        // await incrementUplineCounts(newUserId);
 
         // =========================================================
         // 6. AUTO-CALCULATE INCOME FOR REFERRER AND UPLINE

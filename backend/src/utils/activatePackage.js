@@ -1,5 +1,7 @@
 const User = require('../models/User');
+const User = require('../models/User');
 const Deposit = require('../models/Deposit');
+const { incrementUplineCounts } = require('../services/treeService');
 
 /**
  * Activate a package for a user after a successful deposit
@@ -27,6 +29,14 @@ const activatePackage = async (depositId, processedBy = 'SYSTEM') => {
         user.packageType = deposit.packageName;
         user.isActive = true; // Ensure user is active
         await user.save();
+
+        // 3. Update Upline Counts (Now that user is Active)
+        try {
+            await incrementUplineCounts(user.userId);
+            console.log(`[SYSTEM] Upline counts incremented for ${user.userId}`);
+        } catch (err) {
+            console.error('[SYSTEM] Failed to increment upline counts:', err);
+        }
 
         // 3. Auto-process first income for current month (PMR) - REMOVED per requirement
         // "Income 1 month bad milegi" - Income should start after 1 month
