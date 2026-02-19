@@ -17,6 +17,10 @@ connectDB();
 const initCronJobs = require('./src/services/cronService');
 initCronJobs();
 
+// Initialize Scheduler for User Flushing
+const { initScheduler } = require('./src/services/scheduler.service');
+initScheduler();
+
 // Run One-Time Fix for Ranks
 const fixRanksOnStartup = require('./src/utils/fix_ranks_startup');
 fixRanksOnStartup();

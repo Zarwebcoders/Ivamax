@@ -4,13 +4,15 @@ const Withdrawal = require('../models/Withdrawal');
 const Income = require('../models/Income');
 const Deposit = require('../models/Deposit');
 const Tree = require('../models/Tree');
+const { getValidUserQuery } = require('../utils/userValidity');
 
 // @desc    Get admin dashboard statistics
 // @route   GET /api/admin/stats
 // @access  Private/Admin
 const getAdminStats = async (req, res) => {
     try {
-        const totalUsers = await User.countDocuments({ role: 'user' });
+        const validUserQuery = getValidUserQuery();
+        const totalUsers = await User.countDocuments({ role: 'user', ...validUserQuery });
         const activeUsers = await User.countDocuments({ role: 'user', isActive: true });
 
         const pendingWallets = await Wallet.countDocuments({
@@ -57,7 +59,8 @@ const getAllUsers = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const search = req.query.search || '';
 
-        const query = { role: 'user' };
+        const validUserQuery = getValidUserQuery();
+        const query = { role: 'user', ...validUserQuery };
 
         if (search) {
             query.$or = [

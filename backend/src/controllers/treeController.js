@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Tree = require('../models/Tree');
+const { isUserValid, getValidUserQuery } = require('../utils/userValidity');
 
 // @desc    Get user's tree (limited depth)
 // @route   GET /api/tree/:userId
@@ -48,6 +49,11 @@ const getTree = async (req, res) => {
                     children: [],
                     error: true
                 };
+            }
+
+            // Check Validity (New Logic)
+            if (!isUserValid(user)) {
+                return null; // Treat as if user doesn't exist (Flushed)
             }
 
             const treeData = {
@@ -157,15 +163,26 @@ const searchUsers = async (req, res) => {
         }
 
         // Search by userId (exact or partial) OR fullName (regex)
-        const users = await User.find({
+        // AND User must be valid
+        const validQuery = getValidUserQuery();
+        const searchCriteria = {
             $or: [
                 { userId: { $regex: q, $options: 'i' } },
                 { fullName: { $regex: q, $options: 'i' } }
             ]
-        }).select('userId fullName rank').limit(5);
+        };
+
+        const finalQuery = {
+            $and: [
+                searchCriteria,
+                validQuery
+            ]
+        };
+
+        const finalUsers = await User.find(finalQuery).select('userId fullName rank').limit(5);
 
         // Fetch parentId for each user from Tree model
-        const results = await Promise.all(users.map(async (user) => {
+        const results = await Promise.all(finalUsers.map(async (user) => {
             const treeNode = await Tree.findOne({ userId: user.userId }).select('parentId');
             return {
                 ...user.toObject(),
