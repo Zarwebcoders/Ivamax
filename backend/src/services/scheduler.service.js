@@ -1,8 +1,6 @@
 const cron = require('node-cron');
 const User = require('../models/User');
 const Tree = require('../models/Tree');
-const User = require('../models/User');
-const Tree = require('../models/Tree');
 const { getValidityDeadline } = require('../utils/userValidity');
 const { decrementUplineCounts } = require('../services/treeService');
 
