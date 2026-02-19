@@ -31,7 +31,7 @@ const getDirectReferrals = async (req, res) => {
         const leftTeam = userTree.totalLeftMembers || 0;
         const rightTeam = userTree.totalRightMembers || 0;
         const totalTeam = leftTeam + rightTeam;
-        const matchingPairs = Math.min(userTree.leftPairs || 0, userTree.rightPairs || 0);
+        const matchingPairs = Math.min(userTree.totalLeftMembers || 0, userTree.totalRightMembers || 0);
 
         // 3. Find all direct referrals (where current user is parent)
         const directReferralTrees = await Tree.find({ parentId: userId });
@@ -60,8 +60,8 @@ const getDirectReferrals = async (req, res) => {
                     side: side,
                     isActive: user.isActive || false,
                     rank: user.rank || 'Member',
-                    leftPairs: tree.leftPairs || 0,
-                    rightPairs: tree.rightPairs || 0,
+                    leftPairs: tree.totalLeftMembers || 0,
+                    rightPairs: tree.totalRightMembers || 0,
                     royaltyPercentage: rankInfo.income || 0
                 };
             })
