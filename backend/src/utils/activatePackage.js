@@ -1,5 +1,4 @@
 const User = require('../models/User');
-const User = require('../models/User');
 const Deposit = require('../models/Deposit');
 const { incrementUplineCounts } = require('../services/treeService');
 
