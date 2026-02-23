@@ -1,4 +1,3 @@
-const cron = require('node-cron');
 const User = require('../models/User');
 const Tree = require('../models/Tree');
 const { getValidityDeadline } = require('../utils/userValidity');
@@ -7,20 +6,20 @@ const { decrementUplineCounts } = require('../services/treeService');
 const initScheduler = () => {
     console.log('[SCHEDULER] Service initialized.');
 
-    // Run every hour to check for invalid users
-    // Cron schedule: "0 * * * *" (At minute 0)
-    // For faster testing, I'll set it to run every 10 minutes: "*/10 * * * *"
-    // Or for immediate dev feedback, every minute: "* * * * *"
-    // I will use "0 * * * *" for prod-like behavior but announce it.
-    // For DEV purposes, let's run it every 5 minutes to be responsive.
+    // Replaced node-cron with setInterval for Vercel serverless compatibility.
+    // Note: Vercel serverless functions sleep when idle, so this will only run while the server is awake.
 
-    cron.schedule('*/5 * * * *', async () => {
-        console.log('[SCHEDULER] Running cleanup job...');
+    // Run every 5 minutes (300,000 ms) while server is awake
+    const INTERVAL_MS = 60 * 60 * 1000;
+
+    setInterval(async () => {
+        console.log('[SCHEDULER] Running cleanup job via setInterval...');
         await cleanupInvalidUsers();
-    });
+    }, INTERVAL_MS);
 
-    // Run once on startup to clean any backlog?
-    // cleanupInvalidUsers();
+    // Run once immediately on startup to clean any backlog since Vercel sleeps
+    console.log('[SCHEDULER] Running immediate cleanup on startup...');
+    cleanupInvalidUsers();
 };
 
 const cleanupInvalidUsers = async () => {
