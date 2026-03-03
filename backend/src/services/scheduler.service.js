@@ -2,24 +2,35 @@ const User = require('../models/User');
 const Tree = require('../models/Tree');
 const { getValidityDeadline } = require('../utils/userValidity');
 const { decrementUplineCounts } = require('../services/treeService');
+const { processDailyROI } = require('../services/roiService');
 
 const initScheduler = () => {
     console.log('[SCHEDULER] Service initialized.');
 
-    // Replaced node-cron with setInterval for Vercel serverless compatibility.
-    // Note: Vercel serverless functions sleep when idle, so this will only run while the server is awake.
-
-    // Run every 5 minutes (300,000 ms) while server is awake
-    const INTERVAL_MS = 60 * 60 * 1000;
-
+    // Run cleanup every hour
+    const CLEANUP_INTERVAL = 60 * 60 * 1000;
     setInterval(async () => {
         console.log('[SCHEDULER] Running cleanup job via setInterval...');
         await cleanupInvalidUsers();
-    }, INTERVAL_MS);
+    }, CLEANUP_INTERVAL);
 
-    // Run once immediately on startup to clean any backlog since Vercel sleeps
-    console.log('[SCHEDULER] Running immediate cleanup on startup...');
-    cleanupInvalidUsers();
+    // Run Daily ROI (DFR) every 24 hours (86,400,000 ms)
+    const ROI_INTERVAL = 24 * 60 * 60 * 1000;
+    setInterval(async () => {
+        console.log('[SCHEDULER] Running Daily ROI processing via setInterval...');
+        await processDailyROI();
+    }, ROI_INTERVAL);
+
+    // Run once immediately on startup to catch up if Vercel was sleeping
+    console.log('[SCHEDULER] Running immediate sync jobs on startup...');
+    (async () => {
+        try {
+            await cleanupInvalidUsers();
+            await processDailyROI();
+        } catch (err) {
+            console.error('[SCHEDULER] Startup jobs failed:', err);
+        }
+    })();
 };
 
 const cleanupInvalidUsers = async () => {

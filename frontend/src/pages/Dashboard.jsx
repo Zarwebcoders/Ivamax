@@ -531,13 +531,14 @@ const Dashboard = () => {
                     </h3>
                     <motion.div
                         variants={containerVariants}
-                        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+                        className="grid grid-cols-2 lg:grid-cols-5 gap-4"
                     >
                         {[
                             { label: "Total Income", value: stats.totalIncome || 0, color: "text-amber-500", icon: <DollarSign size={24} />, bg: "bg-[#fffbeb]" },
                             { label: "PMR Income", value: stats.pmrIncome || 0, color: "text-blue-500", icon: <TrendingUp size={24} />, bg: "bg-[#f0f7ff]" },
                             { label: "DRR Income", value: stats.drrIncome || 0, color: "text-green-500", icon: <Users size={24} />, bg: "bg-[#f0fdf4]" },
-                            { label: "FCR Income", value: stats.fcrIncome || 0, color: "text-purple-500", icon: <Crown size={24} />, bg: "bg-[#faf5ff]" }
+                            { label: "FCR Income", value: stats.fcrIncome || 0, color: "text-purple-500", icon: <Crown size={24} />, bg: "bg-[#faf5ff]" },
+                            { label: "DFR Income", value: stats.dfrIncome || 0, color: "text-golden-600", icon: <Target size={24} />, bg: "bg-golden-50" }
                         ].map((item, idx) => (
                             <motion.div
                                 key={idx}

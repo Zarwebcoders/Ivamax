@@ -66,21 +66,25 @@ const getDashboardStats = async (req, res) => {
         ]);
 
         // Transform current month income
-        let currentPMR = 0, currentDRR = 0, currentFCR = 0, currentTotal = 0;
+        let currentPMR = 0, currentDRR = 0, currentFCR = 0, currentDFR = 0, currentDIR = 0, currentTotal = 0;
         currentMonthIncome.forEach(stat => {
             currentTotal += stat.total;
             if (stat._id === 'PMR') currentPMR = stat.total;
             if (stat._id === 'DRR') currentDRR = stat.total;
             if (stat._id === 'FCR') currentFCR = stat.total;
+            if (stat._id === 'DFR') currentDFR = stat.total;
+            if (stat._id === 'DIR') currentDIR = stat.total;
         });
 
         // Transform last month income
-        let lastPMR = 0, lastDRR = 0, lastFCR = 0, lastTotal = 0;
+        let lastPMR = 0, lastDRR = 0, lastFCR = 0, lastDFR = 0, lastDIR = 0, lastTotal = 0;
         lastMonthIncome.forEach(stat => {
             lastTotal += stat.total;
             if (stat._id === 'PMR') lastPMR = stat.total;
             if (stat._id === 'DRR') lastDRR = stat.total;
             if (stat._id === 'FCR') lastFCR = stat.total;
+            if (stat._id === 'DFR') lastDFR = stat.total;
+            if (stat._id === 'DIR') lastDIR = stat.total;
         });
 
         // Calculate percentage changes
@@ -95,6 +99,8 @@ const getDashboardStats = async (req, res) => {
         const pmrIncomeChange = calculatePercentageChange(currentPMR, lastPMR);
         const drrIncomeChange = calculatePercentageChange(currentDRR, lastDRR);
         const fcrIncomeChange = calculatePercentageChange(currentFCR, lastFCR);
+        const dfrIncomeChange = calculatePercentageChange(currentDFR, lastDFR);
+        const dirIncomeChange = calculatePercentageChange(currentDIR, lastDIR);
 
         // All-time income totals
         const allTimeIncome = await Income.aggregate([
@@ -110,12 +116,14 @@ const getDashboardStats = async (req, res) => {
         console.log(`📊 Dashboard Stats for ${userId}:`);
         console.log('   All-Time Income Aggregation:', JSON.stringify(allTimeIncome, null, 2));
 
-        let pmrIncome = 0, drrIncome = 0, fcrIncome = 0, totalIncome = 0;
+        let pmrIncome = 0, drrIncome = 0, fcrIncome = 0, dfrIncome = 0, dirIncome = 0, totalIncome = 0;
         allTimeIncome.forEach(stat => {
             totalIncome += stat.total;
             if (stat._id === 'PMR') pmrIncome = stat.total;
             if (stat._id === 'DRR') drrIncome = stat.total;
             if (stat._id === 'FCR') fcrIncome = stat.total;
+            if (stat._id === 'DFR') dfrIncome = stat.total;
+            if (stat._id === 'DIR') dirIncome = stat.total;
         });
 
         console.log(`   Calculated: Total=${totalIncome}, PMR=${pmrIncome}, DRR=${drrIncome}, FCR=${fcrIncome}`);
@@ -169,16 +177,22 @@ const getDashboardStats = async (req, res) => {
                 pmrIncome,
                 drrIncome,
                 fcrIncome,
+                dfrIncome,
+                dirIncome,
                 // Current month incomes
                 currentMonthIncome: currentTotal,
                 currentPMR,
                 currentDRR,
                 currentFCR,
+                currentDFR,
+                currentDIR,
                 // Percentage changes
                 totalIncomeChange: parseFloat(totalIncomeChange.toFixed(1)),
                 pmrIncomeChange: parseFloat(pmrIncomeChange.toFixed(1)),
                 drrIncomeChange: parseFloat(drrIncomeChange.toFixed(1)),
                 fcrIncomeChange: parseFloat(fcrIncomeChange.toFixed(1)),
+                dfrIncomeChange: parseFloat(dfrIncomeChange.toFixed(1)),
+                dirIncomeChange: parseFloat(dirIncomeChange.toFixed(1)),
                 pendingWithdrawals,
                 totalWithdrawn,
                 leftPairs: rankData.leftCount,

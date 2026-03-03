@@ -398,8 +398,27 @@ const getCurrentIncome = async (req, res) => {
         const pmr = await calculatePairMatchingRoyalty(userId, month, year);
         const drr = await calculateDirectReferralRoyalty(userId, month, year);
         const fcr = await calculateFounderClubRoyalty(userId, month, year);
+        // Fetch DFR (Daily ROI), REPR, and DIR (Direct Referral Bonus) totals from DB for current month
+        const [dfrData, reprData, dirData] = await Promise.all([
+            Income.aggregate([
+                { $match: { userId, month, year, incomeType: 'DFR' } },
+                { $group: { _id: null, total: { $sum: '$netAmount' } } }
+            ]),
+            Income.aggregate([
+                { $match: { userId, month, year, incomeType: 'REPR' } },
+                { $group: { _id: null, total: { $sum: '$netAmount' } } }
+            ]),
+            Income.aggregate([
+                { $match: { userId, month, year, incomeType: 'DIR' } },
+                { $group: { _id: null, total: { $sum: '$netAmount' } } }
+            ])
+        ]);
 
-        const totalIncome = pmr.amount + drr.totalAmount + fcr.amount;
+        const dfrAmount = dfrData.length > 0 ? dfrData[0].total : 0;
+        const reprAmount = reprData.length > 0 ? reprData[0].total : 0;
+        const dirAmount = dirData.length > 0 ? dirData[0].total : 0;
+
+        const totalIncome = pmr.amount + drr.totalAmount + fcr.amount + dfrAmount + reprAmount + dirAmount;
 
         res.json({
             success: true,
@@ -409,6 +428,9 @@ const getCurrentIncome = async (req, res) => {
                 pairMatchingRoyalty: pmr,
                 directReferralRoyalty: drr,
                 founderClubRoyalty: fcr,
+                dfrIncome: dfrAmount, // Daily Fix Return
+                reprIncome: reprAmount,
+                dirIncome: dirAmount, // Direct Referral Bonus (formerly DFR)
                 totalIncome,
             },
         });
@@ -577,6 +599,118 @@ const triggerMonthlyClosing = async (req, res) => {
     }
 };
 
+// 6. Get DFR Income History
+const getDfrIncomeHistory = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const incomes = await Income.find({
+            userId,
+            incomeType: 'DFR'
+        }).sort({ createdAt: -1 });
+
+        const history = incomes.map(income => ({
+            date: income.createdAt,
+            description: income.description,
+            amount: income.netAmount,
+            status: income.status
+        }));
+
+        res.json({
+            success: true,
+            data: history
+        });
+    } catch (error) {
+        console.error('Get DFR History Error:', error);
+        res.status(500).json({ message: 'Server error fetching DFR history' });
+    }
+};
+
+// 7. Get Rank & Rewards History
+const getRankRewardsHistory = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const rewards = await Income.find({
+            userId,
+            incomeType: { $in: ['FCR', 'REPR'] }
+        }).sort({ createdAt: -1 });
+
+        const history = rewards.map(reward => ({
+            date: reward.createdAt.toISOString().split('T')[0],
+            rewardType: reward.incomeType === 'FCR' ? 'Founder Club' : 'Performance Reward',
+            amount: reward.netAmount,
+            rank: reward.rank,
+            status: reward.status
+        }));
+
+        res.json({
+            success: true,
+            data: history
+        });
+    } catch (error) {
+        console.error('Get Rewards History Error:', error);
+        res.status(500).json({ message: 'Server error fetching rewards history' });
+    }
+};
+
+// 8. Get Monthly Sales Report
+const getMonthlySalesReport = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const User = require('../models/User');
+        const Deposit = require('../models/Deposit');
+
+        // Find direct referrals
+        const directs = await User.find({ referralId: userId }).select('userId fullName');
+        const directIds = directs.map(d => d.userId);
+
+        if (directIds.length === 0) {
+            return res.json({ success: true, data: [] });
+        }
+
+        // Aggregate approved deposits by direct referrals grouped by month
+        const sales = await Deposit.aggregate([
+            {
+                $match: {
+                    userId: { $in: directIds },
+                    status: 'approved'
+                }
+            },
+            {
+                $project: {
+                    amount: 1,
+                    month: { $month: '$createdAt' },
+                    year: { $year: '$createdAt' },
+                    userId: 1
+                }
+            },
+            {
+                $group: {
+                    _id: { month: '$month', year: '$year' },
+                    totalAmount: { $sum: '$amount' },
+                    count: { $sum: 1 },
+                    uniqueBuyers: { $addToSet: '$userId' }
+                }
+            },
+            { $sort: { '_id.year': -1, '_id.month': -1 } }
+        ]);
+
+        const history = sales.map(s => ({
+            date: `Month ${s._id.month}, ${s._id.year}`,
+            amount: s.totalAmount,
+            referrals: s.count,
+            activeMembers: s.uniqueBuyers.length
+        }));
+
+        res.json({
+            success: true,
+            data: history
+        });
+    } catch (error) {
+        console.error('Get Sales Report Error:', error);
+        res.status(500).json({ message: 'Server error fetching sales report' });
+    }
+};
+
 module.exports = {
     calculatePairMatchingRoyalty,
     calculateDirectReferralRoyalty,
@@ -586,5 +720,8 @@ module.exports = {
     getUserIncomeHistory,
     getCurrentIncome,
     getMatchingHistory,
-    triggerMonthlyClosing
+    getDfrIncomeHistory,
+    triggerMonthlyClosing,
+    getRankRewardsHistory,
+    getMonthlySalesReport
 };

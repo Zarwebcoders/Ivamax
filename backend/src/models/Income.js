@@ -9,7 +9,7 @@ const incomeSchema = new mongoose.Schema({
     },
     incomeType: {
         type: String,
-        enum: ['PMR', 'DRR', 'FCR'],
+        enum: ['PMR', 'DRR', 'FCR', 'DFR', 'REPR', 'DIR'],
         required: true,
     },
     date: {
@@ -83,7 +83,7 @@ const incomeSchema = new mongoose.Schema({
     },
     triggeredBy: {
         type: String,
-        enum: ['auto', 'new_referral', 'tree_update', 'rank_update', 'manual'],
+        enum: ['auto', 'new_referral', 'tree_update', 'rank_update', 'manual', 'new_activation', 'daily_roi_scheduler'],
         default: 'manual',
     },
     triggeredAt: {

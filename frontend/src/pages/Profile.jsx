@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/auth.service';
-import { User, Mail, Phone, Lock, CreditCard, Shield, Edit2, Save, X, Wallet, CheckCircle, DollarSign, TrendingUp, Users } from 'lucide-react';
+import { User, Mail, Phone, Lock, Eye, EyeOff, CreditCard, Shield, Edit2, Save, X, Wallet, CheckCircle, DollarSign, TrendingUp, Users } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ReferralCard from '../components/ReferralCard';
 import { dashboardService } from '../services/dashboard.service';
@@ -111,6 +111,10 @@ const Profile = () => {
         newPassword: '',
         confirmPassword: ''
     });
+
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handlePasswordUpdate = async () => {
         if (!passwordForm.newPassword) {
@@ -433,35 +437,56 @@ const Profile = () => {
                             <div className="space-y-4">
                                 <h3 className="text-md font-semibold text-gray-700">Change Password</h3>
                                 <div className="space-y-4">
-                                    <div className="relative">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                                    <div className="relative group">
+                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-golden-500 transition-colors" size={20} />
                                         <input
-                                            type="password"
+                                            type={showCurrentPassword ? "text" : "password"}
                                             placeholder="Current Password"
                                             value={passwordForm.currentPassword}
                                             onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                                            className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-gray-300"
+                                            className="w-full pl-12 pr-12 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-gray-300 transition-all font-medium"
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-golden-600 transition-colors"
+                                        >
+                                            {showCurrentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
                                     </div>
-                                    <div className="relative">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                                    <div className="relative group">
+                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-golden-500 transition-colors" size={20} />
                                         <input
-                                            type="password"
+                                            type={showNewPassword ? "text" : "password"}
                                             placeholder="New Password"
                                             value={passwordForm.newPassword}
                                             onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                                            className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-gray-300"
+                                            className="w-full pl-12 pr-12 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-gray-300 transition-all font-medium"
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-golden-600 transition-colors"
+                                        >
+                                            {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
                                     </div>
-                                    <div className="relative">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                                    <div className="relative group">
+                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-golden-500 transition-colors" size={20} />
                                         <input
-                                            type="password"
+                                            type={showConfirmPassword ? "text" : "password"}
                                             placeholder="Confirm New Password"
                                             value={passwordForm.confirmPassword}
                                             onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                                            className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-gray-300"
+                                            className="w-full pl-12 pr-12 py-3 rounded-xl border border-gray-400 focus:border-golden-500 outline-none bg-gray-300 transition-all font-medium"
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-golden-600 transition-colors"
+                                        >
+                                            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
                                     </div>
                                     <button
                                         onClick={handlePasswordUpdate}
@@ -705,6 +730,23 @@ const Profile = () => {
                                         ${formData.withdrawalPending || '0.00'}
                                     </p>
                                     <p className="text-xs opacity-70">Pending Approval</p>
+                                </div>
+                            </div>
+
+                            {/* 6. DFR Income */}
+                            <div className="bg-gradient-to-br from-golden-500 to-golden-600 text-white p-4 md:p-6 rounded-2xl shadow-xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                    <Trophy size={100} />
+                                </div>
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Award size={24} />
+                                        <p className="text-sm opacity-80 uppercase tracking-wider">DFR Income</p>
+                                    </div>
+                                    <p className="text-3xl font-bold mb-1">
+                                        ${stats.dfrIncome || '0.00'}
+                                    </p>
+                                    <p className="text-xs opacity-70">Direct Fast Referral Bonus</p>
                                 </div>
                             </div>
                         </div>

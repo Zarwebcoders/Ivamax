@@ -31,7 +31,7 @@ const getTree = async (req, res) => {
             const node = await Tree.findOne({ userId: nodeId });
             if (!node) return null;
 
-            const user = await User.findOne({ userId: nodeId }).select('userId fullName rank isActive packageType');
+            const user = await User.findOne({ userId: nodeId }).select('userId fullName rank currentRank isActive packageType');
 
             if (!user) {
                 console.error(`[TREE ERROR] Node ${nodeId} found in Tree but missing in User collection!`);
@@ -39,7 +39,7 @@ const getTree = async (req, res) => {
                 return {
                     userId: nodeId,
                     fullName: "UNKNOWN (Data Error)",
-                    rank: 0,
+                    rank: "0 (Member)",
                     isActive: false,
                     packageType: "Error",
                     leftPairs: node.leftPairs,
@@ -56,10 +56,16 @@ const getTree = async (req, res) => {
                 return null; // Treat as if user doesn't exist (Flushed)
             }
 
+            // Get formatted rank name
+            const { RANK_STRUCTURE } = require('./rankController');
+            const rankVal = user.currentRank || (parseInt(user.rank) || 0);
+            const rankInfo = RANK_STRUCTURE[rankVal] || { name: 'Member' };
+            const formattedRank = rankVal > 0 ? `${rankVal} (${rankInfo.name})` : `0 (Member)`;
+
             const treeData = {
                 userId: user.userId,
                 fullName: user.fullName,
-                rank: user.rank,
+                rank: formattedRank,
                 isActive: user.isActive,
                 packageType: user.packageType,
                 leftPairs: node.leftPairs,
@@ -179,13 +185,19 @@ const searchUsers = async (req, res) => {
             ]
         };
 
-        const finalUsers = await User.find(finalQuery).select('userId fullName rank').limit(5);
+        const finalUsers = await User.find(finalQuery).select('userId fullName rank currentRank').limit(5);
 
         // Fetch parentId for each user from Tree model
+        const { RANK_STRUCTURE } = require('./rankController');
         const results = await Promise.all(finalUsers.map(async (user) => {
             const treeNode = await Tree.findOne({ userId: user.userId }).select('parentId');
+            const rankVal = user.currentRank || (parseInt(user.rank) || 0);
+            const info = RANK_STRUCTURE[rankVal] || { name: 'Member' };
+            const formattedRank = rankVal > 0 ? `${rankVal} (${info.name})` : `0 (Member)`;
+
             return {
                 ...user.toObject(),
+                rank: formattedRank,
                 parentId: treeNode ? treeNode.parentId : null
             };
         }));

@@ -7,12 +7,18 @@ const {
     getMatchingHistory,
     processMonthlyIncome,
     triggerMonthlyClosing,
+    getDfrIncomeHistory,
+    getRankRewardsHistory,
+    getMonthlySalesReport
 } = require('../controllers/incomeController');
 
 // Protected user routes
 router.use(protect);
 router.get('/history', getUserIncomeHistory);
 router.get('/history/matching', getMatchingHistory);
+router.get('/history/dfr', getDfrIncomeHistory);
+router.get('/history/rewards', getRankRewardsHistory);
+router.get('/history/sales', getMonthlySalesReport);
 router.get('/current', getCurrentIncome);
 
 // Admin routes

@@ -37,21 +37,41 @@ const activatePackage = async (depositId, processedBy = 'SYSTEM') => {
             console.error('[SYSTEM] Failed to increment upline counts:', err);
         }
 
-        // 3. Auto-process first income for current month (PMR) - REMOVED per requirement
-        // "Income 1 month bad milegi" - Income should start after 1 month
-        /*
-        try {
-            const { processUserMonthlyIncome } = require('../controllers/incomeController');
-            const now = new Date();
-            const currentMonth = now.getMonth() + 1;
-            const currentYear = now.getFullYear();
+        // 4. Calculate DFR (Direct Fast Referral) Bonus for Sponsor
+        // DFR = 5% of package amount
+        if (user.referralId) {
+            try {
+                const sponsor = await User.findOne({ userId: user.referralId });
+                if (sponsor) {
+                    const dfrAmount = deposit.amount * 0.05;
+                    const Income = require('../models/Income');
 
-            await processUserMonthlyIncome(deposit.userId, currentMonth, currentYear);
-            console.log(`[SYSTEM] Auto-processed first income for ${deposit.userId}`);
-        } catch (incomeError) {
-            console.error('[SYSTEM] Error auto-processing income:', incomeError.message);
+                    const now = new Date();
+                    await Income.create({
+                        userId: sponsor.userId,
+                        incomeType: 'DIR',
+                        royaltyAmount: dfrAmount,
+                        netAmount: dfrAmount,
+                        month: now.getMonth() + 1,
+                        year: now.getFullYear(),
+                        status: 'paid',
+                        autoProcessed: true,
+                        triggeredBy: 'new_activation',
+                        processedAt: now,
+                        description: `Direct Referral Bonus from ${user.userId} package activation ($${deposit.amount})`
+                    });
+
+                    // Credit Sponsor Wallet immediately
+                    sponsor.walletBalance += dfrAmount;
+                    sponsor.totalEarnings += dfrAmount;
+                    await sponsor.save();
+
+                    console.log(`[SYSTEM] Direct Referral Bonus of $${dfrAmount} credited to sponsor ${sponsor.userId}`);
+                }
+            } catch (dfrError) {
+                console.error('[SYSTEM] Failed to calculate DFR bonus:', dfrError.message);
+            }
         }
-        */
 
         return { success: true, message: 'Package activated successfully' };
     } catch (error) {

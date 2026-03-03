@@ -59,7 +59,11 @@ const getDirectReferrals = async (req, res) => {
                     joinDate: user.createdAt,
                     side: side,
                     isActive: user.isActive || false,
-                    rank: user.rank || 'Member',
+                    rank: (() => {
+                        const rankVal = user.currentRank || (parseInt(user.rank) || 0);
+                        const info = RANK_STRUCTURE[rankVal] || { name: 'Member' };
+                        return rankVal > 0 ? `${rankVal} (${info.name})` : `0 (Member)`;
+                    })(),
                     leftPairs: tree.totalLeftMembers || 0,
                     rightPairs: tree.totalRightMembers || 0,
                     royaltyPercentage: rankInfo.income || 0

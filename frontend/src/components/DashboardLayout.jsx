@@ -18,7 +18,8 @@ import {
     FiMenu,
     FiMoreVertical,
     FiPackage,
-    FiHeadphones
+    FiHeadphones,
+    FiZap
 } from 'react-icons/fi';
 
 const DashboardLayout = () => {
@@ -52,6 +53,7 @@ const DashboardLayout = () => {
         { path: '/income', label: 'Income', icon: FiDollarSign },
         { path: '/reports', label: 'Reports', icon: FiFileText },
         { path: '/withdrawals', label: 'Withdrawals', icon: FiCreditCard },
+        { path: '/dfr-income', label: 'DFR Income', icon: FiZap },
         { path: '/packages', label: 'Packages', icon: FiPackage },
         { path: '/support', label: 'Support', icon: FiHeadphones },
     ];
@@ -161,7 +163,7 @@ const DashboardLayout = () => {
                                 className="p-2 text-red-600 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
                                 title="Logout"
                             >
-                                <FiLogOut size={18} />
+                                <span className='hidden md:block text-sm'>LogOut</span> <FiLogOut size={18} />
                             </button>
                         )}
                     </div>
@@ -209,6 +211,7 @@ const DashboardLayout = () => {
                     </div>
 
                     <div className="flex items-center gap-4">
+                        <NotificationBell />
                         {/* Wallet Button */}
                         {!isConnected ? (
                             <button

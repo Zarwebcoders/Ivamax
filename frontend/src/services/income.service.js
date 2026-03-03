@@ -16,4 +16,24 @@ export const incomeService = {
         const response = await api.post('/income/process', { month, year });
         return response.data;
     },
+
+    getDfrHistory: async () => {
+        const response = await api.get('/income/history/dfr');
+        return response.data;
+    },
+
+    getMatchingHistory: async () => {
+        const response = await api.get('/income/history/matching');
+        return response.data;
+    },
+
+    getRankRewards: async () => {
+        const response = await api.get('/income/history/rewards');
+        return response.data;
+    },
+
+    getMonthlySales: async () => {
+        const response = await api.get('/income/history/sales');
+        return response.data;
+    },
 };

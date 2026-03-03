@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { incomeService } from '../services/income.service';
-import { DollarSign, TrendingUp, Users, Award, Calendar, Coins } from 'lucide-react';
+import { DollarSign, TrendingUp, Users, Award, Calendar, Coins, Target } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Income = () => {
@@ -176,6 +176,72 @@ const Income = () => {
                                 <p className="text-xs mt-1">Requires 2 Founder-rank directs</p>
                             </div>
                         </motion.div>
+
+                        {/* Daily Fix Return (New DFR) */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                            className="card p-6 hover:shadow-xl transition-shadow border-2 border-gray-400 shadow-lg shadow-gray-400"
+                        >
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-12 h-12 rounded-full bg-indigo-200 flex items-center justify-center">
+                                    <TrendingUp className="w-6 h-6 text-indigo-600" />
+                                </div>
+                                <h3 className="font-bold text-lg">Daily Fix Return</h3>
+                            </div>
+                            <p className="text-3xl font-bold text-indigo-600 mb-2">
+                                ${(currentIncome.dfrIncome || 0).toFixed(2)}
+                            </p>
+                            <div className="text-sm text-gray-600">
+                                <p>ROI on capital investment</p>
+                                <p className="text-xs mt-1">0.125% per day (3.75%/mo)</p>
+                            </div>
+                        </motion.div>
+
+                        {/* Direct Referral Bonus (DIR) */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                            className="card p-6 hover:shadow-xl transition-shadow border-2 border-gray-400 shadow-lg shadow-gray-400"
+                        >
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-12 h-12 rounded-full bg-blue-200 flex items-center justify-center">
+                                    <Users className="w-6 h-6 text-blue-600" />
+                                </div>
+                                <h3 className="font-bold text-lg">Direct Bonus</h3>
+                            </div>
+                            <p className="text-3xl font-bold text-blue-600 mb-2">
+                                ${(currentIncome.dirIncome || 0).toFixed(2)}
+                            </p>
+                            <div className="text-sm text-gray-600">
+                                <p>One-time Referral Reward</p>
+                                <p className="text-xs mt-1">5% of direct's package</p>
+                            </div>
+                        </motion.div>
+
+                        {/* RE-PR Income */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.6 }}
+                            className="card p-6 hover:shadow-xl transition-shadow border-2 border-gray-400 shadow-lg shadow-gray-400"
+                        >
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-12 h-12 rounded-full bg-orange-200 flex items-center justify-center">
+                                    <Target className="w-6 h-6 text-orange-600" />
+                                </div>
+                                <h3 className="font-bold text-lg">RE-PR Income</h3>
+                            </div>
+                            <p className="text-3xl font-bold text-orange-600 mb-2">
+                                ${(currentIncome.reprIncome || 0).toFixed(2)}
+                            </p>
+                            <div className="text-sm text-gray-600">
+                                <p>Re-Purchase / Performance Bonus</p>
+                                <p className="text-xs mt-1">Calculated monthly</p>
+                            </div>
+                        </motion.div>
                     </div>
 
                     {/* Referral Details */}
@@ -259,6 +325,9 @@ const Income = () => {
                                                 {income.incomeType === 'PMR' && 'Pair Matching'}
                                                 {income.incomeType === 'DRR' && 'Direct Referral'}
                                                 {income.incomeType === 'FCR' && 'Founder Club'}
+                                                {income.incomeType === 'DFR' && 'Daily Fix Return'}
+                                                {income.incomeType === 'DIR' && 'Direct referral bonus'}
+                                                {income.incomeType === 'REPR' && 'RE-PR Income'}
                                             </p>
                                             <p className="text-xl font-bold">${income.netAmount.toFixed(2)}</p>
                                             {income.tokenAmount > 0 && (
