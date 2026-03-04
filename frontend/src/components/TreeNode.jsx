@@ -34,7 +34,7 @@ const TreeNode = ({ node, onExpand, isHighlighted }) => {
     const isLeft = node.position === 'left';
 
     return (
-        <div className="flex flex-col items-center z-10 relative">
+        <div className="flex flex-col items-center z-10 relative shrink-0">
             <motion.div
                 ref={nodeRef}
                 whileHover={{ scale: 1.05 }}

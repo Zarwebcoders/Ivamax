@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { treeService } from '../services/tree.service';
 import TreeNode from '../components/TreeNode';
@@ -15,6 +15,41 @@ const TreeView = () => {
 
     const [highlightedUserId, setHighlightedUserId] = useState(null);
     const [zoom, setZoom] = useState(1.0); // Default zoom level at 100%
+
+    // Drag to pan state
+    const scrollRef = useRef(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [startX, setStartX] = useState(0);
+    const [startY, setStartY] = useState(0);
+    const [scrollLeft, setScrollLeft] = useState(0);
+    const [scrollTop, setScrollTop] = useState(0);
+
+    const handleMouseDown = (e) => {
+        setIsDragging(true);
+        setStartX(e.pageX - scrollRef.current.offsetLeft);
+        setStartY(e.pageY - scrollRef.current.offsetTop);
+        setScrollLeft(scrollRef.current.scrollLeft);
+        setScrollTop(scrollRef.current.scrollTop);
+    };
+
+    const handleMouseLeave = () => {
+        setIsDragging(false);
+    };
+
+    const handleMouseUp = () => {
+        setIsDragging(false);
+    };
+
+    const handleMouseMove = (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = e.pageX - scrollRef.current.offsetLeft;
+        const y = e.pageY - scrollRef.current.offsetTop;
+        const walkX = (x - startX) * 1.5;
+        const walkY = (y - startY) * 1.5;
+        scrollRef.current.scrollLeft = scrollLeft - walkX;
+        scrollRef.current.scrollTop = scrollTop - walkY;
+    };
 
     // Zoom controls
     const handleZoomIn = () => {
@@ -120,7 +155,7 @@ const TreeView = () => {
         const hasChildren = node.children && node.children.length > 0 && !node.empty;
 
         return (
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center w-max relative">
                 <TreeNode
                     node={node}
                     onExpand={handleExpand} // This is for traversing/focusing
@@ -147,7 +182,8 @@ const TreeView = () => {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="relative flex justify-center mt-4 gap-6 md:gap-12 overflow-hidden px-4 py-2"
+                            className="relative flex justify-center mt-4 gap-6 md:gap-12 px-4 py-2 w-max mx-auto"
+                            style={{ overflow: 'visible' }}
                         >
                             {/* 
                                 Dynamic Connector Lines 
@@ -160,7 +196,7 @@ const TreeView = () => {
                             <div className="absolute top-0 left-1/4 right-1/4 h-3 border-t border-r border-l border-gray-300 rounded-t-lg z-0"></div>
 
                             {node.children.map((child, index) => (
-                                <div key={index} className="relative flex flex-col items-center pt-3">
+                                <div key={index} className="relative flex flex-col items-center pt-3 shrink-0">
                                     {/* Child Vertical Line (Up to bridge) */}
                                     {/* We need individual lines connecting up to the bridge */}
                                     <div className="absolute top-0 h-3 border-l border-gray-300 z-0"></div>
@@ -252,8 +288,11 @@ const TreeView = () => {
                 </div>
             </motion.div>
 
-            <div className="relative card overflow-auto min-h-[600px] border-2 border-black shadow-lg shadow-gray-400 flex justify-center p-12 bg-gray-200 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
-                {/* Zoom Controls - Right Side */}
+            <div className="relative card h-[600px] md:h-[700px] border-2 border-black shadow-lg shadow-gray-400 bg-gray-200 overflow-hidden">
+                {/* Background Pattern */}
+                <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-50"></div>
+
+                {/* Zoom Controls - Absolute to the card, not the scrolling content */}
                 <div className="absolute top-4 right-4 flex flex-col gap-2 z-50">
                     <button
                         onClick={handleZoomIn}
@@ -278,17 +317,29 @@ const TreeView = () => {
                     </button>
                 </div>
 
-                {/* Tree Container with Zoom */}
+                {/* Scrollable Area */}
                 <div
-                    style={{
-                        transform: `scale(${zoom})`,
-                        transformOrigin: 'top center',
-                        transition: 'transform 0.2s ease-out'
-                    }}
+                    ref={scrollRef}
+                    className="w-full h-full overflow-auto relative z-10 custom-scrollbar cursor-grab active:cursor-grabbing"
+                    onMouseDown={handleMouseDown}
+                    onMouseLeave={handleMouseLeave}
+                    onMouseUp={handleMouseUp}
+                    onMouseMove={handleMouseMove}
                 >
-                    {treeData ? renderTree(treeData) : (
-                        <div className="text-center text-gray-500">Tree data not found</div>
-                    )}
+                    {/* The crucial fix: inline-block on the wrapper ensures it wraps tightly around the content and expands the scroll container. p-24 adds space around. */}
+                    <div className="inline-block min-w-full p-12 sm:p-24" style={{ textAlign: 'center' }}>
+                        <div
+                            className="inline-block text-left"
+                            style={{
+                                zoom: zoom,
+                                width: 'max-content' // Forces container to grow with wide children
+                            }}
+                        >
+                            {treeData ? renderTree(treeData) : (
+                                <div className="text-center text-gray-500 mt-10">Tree data not found</div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -321,15 +321,22 @@ const Income = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {monthData.incomes.map((income, incIdx) => (
                                         <div key={incIdx} className="bg-gray-50 rounded-lg p-4">
-                                            <p className="text-xs text-gray-500 mb-1">
+                                            <p className="text-xs text-gray-500 mb-1 flex flex-wrap items-center gap-1">
                                                 {income.incomeType === 'PMR' && 'Pair Matching'}
                                                 {income.incomeType === 'DRR' && 'Direct Referral'}
                                                 {income.incomeType === 'FCR' && 'Founder Club'}
                                                 {income.incomeType === 'DFR' && 'Daily Fix Return'}
                                                 {income.incomeType === 'DIR' && 'Direct referral bonus'}
                                                 {income.incomeType === 'REPR' && 'RE-PR Income'}
+                                                {income.incomeType === 'RANK' && <><Award className="w-3 h-3 text-indigo-500" /> Rank Achieved</>}
                                             </p>
-                                            <p className="text-xl font-bold">${income.netAmount.toFixed(2)}</p>
+                                            {income.incomeType === 'RANK' ? (
+                                                <p className="text-lg font-bold text-indigo-600 mt-1 bg-indigo-50 inline-block px-2 py-1 rounded w-max">
+                                                    {income.rank}
+                                                </p>
+                                            ) : (
+                                                <p className="text-xl font-bold">${income.netAmount.toFixed(2)}</p>
+                                            )}
                                             {income.tokenAmount > 0 && (
                                                 <p className="text-xs text-purple-600 flex items-center gap-1 mt-1">
                                                     <Coins className="w-3 h-3" />

@@ -4,6 +4,7 @@ import { useWallet } from '../context/WalletContext';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import NotificationBell from './NotificationBell';
+import ActivationReminder from './ActivationReminder';
 import {
     FiHome,
     FiUser,
@@ -249,6 +250,9 @@ const DashboardLayout = () => {
                     <Outlet />
                 </main>
             </div>
+
+            {/* Activation Reminder Popup */}
+            <ActivationReminder />
         </div>
     );
 };

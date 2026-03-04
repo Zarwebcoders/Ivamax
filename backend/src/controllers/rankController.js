@@ -72,7 +72,34 @@ const calculateUserRank = async (userId) => {
 // Update user's rank in database
 const updateUserRank = async (userId) => {
     try {
+        const user = await User.findOne({ userId });
+        if (!user) {
+            console.log(`[RANK] User not found: ${userId}`);
+            return null;
+        }
+
         const rankData = await calculateUserRank(userId);
+
+        // If ranked up, save history
+        if (rankData.rank > (user.currentRank || 0)) {
+            const Income = require('../models/Income');
+            const now = new Date();
+            await Income.create({
+                userId,
+                incomeType: 'RANK',
+                royaltyAmount: 0,
+                netAmount: 0,
+                month: now.getMonth() + 1,
+                year: now.getFullYear(),
+                status: 'paid',
+                description: `Rank Upgraded to ${rankData.rankName} (Level ${rankData.rank})`,
+                rank: rankData.rankName,
+                autoProcessed: true,
+                triggeredBy: 'rank_update',
+                processedAt: now
+            });
+            console.log(`[RANK] History saved for ${userId}: ${rankData.rankName}`);
+        }
 
         await User.updateOne(
             { userId },
