@@ -473,6 +473,29 @@ const updateProfile = async (req, res) => {
             user.mobile = req.body.mobile || user.mobile;
             user.walletAddress = req.body.walletAddress || user.walletAddress;
 
+            // Handle TRC20 and BEP20 Wallet Addresses
+            const WalletHistory = require('../models/WalletHistory');
+
+            if (req.body.walletAddressTRC20 && req.body.walletAddressTRC20 !== user.walletAddressTRC20) {
+                user.walletAddressTRC20 = req.body.walletAddressTRC20;
+                // Log to history
+                await WalletHistory.create({
+                    userId: user.userId,
+                    address: req.body.walletAddressTRC20,
+                    network: 'TRC20'
+                });
+            }
+
+            if (req.body.walletAddressBEP20 && req.body.walletAddressBEP20 !== user.walletAddressBEP20) {
+                user.walletAddressBEP20 = req.body.walletAddressBEP20;
+                // Log to history
+                await WalletHistory.create({
+                    userId: user.userId,
+                    address: req.body.walletAddressBEP20,
+                    network: 'BEP20'
+                });
+            }
+
             // Bank Details
             if (req.body.bankName) user.bankName = req.body.bankName;
             if (req.body.accountNumber) user.accountNumber = req.body.accountNumber;
@@ -495,6 +518,8 @@ const updateProfile = async (req, res) => {
                 token: generateToken(updatedUser._id),
                 role: updatedUser.role,
                 walletAddress: updatedUser.walletAddress,
+                walletAddressTRC20: updatedUser.walletAddressTRC20,
+                walletAddressBEP20: updatedUser.walletAddressBEP20,
                 bankName: updatedUser.bankName,
                 accountNumber: updatedUser.accountNumber,
                 ifscCode: updatedUser.ifscCode
@@ -502,6 +527,25 @@ const updateProfile = async (req, res) => {
         } else {
             res.status(404).json({ message: 'User not found' });
         }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+// @desc    Get wallet address history
+// @route   GET /api/auth/wallet-history
+// @access  Private
+const getWalletHistory = async (req, res) => {
+    try {
+        const WalletHistory = require('../models/WalletHistory');
+        const history = await WalletHistory.find({ userId: req.user.userId })
+            .sort({ createdAt: -1 });
+
+        res.json({
+            success: true,
+            data: history
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -573,6 +617,7 @@ module.exports = {
     login,
     getMe,
     updateProfile,
+    getWalletHistory,
     forgotPassword,
     resetPassword,
 };

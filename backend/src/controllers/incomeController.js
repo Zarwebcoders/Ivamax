@@ -398,8 +398,8 @@ const getCurrentIncome = async (req, res) => {
         const pmr = await calculatePairMatchingRoyalty(userId, month, year);
         const drr = await calculateDirectReferralRoyalty(userId, month, year);
         const fcr = await calculateFounderClubRoyalty(userId, month, year);
-        // Fetch DFR (Daily ROI), REPR, and DIR (Direct Referral Bonus) totals from DB for current month
-        const [dfrData, reprData, dirData] = await Promise.all([
+        // Fetch DFR (Daily ROI) and REPR totals from DB for current month
+        const [dfrData, reprData] = await Promise.all([
             Income.aggregate([
                 { $match: { userId, month, year, incomeType: 'DFR' } },
                 { $group: { _id: null, total: { $sum: '$netAmount' } } }
@@ -407,18 +407,13 @@ const getCurrentIncome = async (req, res) => {
             Income.aggregate([
                 { $match: { userId, month, year, incomeType: 'REPR' } },
                 { $group: { _id: null, total: { $sum: '$netAmount' } } }
-            ]),
-            Income.aggregate([
-                { $match: { userId, month, year, incomeType: 'DIR' } },
-                { $group: { _id: null, total: { $sum: '$netAmount' } } }
             ])
         ]);
 
         const dfrAmount = dfrData.length > 0 ? dfrData[0].total : 0;
         const reprAmount = reprData.length > 0 ? reprData[0].total : 0;
-        const dirAmount = dirData.length > 0 ? dirData[0].total : 0;
 
-        const totalIncome = pmr.amount + drr.totalAmount + fcr.amount + dfrAmount + reprAmount + dirAmount;
+        const totalIncome = pmr.amount + drr.totalAmount + fcr.amount + dfrAmount + reprAmount;
 
         res.json({
             success: true,
@@ -430,7 +425,6 @@ const getCurrentIncome = async (req, res) => {
                 founderClubRoyalty: fcr,
                 dfrIncome: dfrAmount, // Daily Fix Return
                 reprIncome: reprAmount,
-                dirIncome: dirAmount, // Direct Referral Bonus (formerly DFR)
                 totalIncome,
             },
         });
@@ -631,14 +625,17 @@ const getRankRewardsHistory = async (req, res) => {
         const userId = req.user.userId;
         const rewards = await Income.find({
             userId,
-            incomeType: { $in: ['FCR', 'REPR'] }
+            incomeType: { $in: ['FCR', 'REPR', 'RANK', 'DRR'] }
         }).sort({ createdAt: -1 });
 
         const history = rewards.map(reward => ({
             date: reward.createdAt.toISOString().split('T')[0],
-            rewardType: reward.incomeType === 'FCR' ? 'Founder Club' : 'Performance Reward',
+            rewardType: reward.incomeType === 'FCR' ? 'Founder Club' :
+                reward.incomeType === 'RANK' ? 'Rank Update' :
+                    reward.incomeType === 'DRR' ? 'Direct Referral Royalty' :
+                        'Performance Reward',
             amount: reward.netAmount,
-            rank: reward.rank,
+            rank: reward.rank || 'N/A',
             status: reward.status
         }));
 

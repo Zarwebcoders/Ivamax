@@ -59,4 +59,9 @@ export const authService = {
     getToken: () => {
         return localStorage.getItem('token');
     },
+
+    getWalletHistory: async () => {
+        const response = await api.get('/auth/wallet-history');
+        return response.data;
+    },
 };

@@ -56,6 +56,7 @@ const userSchema = new mongoose.Schema({
     packageType: {
         type: String,
         default: null,
+        index: true,
     },
     placementSide: {
         type: String,
@@ -77,6 +78,7 @@ const userSchema = new mongoose.Schema({
     isActive: {
         type: Boolean,
         default: false,
+        index: true,
     },
     isEmailVerified: {
         type: Boolean,
@@ -104,6 +106,14 @@ const userSchema = new mongoose.Schema({
     walletBalance: {
         type: Number,
         default: 0,
+    },
+    walletAddressTRC20: {
+        type: String,
+        default: '',
+    },
+    walletAddressBEP20: {
+        type: String,
+        default: '',
     },
 }, {
     timestamps: true,

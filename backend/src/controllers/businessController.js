@@ -35,44 +35,37 @@ const getDirectReferrals = async (req, res) => {
 
         // 3. Find all direct referrals (where current user is parent)
         const directReferralTrees = await Tree.find({ parentId: userId });
+        const referralIds = directReferralTrees.map(t => t.userId);
 
-        // 4. Get detailed information for each referral
-        const referralsData = await Promise.all(
-            directReferralTrees.map(async (tree) => {
-                const user = await User.findOne({ userId: tree.userId });
-                if (!user) return null;
+        // 4. Batch fetch all User details
+        const referralUsers = await User.find({ userId: { $in: referralIds } });
+        const userMap = new Map(referralUsers.map(u => [u.userId, u]));
 
-                // Determine side (left or right)
-                let side = 'Unknown';
-                if (userTree.leftDirectId === tree.userId) {
-                    side = 'Left';
-                } else if (userTree.rightDirectId === tree.userId) {
-                    side = 'Right';
-                }
+        // 5. Format data
+        const referralsData = directReferralTrees.map((tree) => {
+            const user = userMap.get(tree.userId);
+            if (!user) return null;
 
-                // Get rank info
-                const rankInfo = RANK_STRUCTURE[user.currentRank || 0] || { name: 'Member', income: 0 };
+            // Determine side
+            let side = 'Unknown';
+            if (userTree.leftDirectId === tree.userId) side = 'Left';
+            else if (userTree.rightDirectId === tree.userId) side = 'Right';
 
-                return {
-                    userId: user.userId,
-                    fullName: user.fullName,
-                    joinDate: user.createdAt,
-                    side: side,
-                    isActive: user.isActive || false,
-                    rank: (() => {
-                        const rankVal = user.currentRank || (parseInt(user.rank) || 0);
-                        const info = RANK_STRUCTURE[rankVal] || { name: 'Member' };
-                        return rankVal > 0 ? `${rankVal} (${info.name})` : `0 (Member)`;
-                    })(),
-                    leftPairs: tree.totalLeftMembers || 0,
-                    rightPairs: tree.totalRightMembers || 0,
-                    royaltyPercentage: rankInfo.income || 0
-                };
-            })
-        );
+            const rankVal = user.currentRank || (parseInt(user.rank) || 0);
+            const rankInfo = RANK_STRUCTURE[rankVal] || { name: 'Member', income: 0 };
 
-        // Filter out null values
-        const validReferrals = referralsData.filter(ref => ref !== null);
+            return {
+                userId: user.userId,
+                fullName: user.fullName,
+                joinDate: user.createdAt,
+                side: side,
+                isActive: user.isActive || false,
+                rank: rankInfo.name,
+                leftPairs: tree.totalLeftMembers || 0,
+                rightPairs: tree.totalRightMembers || 0,
+                royaltyPercentage: rankInfo.income || 0
+            };
+        }).filter(Boolean);
 
         res.json({
             success: true,
@@ -81,10 +74,10 @@ const getDirectReferrals = async (req, res) => {
                     totalTeam,
                     leftTeam,
                     rightTeam,
-                    directReferrals: validReferrals.length,
+                    directReferrals: referralsData.length,
                     matchingPairs
                 },
-                referrals: validReferrals
+                referrals: referralsData
             }
         });
 

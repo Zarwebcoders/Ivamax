@@ -399,8 +399,7 @@ const Dashboard = () => {
                                             </div>
                                             <p className="text-golden-600 font-bold text-xs md:text-sm tracking-tight mb-3 md:mb-6">Closing Rank</p>
                                             <h4 className="text-xl md:text-[36px] font-black text-gray-900 leading-none uppercase tracking-tight mb-3 md:mb-6 truncate">
-                                                {/* {stats.nextRankName || 'No RANK'} */}
-                                                No Rank
+                                                {stats.closingRank || 'NO RANK'}
                                             </h4>
                                             <div className="w-full h-1 md:h-1.5 bg-golden-200 rounded-full overflow-hidden">
                                                 <div className="h-full bg-golden-500" style={{ width: `${stats.rankProgress || 0}%` }} />
@@ -535,10 +534,10 @@ const Dashboard = () => {
                     >
                         {[
                             { label: "Total Income", value: stats.totalIncome || 0, color: "text-amber-500", icon: <DollarSign size={24} />, bg: "bg-[#fffbeb]" },
+                            { label: "DFR Income", value: stats.dfrIncome || 0, color: "text-golden-600", icon: <Target size={24} />, bg: "bg-golden-50" },
                             { label: "PMR Income", value: stats.pmrIncome || 0, color: "text-blue-500", icon: <TrendingUp size={24} />, bg: "bg-[#f0f7ff]" },
                             { label: "DRR Income", value: stats.drrIncome || 0, color: "text-green-500", icon: <Users size={24} />, bg: "bg-[#f0fdf4]" },
-                            { label: "FCR Income", value: stats.fcrIncome || 0, color: "text-purple-500", icon: <Crown size={24} />, bg: "bg-[#faf5ff]" },
-                            { label: "DFR Income", value: stats.dfrIncome || 0, color: "text-golden-600", icon: <Target size={24} />, bg: "bg-golden-50" }
+                            { label: "FCR Income", value: stats.fcrIncome || 0, color: "text-purple-500", icon: <Crown size={24} />, bg: "bg-[#faf5ff]" }
                         ].map((item, idx) => (
                             <motion.div
                                 key={idx}

@@ -58,6 +58,73 @@ router.post('/', protect, async (req, res) => {
     }
 });
 
+// @desc    Buy package using profit wallet (walletBalance)
+// @route   POST /api/deposit/buy-profit
+// @access  Private
+router.post('/buy-profit', protect, async (req, res) => {
+    try {
+        const { packageId, packageName, price } = req.body;
+        const User = require('../models/User');
+        const Income = require('../models/Income');
+        const user = await User.findOne({ userId: req.user.userId });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // 1. Check Monthly Closing Status
+        // If there are ANY pending incomes with a due date in the past, it means closing hasn't run yet.
+        const pendingPayouts = await Income.exists({
+            userId: user.userId,
+            status: 'pending',
+            paymentDueDate: { $lte: new Date() }
+        });
+
+        if (pendingPayouts) {
+            return res.status(400).json({
+                message: 'Buy with Profit is locked! Monthly closing for the previous period is pending. Please wait for admin to process. Once closing is complete and your profit is released, you can buy again.'
+            });
+        }
+
+        // 2. Check Balance
+        if (user.walletBalance < price) {
+            return res.status(400).json({ message: 'Insufficient balance in Profit Wallet' });
+        }
+
+        // 3. Create Deposit Record
+        const deposit = await Deposit.create({
+            userId: user.userId,
+            amount: price,
+            currency: 'PROFIT_WALLET',
+            transactionHash: `PROFIT_${Date.now()}`,
+            packageId,
+            packageName,
+            type: 'profit',
+            status: 'approved' // Auto-approve since balance is already checked
+        });
+
+        // 4. Deduct Balance and Activate
+        user.walletBalance -= price;
+        await user.save();
+
+        const activatePackage = require('../utils/activatePackage');
+        await activatePackage(deposit._id, 'SYSTEM');
+
+        res.json({
+            success: true,
+            message: 'Package purchased successfully using Profit Wallet!',
+            data: {
+                balance: user.walletBalance,
+                deposit
+            }
+        });
+
+    } catch (error) {
+        console.error('Buy Profit Error:', error);
+        res.status(500).json({ message: 'Server error processing profit purchase' });
+    }
+});
+
 // @desc    Get my deposit history
 // @route   GET /api/deposit/my-history
 // @access  Private

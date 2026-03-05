@@ -54,7 +54,6 @@ const DashboardLayout = () => {
         { path: '/income', label: 'Income', icon: FiDollarSign },
         { path: '/reports', label: 'Reports', icon: FiFileText },
         { path: '/withdrawals', label: 'Withdrawals', icon: FiCreditCard },
-        { path: '/dfr-income', label: 'DFR Income', icon: FiZap },
         { path: '/packages', label: 'Packages', icon: FiPackage },
         { path: '/support', label: 'Support', icon: FiHeadphones },
     ];
@@ -147,15 +146,15 @@ const DashboardLayout = () => {
                 </nav>
 
                 {/* User Profile Snippet (Bottom) */}
-                <div className={`p-4 mx-2 mb-2 rounded-2xl transition-all duration-300 ${sidebarOpen ? 'bg-gradient-to-r from-gray-100 to-gray-400 border border-gray-400' : 'bg-transparent'}`}>
+                <div className={`p-2 mx-2 mb-2 rounded-2xl transition-all duration-300 ${sidebarOpen ? 'bg-gradient-to-r from-gray-100 to-gray-400 border border-gray-400' : 'bg-transparent'}`}>
                     <div className={`flex items-center ${sidebarOpen ? 'gap-3' : 'justify-center'}`}>
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-400 flex items-center justify-center text-gray-600 font-bold shadow-inner">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-gray-400 flex items-center justify-center text-gray-700 font-bold shadow-inner">
                             {user?.fullName?.charAt(0) || 'U'}
                         </div>
                         {sidebarOpen && (
                             <div className="flex-1 overflow-hidden">
                                 <p className="text-sm font-semibold text-gray-900 truncate">{user?.fullName || 'User'}</p>
-                                <p className="text-xs text-gray-400 truncate">ID: {user?.userId}</p>
+                                <p className="text-sm text-gray-800 truncate">ID: {user?.userId}</p>
                             </div>
                         )}
                         {sidebarOpen && (
@@ -164,7 +163,7 @@ const DashboardLayout = () => {
                                 className="p-2 text-red-600 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
                                 title="Logout"
                             >
-                                <span className='hidden md:block text-sm'>LogOut</span> <FiLogOut size={18} />
+                                <span className='hidden md:block text-sm'></span> <FiLogOut size={18} />
                             </button>
                         )}
                     </div>

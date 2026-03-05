@@ -12,6 +12,7 @@ const treeSchema = new mongoose.Schema({
         type: String,
         ref: 'User',
         default: null,
+        index: true,
     },
     leftDirectId: {
         type: String,

@@ -7,7 +7,7 @@ const Income = require('../models/Income');
  */
 const processDailyROI = async () => {
     try {
-        console.log('[ROI-SERVICE] Starting Daily ROI processing...');
+        console.log('[ROI-SERVICE] Starting Daily ROI (DFR) processing...');
 
         // Find all active users with an investment
         const activeUsers = await User.find({
@@ -24,17 +24,27 @@ const processDailyROI = async () => {
         const month = now.getMonth() + 1;
         const year = now.getFullYear();
         const dateStr = now.toISOString().split('T')[0];
+        const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
 
         let processedCount = 0;
         let totalDistributed = 0;
 
         for (const user of activeUsers) {
-            // Calculate ROI (0.125% of investment)
-            const roiAmount = user.investmentAmount * 0.00125;
+            // 7-day delay after activation/investment
+            const activationDate = user.investmentDate || user.createdAt;
+            const timeDiff = Date.now() - new Date(activationDate).getTime();
+
+            if (timeDiff < sevenDaysInMs) {
+                console.log(`[ROI-SERVICE] Skipping User ${user.userId}: Within 7-day delay`);
+                continue;
+            }
+
+            // Calculate ROI (0.133% of investment ≈ 4% monthly)
+            const roiAmount = user.investmentAmount * 0.00133;
 
             if (roiAmount <= 0) continue;
 
-            // Check if already processed for today (to avoid duplicates if scheduler runs twice)
+            // Check if already processed for today
             const existing = await Income.findOne({
                 userId: user.userId,
                 incomeType: 'DFR',
@@ -42,11 +52,14 @@ const processDailyROI = async () => {
             });
 
             if (existing) {
-                console.log(`[ROI-SERVICE] ROI already processed for user ${user.userId} on ${dateStr}`);
+                console.log(`[ROI-SERVICE] DFR already processed for user ${user.userId} on ${dateStr}`);
                 continue;
             }
 
-            // Create Income Record
+            // Calculate Payment Due Date (1st of next month)
+            const paymentDueDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+            // Create Income Record (as PENDING)
             await Income.create({
                 userId: user.userId,
                 incomeType: 'DFR',
@@ -54,27 +67,25 @@ const processDailyROI = async () => {
                 netAmount: roiAmount,
                 month,
                 year,
-                status: 'paid',
+                status: 'pending', // Important: Paid during Monthly Closing
+                paymentDueDate,   // Released on the 1st of next month
                 autoProcessed: true,
                 triggeredBy: 'daily_roi_scheduler',
                 processedAt: now,
-                description: `Daily Fix Return (0.125%) for ${dateStr} on capital $${user.investmentAmount}`
+                description: `Daily Fix Return (0.133%) for ${dateStr} on capital $${user.investmentAmount}`
             });
 
-            // Credit User Wallet
-            user.walletBalance += roiAmount;
-            user.totalEarnings += roiAmount;
-            await user.save();
+            // Note: Wallet balance is NOT updated here. Incremented during Monthly Closing.
 
             processedCount++;
             totalDistributed += roiAmount;
         }
 
-        console.log(`[ROI-SERVICE] ROI distribution complete. Processed ${processedCount} users, Total: $${totalDistributed.toFixed(4)}`);
+        console.log(`[ROI-SERVICE] DFR processing (Pending) complete. Processed ${processedCount} users, Total: $${totalDistributed.toFixed(4)}`);
         return { success: true, processedCount, totalDistributed };
 
     } catch (error) {
-        console.error('[ROI-SERVICE] Error during ROI processing:', error);
+        console.error('[ROI-SERVICE] Error during DFR processing:', error);
         throw error;
     }
 };

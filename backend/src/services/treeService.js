@@ -30,94 +30,188 @@ const findPlacement = async (sponsorId, strategy) => {
 
     } else if (strategy === 'placing-left') {
         // 3. Placing Left Link: Extreme Left (Power Leg)
-        // Start from sponsor and traverse LEFT until we find a null spot
-        let current = sponsorTree;
-        while (current) {
-            if (!current.leftDirectId) {
-                // Found empty spot
-                return { parentId: current.userId, side: 'Left' };
+        // Optimized with $graphLookup
+        const nodes = await Tree.aggregate([
+            { $match: { userId: sponsorId } },
+            {
+                $graphLookup: {
+                    from: 'trees',
+                    startWith: '$leftDirectId',
+                    connectFromField: 'leftDirectId',
+                    connectToField: 'userId',
+                    as: 'path',
+                    maxDepth: 100
+                }
             }
-            // Move down to the next node on the left
-            current = await Tree.findOne({ userId: current.leftDirectId });
+        ]);
+
+        if (!nodes.length) throw new Error('Sponsor tree node not found');
+
+        // Find the leaf node on the left path
+        const pathNodes = nodes[0].path;
+        const nodeMap = new Map(pathNodes.map(n => [n.userId, n]));
+
+        let current = nodes[0];
+        let safetyCounter = 0;
+        while (current.leftDirectId && safetyCounter < 100) {
+            const next = nodeMap.get(current.leftDirectId);
+            if (!next) break; // Should not happen with graphLookup
+            current = next;
+            safetyCounter++;
         }
+        return { parentId: current.userId, side: 'Left' };
 
     } else if (strategy === 'placing-right') {
         // 4. Placing Right Link: Extreme Right (Power Leg)
-        // Start from sponsor and traverse RIGHT until we find a null spot
-        let current = sponsorTree;
-        while (current) {
-            if (!current.rightDirectId) {
-                // Found empty spot
-                return { parentId: current.userId, side: 'Right' };
+        // Optimized with $graphLookup
+        const nodes = await Tree.aggregate([
+            { $match: { userId: sponsorId } },
+            {
+                $graphLookup: {
+                    from: 'trees',
+                    startWith: '$rightDirectId',
+                    connectFromField: 'rightDirectId',
+                    connectToField: 'userId',
+                    as: 'path',
+                    maxDepth: 100
+                }
             }
-            // Move down to the next node on the right
-            current = await Tree.findOne({ userId: current.rightDirectId });
+        ]);
+
+        if (!nodes.length) throw new Error('Sponsor tree node not found');
+
+        const pathNodes = nodes[0].path;
+        const nodeMap = new Map(pathNodes.map(n => [n.userId, n]));
+
+        let current = nodes[0];
+        let safetyCounter = 0;
+        while (current.rightDirectId && safetyCounter < 100) {
+            const next = nodeMap.get(current.rightDirectId);
+            if (!next) break;
+            current = next;
+            safetyCounter++;
         }
+        return { parentId: current.userId, side: 'Right' };
     }
 
     throw new Error('Invalid placement strategy');
 };
 
-// HELPER: Bubble up counts (Increment)
+// HELPER: Bubble up counts (Increment) - Optimized with $graphLookup
 const incrementUplineCounts = async (startUserId) => {
-    let currentId = startUserId;
+    try {
+        const chain = await Tree.aggregate([
+            { $match: { userId: startUserId } },
+            {
+                $graphLookup: {
+                    from: 'trees',
+                    startWith: '$parentId',
+                    connectFromField: 'parentId',
+                    connectToField: 'userId',
+                    as: 'upline',
+                    maxDepth: 100 // Reasonable limit
+                }
+            }
+        ]);
 
-    // We loop until we hit the top or a broken link
-    while (currentId) {
-        // Find the node itself to get its parent
-        const currentNode = await Tree.findOne({ userId: currentId });
-        if (!currentNode || !currentNode.parentId) break;
+        if (!chain.length || !chain[0].upline.length) return;
 
-        const parentId = currentNode.parentId;
-        const parentNode = await Tree.findOne({ userId: parentId });
+        const nodeMap = new Map(chain[0].upline.map(n => [n.userId, n]));
+        const bulkOps = [];
+        let currentId = startUserId;
+        let SafetyCounter = 0;
 
-        if (!parentNode) break;
+        // Note: GraphLookup gives unordered results, we must traverse in memory using pointers
+        let currentParentId = chain[0].parentId;
+        while (currentParentId && SafetyCounter < 100) {
+            const parent = nodeMap.get(currentParentId);
+            if (!parent) break;
 
-        // Determine which side 'currentId' is on relative to 'parentNode'
-        if (parentNode.leftDirectId === currentId) {
-            // It's on the Left
-            await Tree.updateOne(
-                { userId: parentId },
-                { $inc: { totalLeftMembers: 1 } }
-            );
-        } else if (parentNode.rightDirectId === currentId) {
-            // It's on the Right
-            await Tree.updateOne(
-                { userId: parentId },
-                { $inc: { totalRightMembers: 1 } }
-            );
+            if (parent.leftDirectId === currentId) {
+                bulkOps.push({
+                    updateOne: {
+                        filter: { userId: currentParentId },
+                        update: { $inc: { totalLeftMembers: 1 } }
+                    }
+                });
+            } else if (parent.rightDirectId === currentId) {
+                bulkOps.push({
+                    updateOne: {
+                        filter: { userId: currentParentId },
+                        update: { $inc: { totalRightMembers: 1 } }
+                    }
+                });
+            }
+
+            currentId = currentParentId;
+            currentParentId = parent.parentId;
+            SafetyCounter++;
         }
 
-        currentId = parentId; // Move up one level
+        if (bulkOps.length > 0) {
+            await Tree.bulkWrite(bulkOps);
+            console.log(`[TREE] Upline increment optimized: ${bulkOps.length} nodes updated for ${startUserId}`);
+        }
+    } catch (err) {
+        console.error('[TREE SERVICE] incrementUplineCounts Error:', err);
     }
 };
 
-// HELPER: Bubble down counts (Decrement) - For Deletion
+// HELPER: Bubble down counts (Decrement) - Optimized
 const decrementUplineCounts = async (startUserId) => {
-    let currentId = startUserId;
+    try {
+        const chain = await Tree.aggregate([
+            { $match: { userId: startUserId } },
+            {
+                $graphLookup: {
+                    from: 'trees',
+                    startWith: '$parentId',
+                    connectFromField: 'parentId',
+                    connectToField: 'userId',
+                    as: 'upline',
+                    maxDepth: 100
+                }
+            }
+        ]);
 
-    while (currentId) {
-        const currentNode = await Tree.findOne({ userId: currentId });
-        if (!currentNode || !currentNode.parentId) break;
+        if (!chain.length || !chain[0].upline.length) return;
 
-        const parentId = currentNode.parentId;
-        const parentNode = await Tree.findOne({ userId: parentId });
+        const nodeMap = new Map(chain[0].upline.map(n => [n.userId, n]));
+        const bulkOps = [];
+        let currentId = startUserId;
+        let currentParentId = chain[0].parentId;
+        let Safety = 0;
 
-        if (!parentNode) break;
+        while (currentParentId && Safety < 100) {
+            const parent = nodeMap.get(currentParentId);
+            if (!parent) break;
 
-        if (parentNode.leftDirectId === currentId) {
-            await Tree.updateOne(
-                { userId: parentId },
-                { $inc: { totalLeftMembers: -1 } }
-            );
-        } else if (parentNode.rightDirectId === currentId) {
-            await Tree.updateOne(
-                { userId: parentId },
-                { $inc: { totalRightMembers: -1 } }
-            );
+            if (parent.leftDirectId === currentId) {
+                bulkOps.push({
+                    updateOne: {
+                        filter: { userId: currentParentId },
+                        update: { $inc: { totalLeftMembers: -1 } }
+                    }
+                });
+            } else if (parent.rightDirectId === currentId) {
+                bulkOps.push({
+                    updateOne: {
+                        filter: { userId: currentParentId },
+                        update: { $inc: { totalRightMembers: -1 } }
+                    }
+                });
+            }
+
+            currentId = currentParentId;
+            currentParentId = parent.parentId;
+            Safety++;
         }
 
-        currentId = parentId;
+        if (bulkOps.length > 0) {
+            await Tree.bulkWrite(bulkOps);
+        }
+    } catch (err) {
+        console.error('[TREE SERVICE] decrementUplineCounts Error:', err);
     }
 };
 

@@ -9,7 +9,7 @@ const incomeSchema = new mongoose.Schema({
     },
     incomeType: {
         type: String,
-        enum: ['PMR', 'DRR', 'FCR', 'DFR', 'REPR', 'DIR', 'RANK'],
+        enum: ['PMR', 'DRR', 'FCR', 'DFR', 'REPR', 'RANK'],
         required: true,
     },
     date: {

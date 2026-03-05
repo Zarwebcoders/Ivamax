@@ -9,6 +9,11 @@ const depositService = {
     // Get my deposit history
     getMyDeposits: () => {
         return api.get('/deposit/my-history');
+    },
+
+    // Buy package using profit balance
+    buyWithProfit: (data) => {
+        return api.post('/deposit/buy-profit', data);
     }
 };
 

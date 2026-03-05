@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, UserPlus, ArrowRight, Search, Filter, ChevronRight, Share2, Target } from 'lucide-react';
+import { Users, UserPlus, ArrowRight, Search, Filter, ChevronRight, Share2, Target, Award, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { toast } from 'react-hot-toast';
@@ -17,9 +17,12 @@ const BusinessDetails = () => {
         matchingPairs: 0
     });
     const [referrals, setReferrals] = useState([]);
+    const [rankHistory, setRankHistory] = useState([]);
+    const [matchingHistory, setMatchingHistory] = useState([]);
 
     useEffect(() => {
         fetchBusinessData();
+        fetchHistoryData();
     }, []);
 
     const fetchBusinessData = async () => {
@@ -35,6 +38,24 @@ const BusinessDetails = () => {
             toast.error('Failed to load business data');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchHistoryData = async () => {
+        try {
+            const [rewardsRes, matchingRes] = await Promise.all([
+                api.get('/income/history/rewards'),
+                api.get('/income/history/matching')
+            ]);
+
+            if (rewardsRes.data.success) {
+                setRankHistory(rewardsRes.data.data);
+            }
+            if (matchingRes.data.success) {
+                setMatchingHistory(matchingRes.data.data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch history data:', error);
         }
     };
 
@@ -185,6 +206,105 @@ const BusinessDetails = () => {
                                             <span className="font-medium">{user.leftPairs}L</span> / <span className="font-medium">{user.rightPairs}R</span>
                                         </td>
                                         <td className="px-6 py-4 text-sm font-semibold text-golden-600">{user.royaltyPercentage}%</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+            </div>
+
+            {/* Rank Achieved Records Table */}
+            <div className="bg-white rounded-xl shadow-xl border border-gray-400 overflow-hidden">
+                <div className="p-4 border-b border-gray-400 bg-gray-50 flex items-center gap-3">
+                    <div className="p-2 bg-golden-100 rounded-lg text-golden-600">
+                        <Award size={24} />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-800">Rank Achieved Records</h2>
+                </div>
+
+                <div className="overflow-x-auto">
+                    {rankHistory.length === 0 ? (
+                        <div className="text-center py-10 text-gray-500 bg-white">
+                            <Award size={48} className="mx-auto mb-4 opacity-50" />
+                            <p className="text-lg font-medium">No rank records found</p>
+                        </div>
+                    ) : (
+                        <table className="w-full">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600">DATE</th>
+                                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600">REWARD TYPE</th>
+                                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600">AMOUNT</th>
+                                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600">RANK</th>
+                                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600">STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 bg-white">
+                                {rankHistory.map((item, idx) => (
+                                    <tr key={idx} className="hover:bg-gray-50 transition-colors text-center">
+                                        <td className="px-6 py-4 text-sm text-gray-600">
+                                            {item.date}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-medium text-gray-700">
+                                            {item.rewardType}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-bold text-golden-600">
+                                            ${item.amount.toFixed(2)}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-semibold text-gray-700">
+                                            {item.rank}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${item.status === 'paid' ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'
+                                                }`}>
+                                                {item.status.toUpperCase()}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+            </div>
+
+            {/* Matching Detail Records Table */}
+            <div className="bg-white rounded-xl shadow-xl border border-gray-400 overflow-hidden">
+                <div className="p-4 border-b border-gray-400 bg-gray-50 flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                        <TrendingUp size={24} />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-800">Records with Date & Matching Detail</h2>
+                </div>
+
+                <div className="overflow-x-auto">
+                    {matchingHistory.length === 0 ? (
+                        <div className="text-center py-10 text-gray-500 bg-white">
+                            <TrendingUp size={48} className="mx-auto mb-4 opacity-50" />
+                            <p className="text-lg font-medium">No matching records found</p>
+                        </div>
+                    ) : (
+                        <table className="w-full">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600">DATE</th>
+                                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600">LEFT BV</th>
+                                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600">RIGHT BV</th>
+                                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600">MATCHED</th>
+                                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600">FLUSH</th>
+                                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600">INCOME</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 bg-white text-center">
+                                {matchingHistory.map((item, idx) => (
+                                    <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-6 py-4 text-sm text-gray-600">{item.date}</td>
+                                        <td className="px-6 py-4 text-sm font-medium text-blue-600">{item.leftBV}</td>
+                                        <td className="px-6 py-4 text-sm font-medium text-pink-600">{item.rightBV}</td>
+                                        <td className="px-6 py-4 text-sm font-bold text-green-600">{item.matched}</td>
+                                        <td className="px-6 py-4 text-sm text-red-500 font-medium">{item.flush}</td>
+                                        <td className="px-6 py-4 text-sm font-bold text-golden-600">${item.income.toFixed(2)}</td>
                                     </tr>
                                 ))}
                             </tbody>

@@ -21,20 +21,59 @@ const Reports = () => {
     const fetchReportData = async () => {
         try {
             setLoading(true);
-            let data;
+            setReportData([]); // Clear previous data to prevent flashing
+
+            // Fetch current dynamic income to inject pending rewards into reports
+            const currentRes = await incomeService.getCurrentIncome();
+            const current = currentRes?.success ? currentRes.data : null;
+
             if (reportType === 'matching') {
-                data = await incomeService.getMatchingHistory();
+                const data = await incomeService.getMatchingHistory();
+                let historyData = data?.success ? data.data : [];
+
+                if (current && current.pairMatchingRoyalty?.amount > 0) {
+                    historyData.unshift({
+                        date: new Date().toISOString().split('T')[0],
+                        leftBV: current.pairMatchingRoyalty.leftCount || 0,
+                        rightBV: current.pairMatchingRoyalty.rightCount || 0,
+                        matched: Math.min(current.pairMatchingRoyalty.leftCount || 0, current.pairMatchingRoyalty.rightCount || 0),
+                        flush: 0,
+                        income: current.pairMatchingRoyalty.amount
+                    });
+                }
+                setReportData(historyData);
+
             } else if (reportType === 'rewards') {
-                data = await incomeService.getRankRewards();
+                const data = await incomeService.getRankRewards();
+                let historyData = data?.success ? data.data : [];
+
+                if (current) {
+                    if (current.reprIncome > 0) {
+                        historyData.unshift({
+                            date: new Date().toISOString().split('T')[0],
+                            rewardType: 'Performance Reward',
+                            rank: 'N/A',
+                            amount: current.reprIncome,
+                            status: 'pending'
+                        });
+                    }
+                    if (current.founderClubRoyalty?.amount > 0) {
+                        historyData.unshift({
+                            date: new Date().toISOString().split('T')[0],
+                            rewardType: 'Founder Club',
+                            rank: current.founderClubRoyalty.rankName || 'Founder',
+                            amount: current.founderClubRoyalty.amount,
+                            status: 'pending'
+                        });
+                    }
+                }
+                setReportData(historyData);
+
             } else if (reportType === 'sales') {
-                data = await incomeService.getMonthlySales();
+                const data = await incomeService.getMonthlySales();
+                if (data?.success) setReportData(data.data);
             }
 
-            if (data?.success) {
-                setReportData(data.data);
-            } else {
-                toast.error('Failed to fetch report data');
-            }
         } catch (error) {
             console.error(`Error fetching ${reportType} report:`, error);
             toast.error(`Error loading ${reportType} report`);
@@ -71,22 +110,6 @@ const Reports = () => {
                     <h1 className="text-2xl font-bold text-gray-800">Business Reports</h1>
                     <p className="text-gray-500">Track your business growth and rewards with real-time data</p>
                 </div>
-                <div className="flex gap-3">
-                    <button
-                        onClick={() => toast.success('Period selection feature coming soon')}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-400 rounded-lg hover:bg-gray-50 text-gray-600 card-glass p-6 border-2 border-gray-400"
-                    >
-                        <Calendar size={16} />
-                        Select Period
-                    </button>
-                    <button
-                        onClick={() => toast.success('PDF Export feature coming soon')}
-                        className="flex items-center gap-2 px-4 py-2 bg-golden-100 text-golden-700 border border-golden-100 rounded-lg hover:bg-golden-200 card-glass p-6 border-2 border-gray-400"
-                    >
-                        <Download size={16} />
-                        Export PDF
-                    </button>
-                </div>
             </div>
 
             {/* Report Type Selector */}
@@ -96,21 +119,21 @@ const Reports = () => {
                     icon={TrendingUp}
                     color="blue"
                     isActive={reportType === 'matching'}
-                    onClick={() => setReportType('matching')}
+                    onClick={() => { setReportData([]); setReportType('matching'); }}
                 />
                 <ReportCard
                     title="Rank & Rewards"
                     icon={Award}
                     color="golden"
                     isActive={reportType === 'rewards'}
-                    onClick={() => setReportType('rewards')}
+                    onClick={() => { setReportData([]); setReportType('rewards'); }}
                 />
                 <ReportCard
                     title="Monthly Sales"
                     icon={BarChart2}
                     color="purple"
                     isActive={reportType === 'sales'}
-                    onClick={() => setReportType('sales')}
+                    onClick={() => { setReportData([]); setReportType('sales'); }}
                 />
             </div>
 
@@ -159,11 +182,11 @@ const Reports = () => {
                                         {reportData.map((row, idx) => (
                                             <tr key={idx} className="hover:bg-indigo-50 transition-colors">
                                                 <td className="px-6 py-4 text-sm text-gray-700 font-medium">{row.date}</td>
-                                                <td className="px-6 py-4 text-right font-medium text-gray-800">{row.leftBV.toLocaleString()}</td>
-                                                <td className="px-6 py-4 text-right font-medium text-gray-800">{row.rightBV.toLocaleString()}</td>
-                                                <td className="px-6 py-4 text-right font-bold text-indigo-600">{row.matched.toLocaleString()}</td>
-                                                <td className="px-6 py-4 text-right text-red-500">{row.flush.toLocaleString()}</td>
-                                                <td className="px-6 py-4 text-right font-bold text-green-600">+${row.income.toFixed(2)}</td>
+                                                <td className="px-6 py-4 text-right font-medium text-gray-800">{Number(row.leftBV || 0).toLocaleString()}</td>
+                                                <td className="px-6 py-4 text-right font-medium text-gray-800">{Number(row.rightBV || 0).toLocaleString()}</td>
+                                                <td className="px-6 py-4 text-right font-bold text-indigo-600">{Number(row.matched || 0).toLocaleString()}</td>
+                                                <td className="px-6 py-4 text-right text-red-500">{Number(row.flush || 0).toLocaleString()}</td>
+                                                <td className="px-6 py-4 text-right font-bold text-green-600">+${(row.income || 0).toFixed(2)}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -187,7 +210,7 @@ const Reports = () => {
                                                 <td className="px-6 py-4 text-sm text-gray-700 font-medium">{row.date}</td>
                                                 <td className="px-6 py-4 text-sm text-gray-800 font-bold">{row.rewardType}</td>
                                                 <td className="px-6 py-4 text-sm text-indigo-600 font-semibold">{row.rank || 'N/A'}</td>
-                                                <td className="px-6 py-4 text-right font-bold text-green-600">+${row.amount.toFixed(2)}</td>
+                                                <td className="px-6 py-4 text-right font-bold text-green-600">+${(row.amount || 0).toFixed(2)}</td>
                                                 <td className="px-6 py-4 text-center">
                                                     <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${row.status === 'processed' ? 'bg-green-100 text-green-700' : 'bg-golden-100 text-golden-700'
                                                         }`}>

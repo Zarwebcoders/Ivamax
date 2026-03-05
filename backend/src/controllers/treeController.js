@@ -25,118 +25,99 @@ const getTree = async (req, res) => {
 
         // Build the tree structure (recursive function to fetch levels)
         // We'll fetch 3 levels down for display
-        const buildTree = async (nodeId, currentLevel, maxLevel) => {
-            if (currentLevel > maxLevel || !nodeId) return null;
+        // Efficient BFS-based tree builder
+        const getTreeData = async (rootId, maxDepth) => {
+            let treeMap = new Map();
+            let queue = [{ id: rootId, level: 0 }];
+            let nodesToFetch = [rootId];
+            let levelMap = new Map();
+            levelMap.set(0, [rootId]);
 
-            const node = await Tree.findOne({ userId: nodeId });
-            if (!node) return null;
+            // 1. Identify all nodes up to maxDepth
+            let currentIdx = 0;
+            while (currentIdx < queue.length) {
+                const { id, level } = queue[currentIdx++];
+                if (level >= maxDepth) continue;
 
-            const user = await User.findOne({ userId: nodeId }).select('userId fullName rank currentRank isActive packageType');
+                const node = await Tree.findOne({ userId: id }).select('leftDirectId rightDirectId leftPairs rightPairs totalLeftMembers totalRightMembers');
+                if (!node) continue;
 
-            if (!user) {
-                console.error(`[TREE ERROR] Node ${nodeId} found in Tree but missing in User collection!`);
-                // Return a placeholder or null to avoid crash
-                return {
-                    userId: nodeId,
-                    fullName: "UNKNOWN (Data Error)",
-                    rank: "0 (Member)",
-                    isActive: false,
-                    packageType: "Error",
-                    leftPairs: node.leftPairs,
-                    rightPairs: node.rightPairs,
-                    totalLeft: node.totalLeftMembers || 0,
-                    totalRight: node.totalRightMembers || 0,
-                    children: [],
-                    error: true
-                };
+                treeMap.set(id, node);
+
+                if (node.leftDirectId) {
+                    queue.push({ id: node.leftDirectId, level: level + 1 });
+                    nodesToFetch.push(node.leftDirectId);
+                }
+                if (node.rightDirectId) {
+                    queue.push({ id: node.rightDirectId, level: level + 1 });
+                    nodesToFetch.push(node.rightDirectId);
+                }
             }
 
-            // Check Validity (New Logic)
-            if (!isUserValid(user)) {
-                return null; // Treat as if user doesn't exist (Flushed)
-            }
+            // 2. Batch fetch all User details
+            const users = await User.find({ userId: { $in: nodesToFetch } })
+                .select('userId fullName rank currentRank isActive packageType');
+            const userMap = new Map(users.map(u => [u.userId, u]));
 
-            // Get formatted rank name
+            // 3. Assemble the JSON structure recursively (from memory)
             const { RANK_STRUCTURE } = require('./rankController');
-            const rankVal = user.currentRank || (parseInt(user.rank) || 0);
-            const rankInfo = RANK_STRUCTURE[rankVal] || { name: 'Member' };
-            const formattedRank = rankVal > 0 ? `${rankVal} (${rankInfo.name})` : `0 (Member)`;
 
-            const treeData = {
-                userId: user.userId,
-                fullName: user.fullName,
-                rank: formattedRank,
-                isActive: user.isActive,
-                packageType: user.packageType,
-                leftPairs: node.leftPairs,
-                rightPairs: node.rightPairs,
-                totalLeft: node.totalLeftMembers || 0,
-                totalRight: node.totalRightMembers || 0,
-                children: []
+            const formatNode = (userId, depth) => {
+                const node = treeMap.get(userId);
+                const user = userMap.get(userId);
+
+                if (!user) {
+                    if (!node && depth > 0) return { empty: true };
+                    return null;
+                }
+
+                // Check Validity
+                if (!isUserValid(user)) return null;
+
+                const rankVal = user.currentRank || (parseInt(user.rank) || 0);
+                const rankInfo = RANK_STRUCTURE[rankVal] || { name: 'Member' };
+
+                const data = {
+                    userId: user.userId,
+                    fullName: user.fullName,
+                    rank: rankInfo.name,
+                    isActive: user.isActive,
+                    packageType: user.packageType,
+                    leftPairs: node?.leftPairs || 0,
+                    rightPairs: node?.rightPairs || 0,
+                    totalLeft: node?.totalLeftMembers || 0,
+                    totalRight: node?.totalRightMembers || 0,
+                    children: []
+                };
+
+                if (depth < maxDepth) {
+                    // Left Child
+                    if (node?.leftDirectId) {
+                        const left = formatNode(node.leftDirectId, depth + 1);
+                        if (left) data.children.push({ ...left, position: 'left' });
+                        else data.children.push({ position: 'left', empty: true });
+                    } else {
+                        data.children.push({ position: 'left', empty: true });
+                    }
+
+                    // Right Child
+                    if (node?.rightDirectId) {
+                        const right = formatNode(node.rightDirectId, depth + 1);
+                        if (right) data.children.push({ ...right, position: 'right' });
+                        else data.children.push({ position: 'right', empty: true });
+                    } else {
+                        data.children.push({ position: 'right', empty: true });
+                    }
+                }
+
+                return data;
             };
 
-            // Fetch left child
-            if (node.leftDirectId) {
-                // If we reach maxLevel, we shouldn't say it's empty, we should say it exists but truncated.
-                // However, the current recursive structure expects child nodes.
-                // For now, let's just make sure we go deep enough.
-                const leftChild = await buildTree(node.leftDirectId, currentLevel + 1, maxLevel);
-
-                if (leftChild) {
-                    treeData.children.push({ ...leftChild, position: 'left' });
-                } else {
-                    // If we have an ID but returned null, it means we hit max depth OR DB link is broken.
-                    // If we hit max depth, we should ideally show a placeholder, but frontend might not support it.
-                    // IMPORTANT: If currentLevel > maxLevel, we return null. 
-                    // This causes the parent to see "null" and push "empty: true".
-                    // We need to FIX this logic. 
-
-                    // If we are at max level, we should peek if child exists
-                    if (currentLevel === maxLevel) {
-                        treeData.children.push({
-                            position: 'left',
-                            userId: node.leftDirectId,
-                            fullName: '...',
-                            isExpanded: false
-                        }); // explicit placeholder? 
-                        // Actually, sticking to "Existing logic" but just Deeper is safer for now to avoid breaking Frontend UI.
-                        // But I will increase depth significantly.
-
-                        // If we assume Frontend treats "empty: true" as an empty slot with (+) button.
-                        // We must NOT send empty: true if there is a user.
-                        // So I will change the logic: IF max depth reached, DO NOT return null if there is a nodeId.
-                        // Return a partial node.
-                    } else {
-                        treeData.children.push({ position: 'left', empty: true, _debug: 'link_broken_or_depth' });
-                    }
-                }
-            } else {
-                treeData.children.push({ position: 'left', empty: true });
-            }
-
-            // Fetch right child
-            if (node.rightDirectId) {
-                const rightChild = await buildTree(node.rightDirectId, currentLevel + 1, maxLevel);
-                if (rightChild) {
-                    treeData.children.push({ ...rightChild, position: 'right' });
-                } else {
-                    if (currentLevel === maxLevel) {
-                        // Placeholder for deep node
-                        treeData.children.push({ position: 'right', userId: node.rightDirectId, fullName: '...', isExpanded: false });
-                    } else {
-                        treeData.children.push({ position: 'right', empty: true });
-                    }
-                }
-            } else {
-                treeData.children.push({ position: 'right', empty: true });
-            }
-
-            return treeData;
+            return formatNode(rootId, 0);
         };
 
-        // Set depth to 100 to effectively allow "unlimited" viewing for manual tree checks
-        const depth = req.query.depth ? parseInt(req.query.depth) : 100;
-        const treeData = await buildTree(rootUserId, 0, depth);
+        const depth = req.query.depth ? Math.min(parseInt(req.query.depth), 10) : 4; // Default to 4 levels for speed, max 10
+        const treeData = await getTreeData(rootUserId, depth);
 
         res.json({
             success: true,
@@ -193,7 +174,7 @@ const searchUsers = async (req, res) => {
             const treeNode = await Tree.findOne({ userId: user.userId }).select('parentId');
             const rankVal = user.currentRank || (parseInt(user.rank) || 0);
             const info = RANK_STRUCTURE[rankVal] || { name: 'Member' };
-            const formattedRank = rankVal > 0 ? `${rankVal} (${info.name})` : `0 (Member)`;
+            const formattedRank = info.name;
 
             return {
                 ...user.toObject(),

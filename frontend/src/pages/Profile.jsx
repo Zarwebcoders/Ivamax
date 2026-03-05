@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/auth.service';
-import { User, Mail, Phone, Lock, Eye, EyeOff, CreditCard, Shield, Edit2, Save, X, Wallet, CheckCircle, DollarSign, TrendingUp, Users } from 'lucide-react';
+import { User, Mail, Phone, Lock, Eye, EyeOff, CreditCard, Shield, Edit2, Save, X, Wallet, CheckCircle, DollarSign, TrendingUp, Users, Trophy, Award, History } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ReferralCard from '../components/ReferralCard';
 import { dashboardService } from '../services/dashboard.service';
@@ -13,6 +13,7 @@ const Profile = () => {
     const [activeTab, setActiveTab] = useState('personal'); // personal, security, banking, income, referral
     const [loading, setLoading] = useState(false);
     const [stats, setStats] = useState({});
+    const [walletHistory, setWalletHistory] = useState([]);
 
     const [formData, setFormData] = useState({
         fullName: '',
@@ -41,7 +42,19 @@ const Profile = () => {
     useEffect(() => {
         loadProfile();
         loadStats();
+        loadWalletHistory();
     }, []);
+
+    const loadWalletHistory = async () => {
+        try {
+            const response = await authService.getWalletHistory();
+            if (response.success) {
+                setWalletHistory(response.data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch wallet history", error);
+        }
+    };
 
     const loadStats = async () => {
         try {
@@ -633,7 +646,67 @@ const Profile = () => {
                                     {loading ? 'Updating...' : 'Update Bank Details'}
                                 </button>
                             </div> */}
-                            {/* </div> */}
+                        </div>
+
+                        {/* Wallet History List */}
+                        <div className="mt-10 pt-10 border-t border-gray-100">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-golden-100 rounded-lg text-golden-600">
+                                    <History size={24} />
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-800">Wallet Address History</h3>
+                            </div>
+
+                            {walletHistory.length > 0 ? (
+                                <div className="overflow-x-auto rounded-2xl border border-gray-200">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="bg-gray-50 border-b border-gray-100">
+                                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Date</th>
+                                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Network</th>
+                                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Wallet Address</th>
+                                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-50 bg-white">
+                                            {walletHistory.map((item, index) => (
+                                                <tr key={index} className="hover:bg-gray-50/50 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <p className="text-sm font-semibold text-gray-700">
+                                                            {new Date(item.createdAt).toLocaleDateString()}
+                                                        </p>
+                                                        <p className="text-[10px] text-gray-400">
+                                                            {new Date(item.createdAt).toLocaleTimeString()}
+                                                        </p>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${item.network === 'TRC20'
+                                                            ? 'bg-green-100 text-green-700'
+                                                            : 'bg-yellow-100 text-yellow-700'
+                                                            }`}>
+                                                            {item.network}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <p className="text-xs font-mono text-gray-600 break-all max-w-[200px] md:max-w-xs">
+                                                            {item.address}
+                                                        </p>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className="text-xs font-medium text-gray-500">
+                                                            {item.action || 'Updated'}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                                    <p className="text-gray-400 font-medium">No wallet address history found.</p>
+                                </div>
+                            )}
                         </div>
                     </motion.div>
                 )}
