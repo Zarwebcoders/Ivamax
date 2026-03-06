@@ -166,8 +166,8 @@ const WithdrawalApprovals = () => {
                             key={tab}
                             onClick={() => handleTabChange(tab)}
                             className={`px-4 py-2 rounded-lg font-semibold transition-all ${activeTab === tab
-                                    ? 'bg-golden-500 text-white shadow-md transform scale-105'
-                                    : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                                ? 'bg-golden-500 text-white shadow-md transform scale-105'
+                                : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
                                 }`}
                         >
                             {tab}
@@ -233,8 +233,17 @@ const WithdrawalApprovals = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <p className="text-lg font-bold text-gray-800">${withdrawal.amount.toFixed(2)}</p>
-                                                <p className="text-xs text-gray-500">Fee: ${((withdrawal.amount * 0.02) || 0).toFixed(2)}</p>
+                                                <p className="font-bold text-gray-800">${withdrawal.amount.toFixed(2)}</p>
+                                                <p className="text-xs text-gray-500 font-semibold mb-1">{withdrawal.method || 'USDT (BEP-20)'}</p>
+                                                {(withdrawal.payableAmount > withdrawal.amount) ? (
+                                                    <p className="text-sm font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded inline-block">
+                                                        Pay: {withdrawal.payableAmount.toFixed(2)} IMAX
+                                                    </p>
+                                                ) : (
+                                                    <p className="text-sm font-bold text-gray-700">
+                                                        Pay: ${withdrawal.amount.toFixed(2)}
+                                                    </p>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 text-center">
                                                 <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusColor(withdrawal.status)}`}>

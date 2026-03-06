@@ -154,11 +154,14 @@ const Packages = () => {
                         </motion.div>
 
                         <h2 className="text-xl font-bold text-green-800 mb-1">Binary Pack</h2>
-                        <div className="flex items-center justify-center text-green-800">
-                            <span className="text-lg font-medium opacity-80">$</span>
-                            <span className="text-4xl font-black tracking-tighter">250</span>
+                        <div className="flex items-center justify-center text-green-800 space-x-2">
+                            <span className="text-4xl font-black tracking-tighter">2500</span>
+                            <span className="text-xl font-bold uppercase">IMAX</span>
                         </div>
-                        <p className="text-green-700 mt-1 text-xs font-medium">Lifetime Access</p>
+                        <p className="text-green-700 mt-1 text-xs font-medium flex items-center justify-center gap-1">
+                            <span className="bg-green-100 px-2 py-0.5 rounded text-[10px] font-bold">Value: $250</span>
+                            &bull; Lifetime Access
+                        </p>
                     </div>
 
                     {/* Features Body */}
@@ -205,8 +208,8 @@ const Packages = () => {
                                                     }}
                                                     disabled={link.disabled}
                                                     className={`p-2 rounded-md shadow-sm border border-gray-100 transition-all ${link.disabled
-                                                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                                            : 'bg-white hover:bg-golden-50 text-gray-600 hover:text-golden-600 active:scale-95'
+                                                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                                        : 'bg-white hover:bg-golden-50 text-gray-600 hover:text-golden-600 active:scale-95'
                                                         }`}
                                                     title={link.disabled ? 'Link Used' : 'Copy Link'}
                                                 >

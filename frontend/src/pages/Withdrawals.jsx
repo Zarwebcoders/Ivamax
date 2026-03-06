@@ -10,7 +10,7 @@ const Withdrawals = () => {
     const { user } = useAuth();
     const [amount, setAmount] = useState('');
     const [walletAddress, setWalletAddress] = useState('');
-    const [method, setMethod] = useState('USDT (TRC20)');
+    const [method, setMethod] = useState('USDT (BEP-20)');
     const [loading, setLoading] = useState(false);
     const [stats, setStats] = useState(null);
     const [history, setHistory] = useState([]);
@@ -188,52 +188,55 @@ const Withdrawals = () => {
                             <div>
                                 <label className="text-sm font-semibold text-gray-600 mb-3 block">Withdrawal Method</label>
                                 <div className="grid grid-cols-1 gap-3">
-                                    {/* USDT TRC20 Option */}
+                                    {/* USDT BEP20 Option */}
                                     <div
-                                        onClick={() => setMethod('USDT (TRC20)')}
-                                        className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${method === 'USDT (TRC20)'
+                                        onClick={() => setMethod('USDT (BEP-20)')}
+                                        className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${method === 'USDT (BEP-20)'
                                             ? 'border-golden-500 bg-golden-50 shadow-md shadow-golden-200'
                                             : 'border-gray-300 bg-white hover:border-golden-300 hover:bg-golden-50/30'
                                             }`}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${method === 'USDT (TRC20)' ? 'border-golden-500' : 'border-gray-300'
+                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${method === 'USDT (BEP-20)' ? 'border-golden-500' : 'border-gray-300'
                                                 }`}>
-                                                {method === 'USDT (TRC20)' && (
+                                                {method === 'USDT (BEP-20)' && (
                                                     <div className="w-3 h-3 rounded-full bg-golden-500"></div>
                                                 )}
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2">
                                                     <WalletIcon size={20} className="text-golden-600" />
-                                                    <p className="font-bold text-gray-800">USDT (TRC20)</p>
+                                                    <p className="font-bold text-gray-800">USDT (BEP-20)</p>
                                                 </div>
-                                                <p className="text-xs text-gray-500 mt-1">Withdraw to your USDT TRC20 wallet address</p>
+                                                <p className="text-xs text-gray-500 mt-1">Withdraw to your USDT BEP-20 wallet address</p>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* USDT BEP20 Option */}
+                                    {/* IMAX Token BEP20 Option */}
                                     <div
-                                        onClick={() => setMethod('USDT (BEP20)')}
-                                        className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${method === 'USDT (BEP20)'
-                                            ? 'border-golden-500 bg-golden-50 shadow-md shadow-golden-200'
-                                            : 'border-gray-300 bg-white hover:border-golden-300 hover:bg-golden-50/30'
+                                        onClick={() => setMethod('IMAX Token (BEP-20)')}
+                                        className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all overflow-hidden ${method === 'IMAX Token (BEP-20)'
+                                            ? 'border-golden-500 bg-gradient-to-br from-golden-50 to-orange-50 shadow-md shadow-golden-200'
+                                            : 'border-golden-300 bg-white hover:bg-golden-50/30'
                                             }`}
                                     >
+                                        <div className="absolute top-0 right-0 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg">
+                                            +15% BONUS
+                                        </div>
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${method === 'USDT (BEP20)' ? 'border-golden-500' : 'border-gray-300'
+                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center min-w-5 min-h-5 ${method === 'IMAX Token (BEP-20)' ? 'border-golden-500' : 'border-gray-300'
                                                 }`}>
-                                                {method === 'USDT (BEP20)' && (
+                                                {method === 'IMAX Token (BEP-20)' && (
                                                     <div className="w-3 h-3 rounded-full bg-golden-500"></div>
                                                 )}
                                             </div>
-                                            <div className="flex-1">
+                                            <div className="flex-1 pr-6">
                                                 <div className="flex items-center gap-2">
-                                                    <WalletIcon size={20} className="text-golden-600" />
-                                                    <p className="font-bold text-gray-800">USDT (BEP20)</p>
+                                                    <div className="w-5 h-5 rounded-full bg-golden-500 flex items-center justify-center text-white text-xs font-bold">I</div>
+                                                    <p className="font-bold text-gray-800">IMAX Token (BEP-20)</p>
                                                 </div>
-                                                <p className="text-xs text-gray-500 mt-1">Withdraw to your USDT BEP20 wallet address</p>
+                                                <p className="text-xs text-green-600 font-semibold mt-1">Get 15% extra tokens as payout!</p>
                                             </div>
                                         </div>
                                     </div>
@@ -356,8 +359,12 @@ const Withdrawals = () => {
                                                         <p className="text-xs text-red-500 mt-1">{record.adminNotes}</p>
                                                     )}
                                                 </td>
-                                                <td className="px-6 py-4 text-right font-bold text-gray-800">
-                                                    ${record.amount.toFixed(2)}
+                                                <td className="px-6 py-4 text-right">
+                                                    <p className="font-bold text-gray-800">${record.amount.toFixed(2)}</p>
+                                                    <p className="text-xs text-gray-500 font-semibold">{record.method || 'USDT (BEP-20)'}</p>
+                                                    {(record.payableAmount > record.amount) && (
+                                                        <p className="text-xs font-bold text-green-600 mt-0.5">Payout: {record.payableAmount.toFixed(2)} IMAX</p>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))}

@@ -398,7 +398,7 @@ const Income = () => {
                                                         {income.incomeType === 'DFR' && <span>Daily ROI on Capital</span>}
                                                         {income.incomeType === 'FCR' && <span>Founder Club Member Reward</span>}
                                                         {income.incomeType === 'REPR' && <span>Performance Bonus</span>}
-                                                        {income.incomeType === 'RANK' && <span>Rank Advanced to {income.rank}</span>}
+                                                        {income.incomeType === 'RANK' && <span>{income.description || `Rank Advanced to ${income.rank}`}</span>}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest ${income.status === 'paid' ? 'bg-green-100 text-green-700' :

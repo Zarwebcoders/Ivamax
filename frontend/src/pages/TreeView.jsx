@@ -288,10 +288,7 @@ const TreeView = () => {
                 </div>
             </motion.div>
 
-            <div className="relative card h-[600px] md:h-[700px] border-2 border-black shadow-lg shadow-gray-400 bg-gray-200 overflow-hidden">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-50"></div>
-
+            <div className="relative card h-[600px] md:h-[700px] border-2 border-black shadow-lg shadow-gray-400 bg-gray-200">
                 {/* Zoom Controls - Absolute to the card, not the scrolling content */}
                 <div className="absolute top-4 right-4 flex flex-col gap-2 z-50">
                     <button
@@ -320,19 +317,23 @@ const TreeView = () => {
                 {/* Scrollable Area */}
                 <div
                     ref={scrollRef}
-                    className="w-full h-full overflow-auto relative z-10 custom-scrollbar cursor-grab active:cursor-grabbing"
+                    className="w-full h-full overflow-auto relative z-10 custom-scrollbar cursor-grab active:cursor-grabbing rounded-xl"
                     onMouseDown={handleMouseDown}
                     onMouseLeave={handleMouseLeave}
                     onMouseUp={handleMouseUp}
                     onMouseMove={handleMouseMove}
                 >
-                    {/* The crucial fix: inline-block on the wrapper ensures it wraps tightly around the content and expands the scroll container. p-24 adds space around. */}
-                    <div className="inline-block min-w-full p-12 sm:p-24" style={{ textAlign: 'center' }}>
+                    {/* The ultimate fix: 
+                        1. max-content allows it to grow infinitely with the tree, preventing clipping.
+                        2. min-width 100% forces it to fill the screen if the tree is small.
+                        3. flex justify-center smoothly centers it only when it's smaller than the screen. 
+                    */}
+                    <div className="flex justify-center" style={{ minWidth: '100%', width: 'max-content', padding: '40px' }}>
                         <div
-                            className="inline-block text-left"
                             style={{
-                                zoom: zoom,
-                                width: 'max-content' // Forces container to grow with wide children
+                                transform: `scale(${zoom})`,
+                                transformOrigin: 'top center',
+                                transition: 'transform 0.2s ease-out'
                             }}
                         >
                             {treeData ? renderTree(treeData) : (

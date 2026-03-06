@@ -541,20 +541,35 @@ const triggerMonthlyClosing = async (req, res) => {
             if (existing) continue; // Skip if already exists
 
             // Calculate based on CURRENT Rank (as per user request: "last date pe rank check hoga")
-            // We use the same calculation functions but save differently
             const pmr = await calculatePairMatchingRoyalty(user.userId, targetMonth, targetYear);
             const drr = await calculateDirectReferralRoyalty(user.userId, targetMonth, targetYear);
             const fcr = await calculateFounderClubRoyalty(user.userId, targetMonth, targetYear);
 
             const newIncomes = [];
 
+            // 1. ALWAYS ADD RANK SNAPSHOT (Monthly Closing History)
+            newIncomes.push({
+                userId: user.userId,
+                incomeType: 'RANK',
+                royaltyAmount: 0,
+                netAmount: 0,
+                rank: pmr.rankName,
+                month: targetMonth,
+                year: targetYear,
+                status: 'paid', // History snapshots are immediately "finalized"
+                description: `Monthly Closing Rank: ${pmr.rankName}`,
+                closingDate: closingDate,
+                autoProcessed: true,
+                triggeredBy: 'manual'
+            });
+
             // Helper to create pending income object
             const createPendingIncome = (type, amount, meta) => ({
                 userId: user.userId,
                 incomeType: type,
                 royaltyAmount: amount,
-                netAmount: amount, // Deductions can be added here if needed
-                rank: pmr.rankName, // Use current rank
+                netAmount: amount,
+                rank: pmr.rankName,
                 month: targetMonth,
                 year: targetYear,
                 status: 'pending', // DEFERRED
@@ -562,17 +577,15 @@ const triggerMonthlyClosing = async (req, res) => {
                 closingDate: closingDate,
                 metadata: meta,
                 autoProcessed: true,
-                triggeredBy: 'manual' // Triggered by closing API
+                triggeredBy: 'manual'
             });
 
             if (pmr.amount > 0) newIncomes.push(createPendingIncome('PMR', pmr.amount, { totalId: pmr.totalId, left: pmr.leftCount, right: pmr.rightCount }));
             if (drr.totalAmount > 0) newIncomes.push(createPendingIncome('DRR', drr.totalAmount, { details: drr.referralDetails }));
             if (fcr.amount > 0) newIncomes.push(createPendingIncome('FCR', fcr.amount, { qualified: fcr.qualified }));
 
-            if (newIncomes.length > 0) {
-                await Income.insertMany(newIncomes);
-                calculatedCount++;
-            }
+            await Income.insertMany(newIncomes);
+            calculatedCount++;
         }
 
         console.log(`   ✅ Calculated income for ${calculatedCount} users.`);

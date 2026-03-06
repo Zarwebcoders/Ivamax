@@ -58,12 +58,18 @@ const requestWithdrawal = async (req, res) => {
             });
         }
 
+        // Calculate payable amount (15% bonus for IMAX Token)
+        const isImax = method === 'IMAX Token (BEP-20)';
+        const payableAmount = isImax ? withdrawalAmount * 1.15 : withdrawalAmount;
+
         // Create withdrawal request
         const withdrawal = new Withdrawal({
             userId,
             amount: withdrawalAmount,
             walletAddress: walletAddress,
             status: 'pending',
+            method: method || 'USDT (BEP-20)',
+            payableAmount: payableAmount
         });
 
         await withdrawal.save();
@@ -80,6 +86,8 @@ const requestWithdrawal = async (req, res) => {
             data: {
                 withdrawalId: withdrawal._id,
                 amount: withdrawalAmount,
+                method: withdrawal.method,
+                payableAmount: withdrawal.payableAmount,
                 fee,
                 totalDeduction,
                 status: 'pending'

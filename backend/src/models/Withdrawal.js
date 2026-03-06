@@ -21,6 +21,14 @@ const withdrawalSchema = new mongoose.Schema({
         default: 'pending',
         index: true,
     },
+    method: {
+        type: String,
+        default: 'USDT (BEP-20)',
+    },
+    payableAmount: {
+        type: Number,
+        default: 0,
+    },
     walletAddress: {
         type: String,
         required: true,

@@ -13,7 +13,6 @@ const depositSchema = new mongoose.Schema({
     },
     currency: {
         type: String,
-        enum: ['USDT_BEP20', 'USDT_TRC20'],
         required: true,
     },
     transactionHash: {

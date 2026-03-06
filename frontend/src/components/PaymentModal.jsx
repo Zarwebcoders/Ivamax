@@ -8,20 +8,17 @@ import { ethers } from 'ethers';
 
 // BSC Mainnet details
 const BSC_CHAIN_ID = '0x38'; // 56
-const USDT_BEP20_ADDRESS = '0x55d398326f99059fF775485246999027B3197955'; // Mainnet USDT
+// TODO: ADMIN - Replace this placeholder with the actual IMAX Token BEP-20 Smart Contract Address
+const IMAX_BEP20_ADDRESS = 'REPLACE_WITH_IMAX_CONTRACT_ADDRESS';
 
-// Tron Mainnet details
-const USDT_TRC20_ADDRESS = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
-
-const USDT_ABI = [
+const ERC20_ABI = [
     "function transfer(address to, uint256 amount) returns (bool)",
     "function decimals() view returns (uint8)",
     "function balanceOf(address account) view returns (uint256)"
 ];
 
 const ADMIN_WALLETS = {
-    BEP20: "0xE39Fc24F26c60F0d56653606b5E0A25DEf3d98b0", // USDT BNB Smart Chain
-    TRC20: "TSTeVnFW5tDC2fdctPWbu6rkAgoqRnSJtU" // USDT Tron Chain
+    BEP20: "0xE39Fc24F26c60F0d56653606b5E0A25DEf3d98b0" // Admin BEP-20 Wallet Address
 };
 
 import { createPortal } from 'react-dom';
@@ -30,8 +27,8 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
     const { connectWallet, isConnected } = useWallet();
     const [step, setStep] = useState(1); // 1: Method Selection, 2: Payment Action
     const [paymentMethod, setPaymentMethod] = useState(null); // 'auto' | 'manual'
-    const [manualNetwork, setManualNetwork] = useState('BEP20'); // 'BEP20' | 'TRC20'
-    const [autoNetwork, setAutoNetwork] = useState('BEP20'); // 'BEP20' | 'TRC20'
+    const [manualNetwork, setManualNetwork] = useState('BEP20'); // 'BEP20'
+    const [autoNetwork, setAutoNetwork] = useState('BEP20'); // 'BEP20'
     const [copied, setCopied] = useState(false);
     const [processing, setProcessing] = useState(false);
 
@@ -70,11 +67,7 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
     // --- Automatic Payment Flows ---
 
     const handleAutoPaymentSubmit = async () => {
-        if (autoNetwork === 'BEP20') {
-            await handleBEP20AutoPayment();
-        } else {
-            await handleTRC20AutoPayment();
-        }
+        await handleBEP20AutoPayment();
     };
 
     const handleBEP20AutoPayment = async () => {
@@ -119,13 +112,15 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
             }
 
             // Create Contract
-            const usdtContract = new ethers.Contract(USDT_BEP20_ADDRESS, USDT_ABI, signer);
-            const decimals = await usdtContract.decimals();
-            const amount = ethers.parseUnits(packageInfo.price.toString(), decimals);
+            const tokenContract = new ethers.Contract(IMAX_BEP20_ADDRESS, ERC20_ABI, signer);
+            const decimals = await tokenContract.decimals();
+            // Package costs 2500 IMAX Tokens (hardcoded value based on $250 package)
+            const requiredTokens = "2500";
+            const amount = ethers.parseUnits(requiredTokens, decimals);
             const adminAddress = ADMIN_WALLETS.BEP20;
 
             // Send Transaction
-            const tx = await usdtContract.transfer(adminAddress, amount, { gasLimit: 100000 });
+            const tx = await tokenContract.transfer(adminAddress, amount, { gasLimit: 100000 });
 
             toast.loading("Transaction submitted...", { id: 'txPending' });
             await tx.wait();
@@ -133,7 +128,7 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
             toast.success("Transaction confirmed!");
 
             // Submit to Backend
-            await handleSubmitToBackend(tx.hash, 'USDT_BEP20');
+            await handleSubmitToBackend(tx.hash, 'IMAX_BEP20');
 
         } catch (error) {
             console.error("Auto BEP20 Error:", error);
@@ -145,39 +140,7 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
         }
     };
 
-    const handleTRC20AutoPayment = async () => {
-        setProcessing(true);
-        try {
-            if (!window.tronWeb || !window.tronWeb.defaultAddress.base58) {
-                throw new Error("TronLink is not installed or locked. Please unlock it.");
-            }
-
-            const tronWeb = window.tronWeb;
-            const adminAddress = ADMIN_WALLETS.TRC20;
-            const amount = packageInfo.price * 1000000; // USDT TRC20 has 6 decimals
-
-            // Use contract interaction for USDT
-            const contract = await tronWeb.contract().at(USDT_TRC20_ADDRESS);
-
-            // Send Transaction
-            const txHash = await contract.transfer(adminAddress, amount).send({
-                feeLimit: 100_000_000
-            });
-
-            toast.success("Transaction submitted to Tron Network!");
-
-            // Wait a bit for propagation (optional, but good for Tron)
-            // await new Promise(resolve => setTimeout(resolve, 3000));
-
-            await handleSubmitToBackend(txHash, 'USDT_TRC20');
-
-        } catch (error) {
-            console.error("Auto TRC20 Error:", error);
-            toast.error(error.message || "Tron payment failed");
-        } finally {
-            setProcessing(false);
-        }
-    };
+    // TRC20 code removed because IMAX token runs on BEP-20 only
 
     // --- Backend Submission Helper ---
     const handleSubmitToBackend = async (hash, currency) => {
@@ -232,8 +195,8 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                         {/* Header */}
                         <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-6 flex items-center justify-between">
                             <div>
-                                <h3 className="text-xl font-bold text-white">Activate Package (V2)</h3>
-                                <p className="text-golden-300 text-sm mt-1">{packageInfo?.name} - ${packageInfo?.price} - TEST</p>
+                                <h3 className="text-xl font-bold text-white">Activate Package</h3>
+                                <p className="text-golden-300 text-sm mt-1">{packageInfo?.name} - 2500 IMAX</p>
                             </div>
                             <button onClick={handleClose} className="text-gray-400 hover:text-white transition-colors">
                                 <X size={24} />
@@ -257,7 +220,7 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                                             </div>
                                             <div className="text-left">
                                                 <p className="font-bold text-gray-900">Automatic</p>
-                                                <p className="text-xs text-gray-600">BEP20 / TRC20</p>
+                                                <p className="text-xs text-gray-600">IMAX (BEP-20)</p>
                                             </div>
                                         </div>
                                         <div className="bg-golden-200 text-golden-800 text-[10px] font-bold px-2 py-1 rounded uppercase">Recommended</div>
@@ -337,23 +300,16 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
 
                                     {/* Network Selection for Auto */}
                                     <div className="flex p-1 bg-gray-100 rounded-lg">
-                                        {['BEP20', 'TRC20'].map((net) => (
-                                            <button
-                                                key={net}
-                                                onClick={() => setAutoNetwork(net)}
-                                                className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${autoNetwork === net
-                                                    ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200'
-                                                    : 'text-gray-500 hover:text-gray-700'
-                                                    }`}
-                                            >
-                                                {net === 'BEP20' ? 'BEP20' : 'TRC20'}
-                                            </button>
-                                        ))}
+                                        <button
+                                            className="flex-1 py-2 text-sm font-bold rounded-md transition-all bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 cursor-default"
+                                        >
+                                            IMAX (BEP-20)
+                                        </button>
                                     </div>
 
                                     <div className="text-center">
                                         <p className="text-gray-500 text-sm mb-2">Total Amount</p>
-                                        <p className="text-3xl font-black text-gray-900 tracking-tight">${packageInfo?.price} <span className="text-lg font-bold text-gray-400">USDT</span></p>
+                                        <p className="text-3xl font-black text-gray-900 tracking-tight">2500 <span className="text-lg font-bold text-gray-400">IMAX</span></p>
                                     </div>
 
                                     {autoNetwork === 'BEP20' && !isConnected ? (
@@ -367,10 +323,7 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                                         <button
                                             onClick={handleAutoPaymentSubmit}
                                             disabled={processing}
-                                            className={`w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] ${autoNetwork === 'TRC20'
-                                                ? 'bg-gradient-to-r from-red-500 to-red-600 shadow-red-200 hover:shadow-red-300'
-                                                : 'bg-gradient-to-r from-golden-500 to-golden-600 shadow-golden-200 hover:shadow-golden-300'
-                                                }`}
+                                            className="w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] bg-gradient-to-r from-golden-500 to-golden-600 shadow-golden-200 hover:shadow-golden-300"
                                         >
                                             {processing ? (
                                                 <Loader2 size={24} className="animate-spin" />
@@ -383,7 +336,7 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                                         </button>
                                     )}
                                     <p className="text-xs text-center text-gray-400">
-                                        {autoNetwork === 'TRC20' ? 'Requires TRC20 Compatible Wallet' : 'Requires BEP20 Compatible Wallet'}
+                                        Requires BEP-20 compatible wallet with IMAX Tokens
                                     </p>
                                 </div>
                             ) : (
@@ -400,18 +353,11 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
 
                                     {/* Network Tabs */}
                                     <div className="flex p-1 bg-gray-100 rounded-lg">
-                                        {['BEP20', 'TRC20'].map((net) => (
-                                            <button
-                                                key={net}
-                                                onClick={() => setManualNetwork(net)}
-                                                className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${manualNetwork === net
-                                                    ? 'bg-white text-gray-900 shadow-sm'
-                                                    : 'text-gray-500 hover:text-gray-700'
-                                                    }`}
-                                            >
-                                                USDT ({net})
-                                            </button>
-                                        ))}
+                                        <button
+                                            className="flex-1 py-2 text-sm font-bold rounded-md transition-all bg-white text-gray-900 shadow-sm cursor-default"
+                                        >
+                                            IMAX Token (BEP-20)
+                                        </button>
                                     </div>
 
                                     {/* Address Display & QR Code */}
@@ -468,7 +414,7 @@ const PaymentModal = ({ isOpen, onClose, packageInfo }) => {
                                             onClick={() => {
                                                 const hash = document.getElementById('txHashInput').value;
                                                 if (!hash) return toast.error("Please enter hash");
-                                                handleSubmitToBackend(hash, `USDT_${manualNetwork}`);
+                                                handleSubmitToBackend(hash, 'IMAX_BEP20');
                                             }}
                                             disabled={processing}
                                             className="w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all bg-gradient-to-r from-gray-900 to-gray-800 hover:shadow-xl transform hover:scale-[1.02]"
