@@ -58,9 +58,9 @@ const requestWithdrawal = async (req, res) => {
             });
         }
 
-        // Calculate payable amount (15% bonus for IMAX Token)
+        // Calculate payable amount (1 USD = 10 IMAX, plus 15% bonus for IMAX Token)
         const isImax = method === 'IMAX Token (BEP-20)';
-        const payableAmount = isImax ? withdrawalAmount * 1.15 : withdrawalAmount;
+        const payableAmount = isImax ? (withdrawalAmount * 10 * 1.15) : withdrawalAmount;
 
         // Create withdrawal request
         const withdrawal = new Withdrawal({

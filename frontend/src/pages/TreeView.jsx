@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 import { treeService } from '../services/tree.service';
 import TreeNode from '../components/TreeNode';
 import { useAuth } from '../context/AuthContext';
@@ -16,40 +16,9 @@ const TreeView = () => {
     const [highlightedUserId, setHighlightedUserId] = useState(null);
     const [zoom, setZoom] = useState(1.0); // Default zoom level at 100%
 
-    // Drag to pan state
-    const scrollRef = useRef(null);
-    const [isDragging, setIsDragging] = useState(false);
-    const [startX, setStartX] = useState(0);
-    const [startY, setStartY] = useState(0);
-    const [scrollLeft, setScrollLeft] = useState(0);
-    const [scrollTop, setScrollTop] = useState(0);
-
-    const handleMouseDown = (e) => {
-        setIsDragging(true);
-        setStartX(e.pageX - scrollRef.current.offsetLeft);
-        setStartY(e.pageY - scrollRef.current.offsetTop);
-        setScrollLeft(scrollRef.current.scrollLeft);
-        setScrollTop(scrollRef.current.scrollTop);
-    };
-
-    const handleMouseLeave = () => {
-        setIsDragging(false);
-    };
-
-    const handleMouseUp = () => {
-        setIsDragging(false);
-    };
-
-    const handleMouseMove = (e) => {
-        if (!isDragging) return;
-        e.preventDefault();
-        const x = e.pageX - scrollRef.current.offsetLeft;
-        const y = e.pageY - scrollRef.current.offsetTop;
-        const walkX = (x - startX) * 1.5;
-        const walkY = (y - startY) * 1.5;
-        scrollRef.current.scrollLeft = scrollLeft - walkX;
-        scrollRef.current.scrollTop = scrollTop - walkY;
-    };
+    // Pan state using MotionValues for high-performance dragging
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
 
     // Zoom controls
     const handleZoomIn = () => {
@@ -62,7 +31,11 @@ const TreeView = () => {
 
     const handleResetZoom = () => {
         setZoom(1.0);
+        x.set(0); // Reset position
+        y.set(0);
     };
+
+    // Zoom controls - already defined above
 
     // Debounced Search
     useEffect(() => {
@@ -314,33 +287,28 @@ const TreeView = () => {
                     </button>
                 </div>
 
-                {/* Scrollable Area */}
+                {/* Canvas Area - Now with Drag-to-Pan */}
                 <div
-                    ref={scrollRef}
-                    className="w-full h-full overflow-auto relative z-10 custom-scrollbar cursor-grab active:cursor-grabbing rounded-xl"
-                    onMouseDown={handleMouseDown}
-                    onMouseLeave={handleMouseLeave}
-                    onMouseUp={handleMouseUp}
-                    onMouseMove={handleMouseMove}
+                    className="w-full h-full relative overflow-hidden active:cursor-grabbing cursor-grab rounded-xl bg-gray-200"
                 >
-                    {/* The ultimate fix: 
-                        1. max-content allows it to grow infinitely with the tree, preventing clipping.
-                        2. min-width 100% forces it to fill the screen if the tree is small.
-                        3. flex justify-center smoothly centers it only when it's smaller than the screen. 
-                    */}
-                    <div className="flex justify-center" style={{ minWidth: '100%', width: 'max-content', padding: '40px' }}>
-                        <div
-                            style={{
-                                transform: `scale(${zoom})`,
-                                transformOrigin: 'top center',
-                                transition: 'transform 0.2s ease-out'
-                            }}
-                        >
+                    <motion.div
+                        drag
+                        dragMomentum={false}
+                        style={{
+                            x,
+                            y,
+                            scale: zoom,
+                            cursor: 'inherit',
+                            transformOrigin: 'center center'
+                        }}
+                        className="flex justify-center items-center absolute inset-0 w-full h-full"
+                    >
+                        <div className="w-max p-40">
                             {treeData ? renderTree(treeData) : (
                                 <div className="text-center text-gray-500 mt-10">Tree data not found</div>
                             )}
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             </div>
         </div>

@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Tree = require('../models/Tree');
 const Income = require('../models/Income');
 const Withdrawal = require('../models/Withdrawal');
+const { getValidityDeadline } = require('../utils/userValidity');
 
 // @desc    Get Dashboard Statistics
 // @route   GET /api/user/dashboard
@@ -162,14 +163,8 @@ const getDashboardStats = async (req, res) => {
             rankProgress = Math.min(leftProgress, rightProgress, 100);
         }
 
-        // 6. Calculate Dynamic Closing Rank (One rank below current)
-        let dynamicClosingRank = 'NO RANK';
-        if (rankData.rank > 1) {
-            const closingRankData = getRankIncome(rankData.rank - 1);
-            if (closingRankData && closingRankData.name) {
-                dynamicClosingRank = closingRankData.name;
-            }
-        }
+        // 6. Use Stored Closing Rank (Achieved at month end)
+        const closingRank = user.closingRank || 'NO RANK';
 
         // Response matches Frontend State shape
         res.json({
@@ -200,14 +195,15 @@ const getDashboardStats = async (req, res) => {
                 rightPairs: rankData.rightCount,
                 matchingCompleted,
                 currentRank: rankData.rankName || 'NO RANK',
-                closingRank: dynamicClosingRank,
+                closingRank: closingRank,
                 royaltyPercentage: rankData.income || 0, // Dynamic based on actual rank
                 nextRankName: nextRankName,
                 rankProgress: Math.round(rankProgress), // Rounded percentage
                 // Referral Link Constraints
                 isLeftDirectFilled: !!treeBase?.leftDirectId,
                 isRightDirectFilled: !!treeBase?.rightDirectId,
-                isActive: user.isActive ?? true // Default to true if not specified
+                isActive: user.isActive ?? true, // Default to true if not specified
+                activationDeadline: getValidityDeadline(user.createdAt)
             }
         });
 

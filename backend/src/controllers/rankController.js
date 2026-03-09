@@ -6,7 +6,7 @@ const RANK_STRUCTURE = {
     1: { name: 'ASSOCIATE', left: 1, right: 1, totalId: 2, income: 2.5 },
     2: { name: 'JN. EXECUTIVE', left: 2, right: 2, totalId: 4, income: 5 },
     3: { name: 'SN. EXECUTIVE', left: 4, right: 4, totalId: 8, income: 10 },
-    4: { name: 'ASS. MANAGER', left: 8, right: 8, totalId: 16, income: 20 },
+    4: { name: 'ASS. MANAGER', left: 8, right: 8, totalId: 16, income: 10 },
     5: { name: 'MANAGER', left: 16, right: 16, totalId: 32, income: 37.5 },
     6: { name: 'ASS. DIRECTOR', left: 32, right: 32, totalId: 64, income: 75 },
     7: { name: 'PRESIDENT', left: 64, right: 64, totalId: 128, income: 150 },

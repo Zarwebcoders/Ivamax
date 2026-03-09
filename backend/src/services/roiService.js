@@ -39,8 +39,8 @@ const processDailyROI = async () => {
                 continue;
             }
 
-            // Calculate ROI (0.133% of investment ≈ 4% monthly)
-            const roiAmount = user.investmentAmount * 0.00133;
+            // Calculate ROI (0.130% of investment = $0.325 daily for $250 package)
+            const roiAmount = user.investmentAmount * 0.00130;
 
             if (roiAmount <= 0) continue;
 
@@ -56,10 +56,7 @@ const processDailyROI = async () => {
                 continue;
             }
 
-            // Calculate Payment Due Date (1st of next month)
-            const paymentDueDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-
-            // Create Income Record (as PENDING)
+            // Create Income Record (as PAID - Credits Daily)
             await Income.create({
                 userId: user.userId,
                 incomeType: 'DFR',
@@ -67,15 +64,18 @@ const processDailyROI = async () => {
                 netAmount: roiAmount,
                 month,
                 year,
-                status: 'pending', // Important: Paid during Monthly Closing
-                paymentDueDate,   // Released on the 1st of next month
+                status: 'paid', // Changed to paid as it's credited daily
                 autoProcessed: true,
                 triggeredBy: 'daily_roi_scheduler',
                 processedAt: now,
-                description: `Daily Fix Return (0.133%) for ${dateStr} on capital $${user.investmentAmount}`
+                description: `Daily Fix Return (0.130%) for ${dateStr} on capital $${user.investmentAmount}`
             });
 
-            // Note: Wallet balance is NOT updated here. Incremented during Monthly Closing.
+            // UPDATE WALLET: CREDIT DAILY INCOME ON DAILY BASIS IN PROFIT WALLET
+            user.walletBalance += roiAmount;
+            user.totalEarnings += roiAmount;
+            user.lastIncomeUpdate = now;
+            await user.save();
 
             processedCount++;
             totalDistributed += roiAmount;

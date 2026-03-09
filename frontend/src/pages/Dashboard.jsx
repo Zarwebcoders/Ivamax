@@ -12,6 +12,7 @@ import {
 import { announcementService } from '../services/announcement.service';
 import { dashboardService } from '../services/dashboard.service';
 import NewsTicker from '../components/NewsTicker';
+import ActivationPopup from '../components/ActivationPopup';
 
 const Dashboard = () => {
     const { user } = useAuth();
@@ -29,6 +30,7 @@ const Dashboard = () => {
     const [copiedId, setCopiedId] = useState(false);
     const [copiedSide, setCopiedSide] = useState(null);
     const [activeRefTab, setActiveRefTab] = useState('placing-left');
+    const [showActivationPopup, setShowActivationPopup] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -40,6 +42,10 @@ const Dashboard = () => {
 
                 if (statsResponse.success) {
                     setStats(statsResponse.data);
+                    // Show popup if user is not active
+                    if (statsResponse.data.isActive === false) {
+                        setShowActivationPopup(true);
+                    }
                 }
 
                 if (announcementsResponse.success) {
@@ -153,6 +159,14 @@ const Dashboard = () => {
             variants={containerVariants}
             className="space-y-6 pb-20 md:pb-10"
         >
+            {/* Activation Notice Modal */}
+            {showActivationPopup && stats.isActive === false && (
+                <ActivationPopup
+                    deadline={stats.activationDeadline}
+                    onClose={() => setShowActivationPopup(false)}
+                />
+            )}
+
             <NewsTicker />
 
             {/* Account Activation Notice */}

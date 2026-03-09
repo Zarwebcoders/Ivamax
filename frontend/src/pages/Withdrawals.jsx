@@ -277,6 +277,17 @@ const Withdrawals = () => {
                                     <AlertCircle size={12} />
                                     Min withdrawal: $10. No Fee
                                 </p>
+                                {amount && !isNaN(amount) && parseFloat(amount) > 0 && (
+                                    <div className="mt-4 p-3 bg-golden-50 border border-golden-200 rounded-xl shadow-inner">
+                                        <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Estimated Payout</p>
+                                        <p className="text-lg md:text-xl font-black text-golden-600">
+                                            {method === 'IMAX Token (BEP-20)'
+                                                ? `${(parseFloat(amount) * 10 * 1.15).toLocaleString(undefined, { maximumFractionDigits: 2 })} IMAX Tokens = $${(parseFloat(amount) * 1.15).toFixed(2)}`
+                                                : `${parseFloat(amount).toLocaleString()} USDT = ${(parseFloat(amount) * 10).toLocaleString()} IMAX Tokens`
+                                            }
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
                             <button
@@ -362,8 +373,10 @@ const Withdrawals = () => {
                                                 <td className="px-6 py-4 text-right">
                                                     <p className="font-bold text-gray-800">${record.amount.toFixed(2)}</p>
                                                     <p className="text-xs text-gray-500 font-semibold">{record.method || 'USDT (BEP-20)'}</p>
-                                                    {(record.payableAmount > record.amount) && (
-                                                        <p className="text-xs font-bold text-green-600 mt-0.5">Payout: {record.payableAmount.toFixed(2)} IMAX</p>
+                                                    {record.method === 'IMAX Token (BEP-20)' ? (
+                                                        <p className="text-xs font-bold text-green-600 mt-0.5">Payout: {record.payableAmount?.toLocaleString(undefined, { maximumFractionDigits: 2 })} IMAX</p>
+                                                    ) : (
+                                                        <p className="text-xs font-bold text-blue-600 mt-0.5">Payout: {record.payableAmount?.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDT</p>
                                                     )}
                                                 </td>
                                             </tr>
