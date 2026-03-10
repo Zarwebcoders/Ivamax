@@ -71,8 +71,8 @@ const getTree = async (req, res) => {
                     return null;
                 }
 
-                // Check Validity
-                if (!isUserValid(user)) return null;
+                // Check Validity - REMOVED so all users show in tree
+                // if (!isUserValid(user)) return null;
 
                 const rankVal = user.currentRank || (parseInt(user.rank) || 0);
                 const rankInfo = RANK_STRUCTURE[rankVal] || { name: 'Member' };
@@ -116,7 +116,7 @@ const getTree = async (req, res) => {
             return formatNode(rootId, 0);
         };
 
-        const depth = req.query.depth ? Math.min(parseInt(req.query.depth), 10) : 4; // Default to 4 levels for speed, max 10
+        const depth = req.query.depth ? parseInt(req.query.depth) : 10; // Default to 10 levels, no hard limit for admin use
         const treeData = await getTreeData(rootUserId, depth);
 
         res.json({

@@ -562,7 +562,9 @@ const Dashboard = () => {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <p className="text-xs font-black text-gray-500 uppercase tracking-widest">{item.label}</p>
-                                        <h3 className={`text-4xl font-black mt-2 ${item.color}`}>${item.value}</h3>
+                                        <h3 className={`text-4xl font-black mt-2 ${item.color}`}>
+                                            ${Number(item.value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </h3>
                                     </div>
                                     <div className="p-2 bg-white/80 rounded-xl text-gray-400 shadow-sm">{item.icon}</div>
                                 </div>
