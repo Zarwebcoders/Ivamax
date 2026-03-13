@@ -237,7 +237,6 @@ const BusinessDetails = () => {
                                     <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600">REWARD TYPE</th>
                                     <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600">AMOUNT</th>
                                     <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600">RANK</th>
-                                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600">STATUS</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 bg-white">
@@ -254,12 +253,6 @@ const BusinessDetails = () => {
                                         </td>
                                         <td className="px-6 py-4 text-sm font-semibold text-gray-700">
                                             {item.rank}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${item.status === 'paid' ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'
-                                                }`}>
-                                                {item.status.toUpperCase()}
-                                            </span>
                                         </td>
                                     </tr>
                                 ))}

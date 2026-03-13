@@ -52,7 +52,7 @@ const DashboardLayout = () => {
         { path: '/business', label: 'Business', icon: FiBriefcase },
         { path: '/tree', label: 'Tree View', icon: FiLayers },
         { path: '/income', label: 'Income', icon: FiDollarSign },
-        { path: '/reports', label: 'Reports', icon: FiFileText },
+        // { path: '/reports', label: 'Reports', icon: FiFileText },
         { path: '/withdrawals', label: 'Withdrawals', icon: FiCreditCard },
         { path: '/packages', label: 'Packages', icon: FiPackage },
         { path: '/support', label: 'Support', icon: FiHeadphones },

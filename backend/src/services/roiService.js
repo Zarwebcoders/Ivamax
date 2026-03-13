@@ -68,7 +68,7 @@ const processDailyROI = async () => {
                 autoProcessed: true,
                 triggeredBy: 'daily_roi_scheduler',
                 processedAt: now,
-                description: `Daily Fix Return (0.130%) for ${dateStr} on capital $${user.investmentAmount}`
+                description: `Daily Fix Return ($0.325) for ${dateStr} on capital $${user.investmentAmount}`
             });
 
             // UPDATE WALLET: CREDIT DAILY INCOME ON DAILY BASIS IN PROFIT WALLET

@@ -595,7 +595,7 @@ const Dashboard = () => {
                             { label: "Network Tree", icon: <TreeDeciduous size={28} />, color: "bg-blue-500", path: "/tree" },
                             { label: "Income Details", icon: <CircleDollarSign size={28} />, color: "bg-emerald-500", path: "/income" },
                             { label: "Withdraw Funds", icon: <Landmark size={28} />, color: "bg-purple-500", path: "/withdrawals" },
-                            { label: "Analytics", icon: <BarChart3 size={28} />, color: "bg-orange-500", path: "/reports" }
+                            // { label: "Analytics", icon: <BarChart3 size={28} />, color: "bg-orange-500", path: "/reports" }
                         ].map((action, index) => (
                             <motion.button
                                 key={action.label}

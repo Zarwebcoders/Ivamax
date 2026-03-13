@@ -127,7 +127,7 @@ const Income = () => {
                             </p>
                             <div className="text-sm text-gray-600">
                                 <p>ROI on capital investment</p>
-                                <p className="text-xs mt-1">0.133% per day (4.00%/mo)</p>
+                                <p className="text-xs mt-1">$0.325 per day ($9.75/mo)</p>
                             </div>
                         </motion.div>
 
@@ -301,45 +301,15 @@ const Income = () => {
                         </div>
                     ) : (() => {
                         // Flatten and filter history
-                        let allIncomes = incomeHistory.flatMap(monthData => monthData.incomes);
-
-                        // Inject current month dynamic/pending incomes
-                        if (currentIncome) {
-                            if (currentIncome.pairMatchingRoyalty?.amount > 0) {
-                                allIncomes.push({
-                                    incomeType: 'PMR',
-                                    date: new Date(),
-                                    netAmount: currentIncome.pairMatchingRoyalty.amount,
-                                    status: 'pending (unsettled)',
-                                    rank: currentIncome.pairMatchingRoyalty.rankName,
-                                    leftCount: currentIncome.pairMatchingRoyalty.leftCount,
-                                    rightCount: currentIncome.pairMatchingRoyalty.rightCount,
-                                });
-                            }
-                            if (currentIncome.directReferralRoyalty?.totalAmount > 0) {
-                                allIncomes.push({
-                                    incomeType: 'DRR',
-                                    date: new Date(),
-                                    netAmount: currentIncome.directReferralRoyalty.totalAmount,
-                                    status: 'pending (unsettled)'
-                                });
-                            }
-                            if (currentIncome.founderClubRoyalty?.amount > 0) {
-                                allIncomes.push({
-                                    incomeType: 'FCR',
-                                    date: new Date(),
-                                    netAmount: currentIncome.founderClubRoyalty.amount,
-                                    status: 'pending (unsettled)'
-                                });
-                            }
-                        }
+                        const allIncomes = incomeHistory.flatMap(monthData => monthData.incomes);
 
                         // Sort by date newest first
                         allIncomes.sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
 
-                        const filteredIncomes = historyFilter === 'ALL'
+                        const filteredIncomes = (historyFilter === 'ALL'
                             ? allIncomes
-                            : allIncomes.filter(inc => inc.incomeType === historyFilter);
+                            : allIncomes.filter(inc => inc.incomeType === historyFilter))
+                            .filter(inc => inc.status === 'paid' || inc.status === 'processed');
 
                         if (filteredIncomes.length === 0) {
                             return (

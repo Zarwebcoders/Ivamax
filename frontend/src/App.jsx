@@ -12,7 +12,7 @@ import BusinessDetails from './pages/BusinessDetails';
 import TreeView from './pages/TreeView';
 import Income from './pages/Income';
 import IncomeOverview from './pages/IncomeOverview';
-import Reports from './pages/Reports';
+// import Reports from './pages/Reports';
 import Withdrawals from './pages/Withdrawals';
 import Packages from './pages/Packages';
 import Support from './pages/Support';
@@ -57,7 +57,7 @@ function App() {
                             <Route path="business" element={<BusinessDetails />} />
                             <Route path="tree" element={<TreeView />} />
                             <Route path="income" element={<Income />} />
-                            <Route path="reports" element={<Reports />} />
+                            {/* <Route path="reports" element={<Reports />} /> */}
                             <Route path="withdrawals" element={<Withdrawals />} />
                             <Route path="packages" element={<Packages />} />
                             <Route path="support" element={<Support />} />

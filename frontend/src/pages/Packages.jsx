@@ -159,7 +159,7 @@ const Packages = () => {
                             <span className="text-xl font-bold uppercase">IMAX</span>
                         </div>
                         <p className="text-green-700 mt-1 text-xs font-medium flex items-center justify-center gap-1">
-                            <span className="bg-green-100 px-2 py-0.5 rounded text-[10px] font-bold">Value: $250</span>
+                            <span className="bg-white text-green-700 px-4 py-1.5 rounded-full text-[14px] font-black shadow-xl border-2 border-green-500 animate-pulse transition-all">Value: $250</span>
                             &bull; Lifetime Access
                         </p>
                     </div>
