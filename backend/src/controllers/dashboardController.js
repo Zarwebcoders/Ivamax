@@ -38,7 +38,8 @@ const getDashboardStats = async (req, res) => {
                 $match: {
                     userId,
                     month: currentMonth,
-                    year: currentYear
+                    year: currentYear,
+                    status: 'paid'
                 }
             },
             {
@@ -55,7 +56,8 @@ const getDashboardStats = async (req, res) => {
                 $match: {
                     userId,
                     month: lastMonth,
-                    year: lastYear
+                    year: lastYear,
+                    status: 'paid'
                 }
             },
             {
@@ -102,7 +104,7 @@ const getDashboardStats = async (req, res) => {
 
         // All-time income totals
         const allTimeIncome = await Income.aggregate([
-            { $match: { userId } },
+            { $match: { userId, status: 'paid' } },
             {
                 $group: {
                     _id: '$incomeType',

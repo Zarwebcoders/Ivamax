@@ -398,14 +398,48 @@ const getCurrentIncome = async (req, res) => {
         const pmr = await calculatePairMatchingRoyalty(userId, month, year);
         const drr = await calculateDirectReferralRoyalty(userId, month, year);
         const fcr = await calculateFounderClubRoyalty(userId, month, year);
-        // Fetch DFR (Daily ROI) and REPR totals from DB for current month
+        // Fetch PAID records from DB for current month to use for display amounts and details
+        const paidItems = await Income.find({
+            userId,
+            month,
+            year,
+            incomeType: { $in: ['PMR', 'DRR', 'FCR'] },
+            status: 'paid'
+        });
+
+        const pmrRecord = paidItems.find(i => i.incomeType === 'PMR');
+        const drrRecord = paidItems.find(i => i.incomeType === 'DRR');
+        const fcrRecord = paidItems.find(i => i.incomeType === 'FCR');
+
+        // Use Database Paid amounts instead of live calculations for the amounts displayed in boxes
+        // But keep the Live Calculation metadata (rank, left/right counts) for user's progress tracking
+        const pmrDisplay = { 
+            ...pmr, 
+            amount: pmrRecord ? pmrRecord.netAmount : 0 
+        };
+
+        const drrDisplay = { 
+            totalAmount: drrRecord ? drrRecord.netAmount : 0,
+            amountUSDT: drrRecord ? (drrRecord.royaltyAmount || 0) : 0,
+            amountToken: drrRecord ? (drrRecord.tokenAmount || 0) : 0,
+            referralDetails: drrRecord ? (drrRecord.metadata?.referralDetails || []) : []
+        };
+
+        const fcrDisplay = { 
+            ...fcr,
+            amount: fcrRecord ? fcrRecord.netAmount : 0,
+            qualified: fcrRecord ? true : fcr.qualified, // Show live qualification status but 0 amount
+            founderMembers: fcrRecord ? (fcrRecord.metadata?.founderMembers || []) : []
+        };
+
+        // Fetch DFR (Daily ROI) and REPR totals from DB for current month (strictly paid)
         const [dfrData, reprData] = await Promise.all([
             Income.aggregate([
-                { $match: { userId, month, year, incomeType: 'DFR' } },
+                { $match: { userId, month, year, incomeType: 'DFR', status: 'paid' } },
                 { $group: { _id: null, total: { $sum: '$netAmount' } } }
             ]),
             Income.aggregate([
-                { $match: { userId, month, year, incomeType: 'REPR' } },
+                { $match: { userId, month, year, incomeType: 'REPR', status: 'paid' } },
                 { $group: { _id: null, total: { $sum: '$netAmount' } } }
             ])
         ]);
@@ -413,16 +447,16 @@ const getCurrentIncome = async (req, res) => {
         const dfrAmount = dfrData.length > 0 ? dfrData[0].total : 0;
         const reprAmount = reprData.length > 0 ? reprData[0].total : 0;
 
-        const totalIncome = pmr.amount + drr.totalAmount + fcr.amount + dfrAmount + reprAmount;
+        const totalIncome = pmrDisplay.amount + drrDisplay.totalAmount + fcrDisplay.amount + dfrAmount + reprAmount;
 
         res.json({
             success: true,
             data: {
                 month,
                 year,
-                pairMatchingRoyalty: pmr,
-                directReferralRoyalty: drr,
-                founderClubRoyalty: fcr,
+                pairMatchingRoyalty: pmrDisplay,
+                directReferralRoyalty: drrDisplay,
+                founderClubRoyalty: fcrDisplay,
                 dfrIncome: dfrAmount, // Daily Fix Return
                 reprIncome: reprAmount,
                 totalIncome,
