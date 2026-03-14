@@ -3,7 +3,7 @@ const Income = require('../models/Income');
 
 /**
  * Process Daily ROI (Daily Fix Return - DFR)
- * Calculates 0.125% of investmentAmount for all active users
+ * Calculates 0.130% of investmentAmount for all active users ($0.325 for $250)
  */
 const processDailyROI = async () => {
     try {

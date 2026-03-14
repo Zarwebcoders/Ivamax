@@ -563,7 +563,10 @@ const Dashboard = () => {
                                     <div>
                                         <p className="text-xs font-black text-gray-500 uppercase tracking-widest">{item.label}</p>
                                         <h3 className={`text-4xl font-black mt-2 ${item.color}`}>
-                                            ${Number(item.value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            ${Number(item.value).toLocaleString(undefined, { 
+                                                minimumFractionDigits: item.label === "DFR Income" ? 3 : 2, 
+                                                maximumFractionDigits: item.label === "DFR Income" ? 3 : 2 
+                                            })}
                                         </h3>
                                     </div>
                                     <div className="p-2 bg-white/80 rounded-xl text-gray-400 shadow-sm">{item.icon}</div>

@@ -123,7 +123,7 @@ const Income = () => {
                                 <h3 className="font-bold text-lg group-hover:text-indigo-600 transition-colors">Daily Fix Return</h3>
                             </div>
                             <p className="text-3xl font-bold text-indigo-600 mb-2">
-                                ${(currentIncome.dfrIncome || 0).toFixed(2)}
+                                ${(currentIncome.dfrIncome || 0).toFixed(3)}
                             </p>
                             <div className="text-sm text-gray-600">
                                 <p>ROI on capital investment</p>
@@ -380,7 +380,7 @@ const Income = () => {
                                                     </td>
                                                     <td className="px-6 py-4 text-right whitespace-nowrap">
                                                         <span className="text-xl font-black text-gray-900">
-                                                            ${income.netAmount.toFixed(2)}
+                                                            ${income.incomeType === 'DFR' ? income.netAmount.toFixed(3) : income.netAmount.toFixed(2)}
                                                         </span>
                                                         {income.tokenAmount > 0 && (
                                                             <p className="text-xs text-purple-600 font-bold mt-1">
