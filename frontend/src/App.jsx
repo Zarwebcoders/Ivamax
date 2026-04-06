@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext';
 import { WalletProvider } from './context/WalletContext';
 
 // Pages
+import ComingSoon from './pages/ComingSoon';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -32,7 +33,20 @@ import DashboardLayout from './components/DashboardLayout';
 import AdminLayout from './components/AdminLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 
+// Global Maintenance Toggle
+const IS_COMING_SOON = true;
+
 function App() {
+    if (IS_COMING_SOON) {
+        return (
+            <Router>
+                <Routes>
+                    <Route path="*" element={<ComingSoon />} />
+                </Routes>
+            </Router>
+        );
+    }
+
     return (
         <Router>
             <AuthProvider>
